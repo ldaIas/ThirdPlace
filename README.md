@@ -3,4 +3,5 @@ A free and open sourced social hangout, designed to get people talking with no p
 
 # License
 GNU AFFERO GENERAL PUBLIC LICENSE Version 3
+
 See LICENSE

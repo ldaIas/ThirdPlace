@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Apache Commons Lang package
+    implementation 'org.apache.commons:commons-lang3:3.13.0'
+
+    // JUnit for testing
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
+}
+
+application {
+    // Main class entry point
+    mainClass = 'com.thirdplace.ThirdPlaceService'
+}

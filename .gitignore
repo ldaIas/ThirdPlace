@@ -2,6 +2,7 @@ elm-stuff/
 
 .gradle/
 .idea/
+settings.json
 build/
 
 bin/

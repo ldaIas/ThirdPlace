@@ -1,5 +1,6 @@
 Steps to setup a development environment for the backend:
 - Ensure you have Java 21 installed. Available at https://www.oracle.com/java/technologies/downloads/#java21 (open command prompt/terminal and type java -version to check)
+- Copy the path location of the Java 21 installation, and add it to the "java.lds.home" setting in .vscode/settings.json. You can create this file by copying the settings.json.template file.
 - Clone this repo to your preferred location. Open terminal and navigate to .../thirdplace/tp-api/
     - Run `sh gradlew`
 - If using VScode, install the Java Language extension pack. Available at https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack

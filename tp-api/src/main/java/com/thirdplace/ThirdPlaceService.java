@@ -8,8 +8,8 @@ import com.thirdplace.roomchat.RoomChatWebsocketEndpoint;
 
 public class ThirdPlaceService {
 
-    // default websocket timeout of 60 seconds
-    static final long DEFAULT_TIMEOUT = 60_000;
+    // default websocket timeout of 5 minutes
+    static final long DEFAULT_TIMEOUT = 5 * 60_000;
     
     public static void main(String[] args) throws Exception {
 

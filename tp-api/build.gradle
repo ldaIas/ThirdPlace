@@ -25,3 +25,7 @@ application {
     // Main class entry point
     mainClass = 'com.thirdplace.ThirdPlaceService'
 }
+
+tasks.test {
+    useJUnitPlatform()
+}

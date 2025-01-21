@@ -5,13 +5,27 @@ import Browser.Navigation as Navigation
 import Html exposing (Html, button, div, input, text)
 import Html.Attributes exposing (style)
 import Html.Events exposing (on, onClick)
+import RoomUtils
 import Task
+import Time
 import Url exposing (Url)
+import Utils.Ports
+import Websockets exposing (WebsocketMessage)
+
+
+type SocketStatus
+    = Opening
+    | Open
+    | Closed
 
 
 type alias Model =
     { selectedConversation : Maybe String
     , currentUrl : Url
+    , connected : SocketStatus
+    , pendingMessage : String
+    , messages : List RoomUtils.ChatMessage
+    , time : Time.Posix
     }
 
 
@@ -19,6 +33,10 @@ init_model : Url -> Model
 init_model url =
     { selectedConversation = Nothing
     , currentUrl = url
+    , connected = Closed
+    , pendingMessage = ""
+    , messages = []
+    , time = Time.millisToPosix 0
     }
 
 
@@ -27,6 +45,27 @@ type Msg
     | DeselectConversation
     | UrlChanged Url
     | NoOp
+    | GotMessage String
+    | SendMessage RoomUtils.ChatMessage
+    | SocketOpened
+    | SocketMessage WebsocketMessage
+    | SocketClosed
+    | GotTime Time.Posix
+    | GotTimeMs Int
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ Time.every 1000 GotTime
+        , Utils.Ports.socket.onEvent
+            { onOpened = always SocketOpened
+            , onClosed = always SocketClosed
+            , onError = always NoOp
+            , onMessage = SocketMessage
+            , onDecodeError = always NoOp
+            }
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -44,6 +83,36 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        GotTime time ->
+            ( { model | time = time }, Cmd.none )
+
+        GotTimeMs ms ->
+            ( { model | time = Time.millisToPosix ms }, Cmd.none )
+
+        GotMessage message ->
+            ( { model | pendingMessage = message }, Cmd.none )
+
+        SendMessage message ->
+            ( { model | pendingMessage = "" }
+            , RoomUtils.sendMessage message
+            )
+
+        SocketOpened ->
+            ( { model | connected = Open }, Cmd.none )
+
+        SocketClosed ->
+            ( { model | connected = Closed }, Cmd.none )
+
+        SocketMessage { data } ->
+            case RoomUtils.decodeMessage data of
+                Ok message ->
+                    ( { model | messages = model.messages ++ [ message ] }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
 
 main : Program Flags Model Msg
 main =
@@ -51,7 +120,7 @@ main =
         { init = init
         , view = mainView
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         , onUrlChange = UrlChanged
         , onUrlRequest = \_ -> NoOp
         }
@@ -63,7 +132,12 @@ type alias Flags =
 
 init : Flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init _ url _ =
-    ( init_model url, Cmd.none )
+    ( init_model url
+    , Cmd.batch
+        [ Task.perform GotTime Time.now
+        , Utils.Ports.socket.open "chat" "ws://localhost:8080/" []
+        ]
+    )
 
 
 mainView : Model -> Browser.Document Msg

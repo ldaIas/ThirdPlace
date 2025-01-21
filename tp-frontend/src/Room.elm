@@ -3,8 +3,8 @@ module Room exposing (..)
 import Browser
 import Browser.Navigation as Navigation
 import Html exposing (Html, button, div, input, p, text)
-import Html.Attributes exposing (style, class)
-import Html.Events exposing (on, onClick)
+import Html.Attributes exposing (class, placeholder, style, type_, value)
+import Html.Events exposing (on, onClick, onInput, onSubmit)
 import RoomStyles exposing (..)
 import RoomUtils
 import Task
@@ -47,6 +47,7 @@ type Msg
     | UrlChanged Url
     | NoOp
     | GotMessage String
+    | SubmitMessage String
     | SendMessage RoomUtils.ChatMessage
     | SocketOpened
     | SocketMessage WebsocketMessage
@@ -96,6 +97,11 @@ update msg model =
         SendMessage message ->
             ( { model | pendingMessage = "" }
             , RoomUtils.sendMessage message
+            )
+
+        SubmitMessage messageStr ->
+            ( { model | pendingMessage = messageStr }
+            , Cmd.none
             )
 
         SocketOpened ->
@@ -155,7 +161,7 @@ mainView model =
                         , conversationBubble "..." 0.1
                         ]
                     , div [ class rightConversation ]
-                        [ conversationBubble "MEOW" 1
+                        [ conversationBubble model.pendingMessage 1
                         , conversationBubble "MEOW" 0.6
                         , conversationBubble "MEOW" 0.3
                         , conversationBubble "..." 0.1
@@ -171,11 +177,23 @@ mainView model =
                     div [] []
             , div [ class chatInputContainer ]
                 [ div [ class messagesContainer ] [ viewMessages model.messages ]
-                , Html.input [ class chatInput ] []
+                , div [ class inputContainer ]
+                    [ Html.input [ class chatInput, type_ "text", placeholder "Say something...", value model.pendingMessage, onInput (Debug.log "submitting msg" SubmitMessage) ] []
+                    , button [ class sendButton, onClick (SendMessage { username = "testuser", message = model.pendingMessage, conversationId = "ahhh" }) ] [ text ">" ]
+                    ]
                 ]
             ]
         ]
     }
+
+
+submitMessage : Model -> String -> Msg
+submitMessage model msg =
+    SendMessage
+        { username = "testfront"
+        , message = msg
+        , conversationId = "general"
+        }
 
 
 viewMessages : List RoomUtils.ChatMessage -> Html msg

@@ -43,3 +43,11 @@ chatInput =
 conversationBubble : String
 conversationBubble =
     "conversation-bubble"
+
+inputContainer : String
+inputContainer = 
+    "input-container"
+
+sendButton : String
+sendButton = 
+    "send-button"

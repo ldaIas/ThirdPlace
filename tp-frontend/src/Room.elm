@@ -109,7 +109,12 @@ update msg model =
             ( { model | connected = Open }, Cmd.none )
 
         SocketClosed ->
-            ( { model | connected = Closed }, Cmd.none )
+            let
+                disconnectMsg : RoomUtils.ChatMessage
+                disconnectMsg =
+                    { username = "server", message = "Disconnected from chat service.", conversationId = "" }
+            in
+            ( { model | connected = Closed, messages = model.messages ++ [ disconnectMsg ] }, Cmd.none )
 
         SocketMessage { data } ->
             case RoomUtils.decodeMessage data of
@@ -219,7 +224,7 @@ viewMessages messages =
 
 viewMessage : RoomUtils.ChatMessage -> Html msg
 viewMessage message =
-    p [] [ text message.message ]
+    p [] [ text ("[" ++ message.username ++ "]: " ++ message.message) ]
 
 
 conversationBubble : String -> Float -> Html Msg

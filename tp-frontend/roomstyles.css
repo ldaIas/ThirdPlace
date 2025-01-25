@@ -75,6 +75,11 @@ body {
     overflow: scroll
 }
 
+.message-indiv {
+    position: absolute;
+    left: 1.5%;
+}
+
 /* Chat input field */
 .chat-input {
     width: 90%;
@@ -112,13 +117,15 @@ body {
 }
 
 .input-container .send-button {
-    padding: 10px 20px;
     border: none;
     background-color: #007bff;
     color: white;
-    font-size: 16px;
+    font-size: 30px;
     cursor: pointer;
-    border-radius: 0 4px 4px 0;
+    border-radius: 15px 15px 15px 15px;
+    height: 70%;
+    top: 10px;
+    position: relative;
 }
 
 .input-container .send-button:hover {
@@ -133,10 +140,9 @@ body {
 
 .connection-status {
     position: absolute;
-    right: 13px;
+    right: 1.5%;
     font-size: 12px;
-    font-family:'Courier New', Courier, monospace;
-    gap: 2px;
+    font-family: 'Courier New', Courier, monospace;
 }
 
 .status-dot {

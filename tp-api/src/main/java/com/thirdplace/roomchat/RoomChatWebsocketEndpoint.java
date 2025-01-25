@@ -53,8 +53,8 @@ public class RoomChatWebsocketEndpoint {
             final ChatMessage chatMessage = JsonUtils.fromJson(message, ChatMessage.class);
 
             final String user = chatMessage.username();
-            final String respMsg = String.format("[%1$s]: %2$s", user, chatMessage.message());
-            final ChatMessage response = new ChatMessage(SERVER_NAME, respMsg, chatMessage.conversationId());
+            final String respMsg = chatMessage.message();
+            final ChatMessage response = new ChatMessage(user, respMsg, chatMessage.conversationId());
             final String responseAsString = JsonUtils.toJson(response);
             session.getBasicRemote().sendText(responseAsString);
 

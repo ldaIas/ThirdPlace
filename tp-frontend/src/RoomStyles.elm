@@ -93,3 +93,7 @@ refreshButton =
 connecting : String
 connecting =
     "connecting"
+
+messageIndiv : String
+messageIndiv = 
+    "message-indiv"

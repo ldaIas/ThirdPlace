@@ -6,10 +6,14 @@
   <title>Room</title>
   <link rel="stylesheet" href="roomstyles.css">
   <script src="room.js"></script>
+  <script src="ports.websocket.js"></script>
 </head>
 
 <body>
-  <script>var app = Elm.Room.init();</script>
+  <script>
+    var app = Elm.Room.init();
+    initSockets(app);
+  </script>
 </body>
 
 </html>

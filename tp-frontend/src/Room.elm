@@ -36,7 +36,7 @@ init_model url =
     , currentUrl = url
     , connected = Closed
     , pendingMessage = ""
-    , messages = [ { username = "test", message = "asdw", conversationId = "54252" } ]
+    , messages = []
     , time = Time.millisToPosix 0
     }
 
@@ -54,6 +54,7 @@ type Msg
     | SocketClosed
     | GotTime Time.Posix
     | GotTimeMs Int
+    | AttemptReconnect
 
 
 subscriptions : Model -> Sub Msg
@@ -120,6 +121,11 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        AttemptReconnect ->
+            ( { model | connected = Opening }
+            , Utils.Ports.socket.open "chat" "ws://localhost:8080/chat" []
+            )
+
 
 main : Program Flags Model Msg
 main =
@@ -142,7 +148,7 @@ init _ url _ =
     ( init_model url
     , Cmd.batch
         [ Task.perform GotTime Time.now
-        , Utils.Ports.socket.open "chat" "ws://localhost:8080/" []
+        , Utils.Ports.socket.open "chat" "ws://localhost:8080/chat" []
         ]
     )
 
@@ -176,10 +182,19 @@ mainView model =
                 Nothing ->
                     div [] []
             , div [ class chatInputContainer ]
-                [ div [ class messagesContainer ] [ viewMessages model.messages ]
+                [ div [ class messagesContainer ] [ viewConnectionStatus model.connected, viewMessages model.messages ]
                 , div [ class inputContainer ]
-                    [ Html.input [ class chatInput, type_ "text", placeholder "Say something...", value model.pendingMessage, onInput (Debug.log "submitting msg" SubmitMessage) ] []
-                    , button [ class sendButton, onClick (SendMessage { username = "testuser", message = model.pendingMessage, conversationId = "ahhh" }) ] [ text ">" ]
+                    [ Html.form [ class inputForm, onSubmit (SendMessage { username = "testuser", message = model.pendingMessage, conversationId = "ahhh" }) ]
+                        [ Html.input
+                            [ class chatInput
+                            , type_ "text"
+                            , placeholder "Say something..."
+                            , value model.pendingMessage
+                            , onInput SubmitMessage
+                            ]
+                            []
+                        , button [ class sendButton, type_ "submit" ] [ text "💬" ]
+                        ]
                     ]
                 ]
             ]
@@ -211,3 +226,52 @@ conversationBubble : String -> Float -> Html Msg
 conversationBubble message opacity =
     div [ class RoomStyles.conversationBubble, style "opacity" (String.fromFloat opacity) ]
         [ text message ]
+
+
+getConnectionInfo : SocketStatus -> { statusClass : String, statusText : String, showRefresh : Bool }
+getConnectionInfo status =
+    case status of
+        Open ->
+            { statusClass = connected
+            , statusText = "Connected"
+            , showRefresh = False
+            }
+
+        Closed ->
+            { statusClass = disconnected
+            , statusText = "Disconnected"
+            , showRefresh = True
+            }
+
+        Opening ->
+            { statusClass = connecting
+            , statusText = "Attempting to connect"
+            , showRefresh = False
+            }
+
+
+viewConnectionStatus : SocketStatus -> Html Msg
+viewConnectionStatus status =
+    let
+        info =
+            getConnectionInfo status
+    in
+    div
+        [ class connectionStatus
+        , class info.statusClass
+        ]
+        ([ div [ class statusDot ] []
+         , text info.statusText
+         ]
+            ++ (if info.showRefresh then
+                    [ button
+                        [ class refreshButton
+                        , onClick AttemptReconnect
+                        ]
+                        [ text "⟳" ]
+                    ]
+
+                else
+                    []
+               )
+        )

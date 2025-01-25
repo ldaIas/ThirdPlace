@@ -39,6 +39,7 @@ public class RoomChatWebsocketEndpoint {
             // Send a welcome message to the client
             session.getBasicRemote().sendText(messageAsString);
         } catch (IOException e) {
+            LOGGER.error("Error sending welcome message", e);
             e.printStackTrace();
         }
     }
@@ -60,7 +61,7 @@ public class RoomChatWebsocketEndpoint {
             // Broadcast the message to all connected sessions
             sessionSet.forEach(otherSession -> {
                 if (otherSession.isOpen() && !session.equals(otherSession)) {
-                    otherSession.getAsyncRemote().sendText(message);
+                    otherSession.getAsyncRemote().sendText(responseAsString);
                 }
             });
 

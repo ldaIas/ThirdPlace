@@ -1,53 +1,95 @@
 {- This file should only contain string constants to properties found in the appropriate stylesheets files
- - This one goes with roomstyles.css   
- -}
+   - This one goes with roomstyles.css
+-}
+
 
 module RoomStyles exposing (..)
 
+
 mainContainer : String
-mainContainer = 
+mainContainer =
     "main-container"
 
+
 chatWindow : String
-chatWindow = 
+chatWindow =
     "chat-window"
 
+
 circleBackground : String
-circleBackground = 
+circleBackground =
     "circle-background"
 
+
 leftConversation : String
-leftConversation = 
+leftConversation =
     "left-conversation"
 
+
 rightConversation : String
-rightConversation = 
+rightConversation =
     "right-conversation"
 
+
 conversationPanel : String
-conversationPanel = 
+conversationPanel =
     "conversation-panel"
 
+
 chatInputContainer : String
-chatInputContainer = 
+chatInputContainer =
     "chat-input-container"
+
 
 messagesContainer : String
 messagesContainer =
     "messages-container"
 
+
 chatInput : String
-chatInput = 
+chatInput =
     "chat-input"
+
 
 conversationBubble : String
 conversationBubble =
     "conversation-bubble"
 
+
 inputContainer : String
-inputContainer = 
+inputContainer =
     "input-container"
 
+
 sendButton : String
-sendButton = 
+sendButton =
     "send-button"
+
+
+inputForm : String
+inputForm =
+    "input-form"
+
+connectionStatus : String
+connectionStatus =
+    "connection-status"
+
+statusDot : String
+statusDot =
+    "status-dot"
+
+connected : String
+connected =
+    "connected"
+
+disconnected : String
+disconnected =
+    "disconnected"
+
+refreshButton : String
+refreshButton =
+    "refresh-button"
+
+connecting : String
+connecting =
+    "connecting"

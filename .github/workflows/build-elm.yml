@@ -25,4 +25,4 @@ jobs:
 
       - name: Build Elm project
         run: |
-          elm make src/Main.elm --output=/dev/null
+          elm make tp-frontend/src/Main.elm --output=/dev/null

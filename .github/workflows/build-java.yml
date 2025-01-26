@@ -21,4 +21,4 @@ jobs:
           distribution: 'temurin'
 
       - name: Build with Gradle
-        run: ./tp-api/gradlew build
+        run: cd tp-api && ./gradlew build

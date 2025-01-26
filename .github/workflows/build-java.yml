@@ -5,9 +5,14 @@ on:
     branches:
       - 'main'
   pull_request:
+    types:
+        - synchronize
+        - opened
+        - reopened
 
 jobs:
   build:
+    name: Build Java
     runs-on: ubuntu-latest
 
     steps:

@@ -38,7 +38,7 @@ dependencies {
 
 application {
     // Main class entry point
-    mainClass = 'com.thirdplace.ThirdPlaceService'
+    mainClass = 'com.thirdplace.service.ThirdPlaceService'
 }
 
 tasks.test {

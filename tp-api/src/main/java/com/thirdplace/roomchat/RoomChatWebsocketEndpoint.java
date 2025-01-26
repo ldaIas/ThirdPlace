@@ -39,6 +39,7 @@ public class RoomChatWebsocketEndpoint {
             // Send a welcome message to the client
             session.getBasicRemote().sendText(messageAsString);
         } catch (IOException e) {
+            LOGGER.error("Error sending welcome message", e);
             e.printStackTrace();
         }
     }
@@ -52,15 +53,15 @@ public class RoomChatWebsocketEndpoint {
             final ChatMessage chatMessage = JsonUtils.fromJson(message, ChatMessage.class);
 
             final String user = chatMessage.username();
-            final String respMsg = String.format("[%1$s]: %2$s", user, chatMessage.message());
-            final ChatMessage response = new ChatMessage(SERVER_NAME, respMsg, chatMessage.conversationId());
+            final String respMsg = chatMessage.message();
+            final ChatMessage response = new ChatMessage(user, respMsg, chatMessage.conversationId());
             final String responseAsString = JsonUtils.toJson(response);
             session.getBasicRemote().sendText(responseAsString);
 
             // Broadcast the message to all connected sessions
             sessionSet.forEach(otherSession -> {
                 if (otherSession.isOpen() && !session.equals(otherSession)) {
-                    otherSession.getAsyncRemote().sendText(message);
+                    otherSession.getAsyncRemote().sendText(responseAsString);
                 }
             });
 

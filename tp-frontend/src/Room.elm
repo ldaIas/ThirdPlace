@@ -1,6 +1,7 @@
 module Room exposing (..)
 
 import Browser
+import Browser.Dom as Dom exposing (..)
 import Browser.Navigation as Navigation
 import Html exposing (Html, button, div, input, p, text)
 import Html.Attributes exposing (class, placeholder, style, type_, value)
@@ -12,6 +13,7 @@ import Time
 import Url exposing (Url)
 import Utils.Ports
 import Websockets exposing (WebsocketMessage)
+import Html.Attributes exposing (id)
 
 
 type SocketStatus
@@ -120,7 +122,7 @@ update msg model =
             case RoomUtils.decodeMessage data of
                 Ok message ->
                     ( { model | messages = model.messages ++ [ message ] }
-                    , Cmd.none
+                    , jumpToBottom messagesContainer
                     )
 
                 _ ->
@@ -130,6 +132,13 @@ update msg model =
             ( { model | connected = Opening }
             , Utils.Ports.socket.open "chat" "ws://localhost:8080/chat" []
             )
+
+
+jumpToBottom : String -> Cmd Msg
+jumpToBottom id =
+    Dom.getViewportOf id
+        |> Task.andThen (\info -> Dom.setViewportOf id 0 info.scene.height)
+        |> Task.attempt (\_ -> NoOp)
 
 
 main : Program Flags Model Msg
@@ -187,7 +196,7 @@ mainView model =
                 Nothing ->
                     div [] []
             , div [ class chatInputContainer ]
-                [ div [ class messagesContainer ] [ viewConnectionStatus model.connected, viewMessages model.messages ]
+                [ div [ class messagesContainer, id messagesContainer ] [ viewConnectionStatus model.connected, viewMessages model.messages ]
                 , div [ class inputContainer ]
                     [ Html.form [ class inputForm, onSubmit (SendMessage { username = "testuser", message = model.pendingMessage, conversationId = "ahhh" }) ]
                         [ Html.input

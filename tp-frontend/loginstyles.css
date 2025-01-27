@@ -30,7 +30,7 @@ h1 {
     position: relative;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 2px 2px rgba(0, 0, 0, 0.31),0px 0px 20px rgba(255, 174, 96, 0.8);
+    text-shadow: 2px 2px rgba(0, 0, 0, 0.31), 0px 0px 20px rgba(255, 174, 96, 0.8);
 }
 
 .logo-body::before {
@@ -39,25 +39,56 @@ h1 {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 60%; /* Adjust size to fit the text */
-    height: 60%; /* Adjust height to fit the text */
+    width: 60%;
+    /* Adjust size to fit the text */
+    height: 60%;
+    /* Adjust height to fit the text */
     background: radial-gradient(ellipse, rgba(251, 205, 178, 0.68) 50%, rgba(255, 255, 255, 0) 100%);
-    z-index: -1; /* Places it behind the text */
-    border-radius: 50%; /* Ensures the oval shape */
-  }
+    z-index: -1;
+    /* Places it behind the text */
+    border-radius: 50%;
+    /* Ensures the oval shape */
+}
+
+.account-pane {
+    display: flex;
+    flex-direction: column;
+    height: 40vh;
+    width: 45vw;
+    background-color: #f2b566;
+    position: relative;
+    left: 30%;
+    border-radius: 20% 20% 30% 5px;
+    border: 5px double #c16400;
+    align-items: center;
+}
+
+.fields-container {
+    display: flex;
+    width: 90%;
+}
+
+.separator {
+    width: 2%;
+    background-color: #ad5a0d;
+    height: 90%;
+    border-radius: 4px 4px 4px 4px;
+}
+
+.create-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+}
 
 .login-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 30vh;
-    width: 40vw;
-    background-color: #f2b566;
-    position: relative;
-    left: 30%;
-    border-radius: 20% 20% 30% 5px;
-    border: 5px double #c16400;
+    width: 50%;
 }
 
 input {

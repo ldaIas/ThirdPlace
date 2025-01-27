@@ -11,7 +11,9 @@ public class ThirdPlaceDatabaseServiceException extends RuntimeException {
         ERROR_RUNNING_DELETE,
 
         ERROR_STARTING_DB_SERVER,
-        ERROR_STOPPING_DB_SERVER
+        ERROR_STOPPING_DB_SERVER,
+
+        ERROR_CREATING_DATABASE
     }
 
     

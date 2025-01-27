@@ -40,13 +40,13 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     private void startPostgresServer() {
         try {
             // Detect the OS
-            String os = System.getProperty("os.name").toLowerCase();
-            String checkCommand, startCommand;
+            final String os = System.getProperty("os.name").toLowerCase();
+            final String checkCommand, startCommand;
 
             if (os.contains("win")) {
                 // Windows commands
                 checkCommand = "pg_ctl status -D \"C:\\Program Files\\PostgreSQL\\17\\data\"";
-                startCommand = "pg_ctl start -D \"C:\\Program Files\\PostgreSQL\\17\\data -l C:\\Program Files\\PostgreSQL\\17\\data\\logfile.log\"";
+                startCommand = "pg_ctl start -D \"C:\\Program Files\\PostgreSQL\\17\\data\" -l \"C:\\Program Files\\PostgreSQL\\17\\data\\log\\logfile.log\"";
             } else {
                 // Linux/Unix commands
                 checkCommand = "pg_ctl status -D /path/to/data";
@@ -59,18 +59,49 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
             } else {
                 LOGGER.debug("PostgreSQL is not running. Starting the server...");
                 if (runCommand(startCommand, null)) {
-                    LOGGER.error("PostgreSQL server started successfully.");
+                    LOGGER.info("PostgreSQL server started successfully.");
                 } else {
                     LOGGER.error("Failed to start PostgreSQL server. Check the logs for more details.");
                 }
             }
 
-            LOGGER.info("PostgreSQL server started successfully");
+            // Ensure the ThirdPlace database exists
+            ensureThirdPlaceDatabase();
+
         } catch (Exception e) {
             LOGGER.error("Error starting PostgreSQL server", e);
             throw new ThirdPlaceDatabaseServiceException(
-                    ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_STOPPING_DB_SERVER,
+                    ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_STARTING_DB_SERVER,
                     "Error starting PostgreSQL server", e);
+        }
+    }
+
+    private void ensureThirdPlaceDatabase() {
+        
+        LOGGER.info("Ensuring ThirdPlace database exists");
+
+        // Connect to default postgres database first
+        try (final Connection tempConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres",
+                DB_USER, DB_PASSWORD)) {
+
+            // Check if database exists
+            PreparedStatement checkStmt = tempConnection
+                    .prepareStatement("SELECT 1 FROM pg_database WHERE datname = 'thirdplace'");
+
+            if (!checkStmt.executeQuery().next()) {
+                // Database doesn't exist, create it
+                Statement stmt = tempConnection.createStatement();
+                stmt.execute("CREATE DATABASE thirdplace");
+                LOGGER.info("ThirdPlace database created successfully");
+            } else {
+                LOGGER.debug("ThirdPlace database already exists");
+            }
+
+        } catch (SQLException e) {
+            LOGGER.error("Error ensuring ThirdPlace database exists", e);
+            throw new ThirdPlaceDatabaseServiceException(
+                    ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_CREATING_DATABASE,
+                    "Error ensuring ThirdPlace database exists", e);
         }
     }
 
@@ -116,12 +147,12 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
                         "Failed to stop PostgreSQL server");
             }
 
-            LOGGER.info("PostgreSQL server started successfully");
+            LOGGER.info("PostgreSQL server stopped successfully");
         } catch (Exception e) {
-            LOGGER.error("Error starting PostgreSQL server", e);
+            LOGGER.error("Error stopping PostgreSQL server", e);
             throw new ThirdPlaceDatabaseServiceException(
                     ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_STOPPING_DB_SERVER,
-                    "Error starting PostgreSQL server", e);
+                    "Error stopping PostgreSQL server", e);
         }
     }
 

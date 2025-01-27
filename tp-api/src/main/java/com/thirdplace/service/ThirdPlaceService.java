@@ -6,6 +6,7 @@ import org.eclipse.jetty.websocket.jakarta.server.config.JakartaWebSocketServlet
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.thirdplace.ThirdPlaceDatabaseService.ThirdPlaceDatabaseService;
 import com.thirdplace.roomchat.RoomChatWebsocketEndpoint;
 
 public class ThirdPlaceService {
@@ -19,8 +20,8 @@ public class ThirdPlaceService {
 
     public static void main(String[] args) {
 
-        try {
-            LOGGER.info("Starting ThirdPlaceService on port " + PORT);
+        LOGGER.info("Starting ThirdPlaceService on port " + PORT);
+        try (final ThirdPlaceDatabaseService dbService = new ThirdPlaceDatabaseService()) {
 
             final Server server = new Server(PORT);
             final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -32,6 +33,7 @@ public class ThirdPlaceService {
                 wsContainer.addEndpoint(RoomChatWebsocketEndpoint.class);
             });
 
+            createUsersTable(dbService);
             server.start();
 
             Thread.sleep(10000);
@@ -43,6 +45,19 @@ public class ThirdPlaceService {
             throw new ThirdPlaceServiceException(ThirdPlaceServiceException.ErrorCode.ERROR_WHILE_RUNNING,
                     "Critical error while running ThirdPlaceService", e);
         }
+    }
+
+    /**
+     * Users definition: CREATE TABLE users ( id SERIAL PRIMARY KEY, email
+     * VARCHAR(255) NOT NULL UNIQUE, username VARCHAR(50) NOT NULL UNIQUE,
+     * password_hash VARCHAR(64) NOT NULL, created_at TIMESTAMP DEFAULT
+     * CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP );
+     */
+    private static void createUsersTable(final ThirdPlaceDatabaseService dbService) {
+        final String[] columns = { "id SERIAL PRIMARY KEY", "email VARCHAR(255) NOT NULL UNIQUE",
+                "username VARCHAR(50) NOT NULL UNIQUE", "password_hash VARCHAR(64) NOT NULL",
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP", "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" };
+        dbService.createTable("users", columns);
     }
 
 }

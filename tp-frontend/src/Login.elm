@@ -2,10 +2,10 @@ module Login exposing (..)
 
 import Browser
 import Browser.Navigation as Navigation exposing (Key)
-import Html exposing (Html, button, div, h1, input, text)
+import Html exposing (Html, button, div, h1, input, p, text)
 import Html.Attributes exposing (class, placeholder, type_)
 import Html.Events exposing (onClick, onInput)
-import LoginStyles exposing (loginContainer)
+import LoginStyles exposing (loginContainer, logoBody)
 import Url exposing (Url)
 
 
@@ -54,7 +54,9 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "ThirdPlace Login"
     , body =
-        [ div [ class loginContainer ]
+        [ div [ class logoBody ]
+            [ p [] [ text "ThirdPlace" ] ]
+        , div [ class loginContainer ]
             [ h1 [] [ text "Login" ]
             , input [ type_ "text", placeholder "Username", onInput UpdateUsername ] []
             , input [ type_ "password", placeholder "Password", onInput UpdatePassword ] []

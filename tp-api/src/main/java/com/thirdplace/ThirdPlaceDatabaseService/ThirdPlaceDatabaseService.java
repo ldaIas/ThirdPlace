@@ -45,8 +45,8 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
 
             if (os.contains("win")) {
                 // Windows commands
-                checkCommand = "pg_ctl status -D C:\\Program Files\\PostgreSQL\\17\\data";
-                startCommand = "pg_ctl start -D C:\\Program Files\\PostgreSQL\\17\\data -l C:\\Program Files\\PostgreSQL\\17\\data\\logfile.log";
+                checkCommand = "pg_ctl status -D \"C:\\Program Files\\PostgreSQL\\17\\data\"";
+                startCommand = "pg_ctl start -D \"C:\\Program Files\\PostgreSQL\\17\\data -l C:\\Program Files\\PostgreSQL\\17\\data\\logfile.log\"";
             } else {
                 // Linux/Unix commands
                 checkCommand = "pg_ctl status -D /path/to/data";

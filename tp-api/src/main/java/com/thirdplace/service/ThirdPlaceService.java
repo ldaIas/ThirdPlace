@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.thirdplace.ThirdPlaceDatabaseService.ThirdPlaceDatabaseService;
+import com.thirdplace.ThirdPlaceDatabaseService.UserTableDriver;
 import com.thirdplace.roomchat.RoomChatWebsocketEndpoint;
 
 public class ThirdPlaceService {
@@ -47,17 +48,11 @@ public class ThirdPlaceService {
         }
     }
 
-    /**
-     * Users definition: CREATE TABLE users ( id SERIAL PRIMARY KEY, email
-     * VARCHAR(255) NOT NULL UNIQUE, username VARCHAR(50) NOT NULL UNIQUE,
-     * password_hash VARCHAR(64) NOT NULL, created_at TIMESTAMP DEFAULT
-     * CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP );
-     */
     private static void createUsersTable(final ThirdPlaceDatabaseService dbService) {
-        final String[] columns = { "id SERIAL PRIMARY KEY", "email VARCHAR(255) NOT NULL UNIQUE",
-                "username VARCHAR(50) NOT NULL UNIQUE", "password_hash VARCHAR(64) NOT NULL",
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP", "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" };
-        dbService.createTable("users", columns);
+        LOGGER.info("Creating users table");
+
+        final UserTableDriver userTableDriver = new UserTableDriver(dbService);
+        userTableDriver.init();
     }
 
 }

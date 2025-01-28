@@ -8,6 +8,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -22,6 +24,8 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/thirdplace";
     private static final String DB_USER = "postgres";
     private static final String DB_PASSWORD = "0133";
+
+    private static final String COMMA_SEPARATOR = ", ";
 
     // Constructor to initialize database connection
     public ThirdPlaceDatabaseService() {
@@ -77,7 +81,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     }
 
     private void ensureThirdPlaceDatabase() {
-        
+
         LOGGER.info("Ensuring ThirdPlace database exists");
 
         // Connect to default postgres database first
@@ -182,16 +186,22 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         return exitCode == 0;
     }
 
-    // Create a new table
-    public void createTable(String tableName, String[] columns) {
+    /** Create a new table with the given name and columns
+     * @param tableName The name of the table to create
+     * @param columns The columns of the table to create
+     */
+    public void createTable(final String tableName, final List<TableColumnType> columns) {
         try {
-            StringBuilder sql = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tableName + " (");
-            for (int i = 0; i < columns.length; i++) {
-                sql.append(columns[i]);
-                if (i < columns.length - 1) {
-                    sql.append(", ");
+            final StringBuilder sql = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tableName + " (");
+            final AtomicBoolean isFirst = new AtomicBoolean(true);
+            columns.forEach(column -> {
+                if (!isFirst.get()) {
+                    sql.append(COMMA_SEPARATOR);
+                } else {
+                    isFirst.set(false);
                 }
-            }
+                sql.append(column.columnName()).append(StringUtils.SPACE).append(column.columnType());
+            });
             sql.append(")");
 
             Statement stmt = connection.createStatement();
@@ -203,7 +213,12 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         }
     }
 
-    // Insert a new record
+    /**
+     * Insert a record into a table
+     * @param tableName
+     * @param columns
+     * @param values
+     */
     public void insertRecord(String tableName, String[] columns, String[] values) {
         try {
             StringBuilder sql = new StringBuilder("INSERT INTO " + tableName + " (");

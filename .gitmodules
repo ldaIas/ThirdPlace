@@ -1,0 +1,3 @@
+[submodule "AndroidWebApp"]
+	path = AndroidWebApp
+	url = https://github.com/ac-moss/AndroidWebApp.git

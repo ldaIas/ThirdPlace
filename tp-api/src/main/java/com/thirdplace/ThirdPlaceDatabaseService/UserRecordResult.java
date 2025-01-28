@@ -1,6 +1,6 @@
 package com.thirdplace.ThirdPlaceDatabaseService;
 
-public record UserRecord (
+public record UserRecordResult (
     int id,
     String username,
     String password,

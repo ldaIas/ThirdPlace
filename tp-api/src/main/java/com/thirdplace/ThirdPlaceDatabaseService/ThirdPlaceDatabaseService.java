@@ -6,14 +6,26 @@ import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.DeleteResult;
+import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.InsertResult;
+import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.QueryResult;
+import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.UpdateResult;
+
+import jakarta.annotation.Nonnull;
 
 public class ThirdPlaceDatabaseService implements AutoCloseable {
 
@@ -26,6 +38,12 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     private static final String DB_PASSWORD = "0133";
 
     private static final String COMMA_SEPARATOR = ", ";
+    private static final String LEFT_PARAN = "(";
+    private static final String RIGHT_PARAN = ")";
+
+    final String QUERY_FORMATTER = "SELECT %s FROM %s WHERE %s";
+    final String UPDATE_FORMATTER = "UPDATE %s SET %s WHERE %s";
+    final String DELETE_FORMATTER = "DELETE FROM %s WHERE %s";
 
     // Constructor to initialize database connection
     public ThirdPlaceDatabaseService() {
@@ -186,25 +204,22 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         return exitCode == 0;
     }
 
-    /** Create a new table with the given name and columns
+    /**
+     * Create a new table with the given name and columns
+     * 
      * @param tableName The name of the table to create
-     * @param columns The columns of the table to create
+     * @param columns   The columns of the table to create
      */
     public void createTable(final String tableName, final List<TableColumnType> columns) {
         try {
             final StringBuilder sql = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tableName + " (");
-            final AtomicBoolean isFirst = new AtomicBoolean(true);
-            columns.forEach(column -> {
-                if (!isFirst.get()) {
-                    sql.append(COMMA_SEPARATOR);
-                } else {
-                    isFirst.set(false);
-                }
-                sql.append(column.columnName()).append(StringUtils.SPACE).append(column.columnType());
-            });
+            final List<String> columnDefinitions = columns.stream()
+                    .map(c -> c.columnName() + StringUtils.SPACE + c.columnType()).toList();
+            final String columnDefinitionsString = getCommaSeparatedValues(columnDefinitions);
+            sql.append(columnDefinitionsString);
             sql.append(")");
 
-            Statement stmt = connection.createStatement();
+            final Statement stmt = connection.createStatement();
             stmt.execute(sql.toString());
         } catch (SQLException e) {
             LOGGER.error("Error creating table", e);
@@ -213,76 +228,163 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         }
     }
 
+    private static String getCommaSeparatedValues(final List<String> values) {
+        return values.stream().collect(Collectors.joining(COMMA_SEPARATOR));
+    }
+
     /**
      * Insert a record into a table
-     * @param tableName
-     * @param columns
-     * @param values
+     * 
+     * @param tableName The name of the table to insert into
+     * @param columns   The list of columns to insert into (the rest are defaulted
+     *                  null)
+     * @param values    The list of values to insert. Must be in the same order as
+     *                  the columns
+     * @return A {@link DatabaseServiceResults} result of the insert
      */
-    public void insertRecord(String tableName, String[] columns, String[] values) {
-        try {
-            StringBuilder sql = new StringBuilder("INSERT INTO " + tableName + " (");
-            for (int i = 0; i < columns.length; i++) {
-                sql.append(columns[i]);
-                if (i < columns.length - 1) {
-                    sql.append(", ");
-                }
-            }
-            sql.append(") VALUES (");
-            for (int i = 0; i < values.length; i++) {
-                sql.append("?");
-                if (i < values.length - 1) {
-                    sql.append(", ");
-                }
-            }
-            sql.append(")");
+    public DatabaseServiceResults<InsertResult> insertRecord(final String tableName, final List<String> columns,
+            final List<String> values) {
 
-            PreparedStatement pstmt = connection.prepareStatement(sql.toString());
-            for (int i = 0; i < values.length; i++) {
-                pstmt.setString(i + 1, values[i]);
+        final StringBuilder sql = new StringBuilder("INSERT INTO " + tableName + " (");
+        final String columnsString = getCommaSeparatedValues(columns);
+        sql.append(columnsString);
+        sql.append(RIGHT_PARAN);
+        sql.append(" VALUES " + LEFT_PARAN);
+
+        final String valuesString = getCommaSeparatedValues(values);
+        sql.append(valuesString);
+        sql.append(")");
+        final String sqlString = sql.toString();
+
+        try {
+
+            final PreparedStatement pstmt = connection.prepareStatement(sqlString);
+            for (int i = 0; i < values.size(); i++) {
+                pstmt.setString(i + 1, values.get(i));
             }
             pstmt.executeUpdate();
-        } catch (SQLException e) {
+            return new DatabaseServiceResults<InsertResult>(sqlString, QueryOperation.INSERT, null, true, new InsertResult(1));
+
+        } catch (final SQLException e) {
             LOGGER.error("Error inserting record", e);
-            throw new ThirdPlaceDatabaseServiceException(
-                    ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_RUNNING_INSERT, "Error inserting record", e);
+            return new DatabaseServiceResults<InsertResult>(sqlString, QueryOperation.INSERT, e, false, new InsertResult(0));
         }
     }
 
-    // Update a record
-    public void updateRecord(String tableName, String[] columns, String[] values, String whereClause) {
-        try {
-            StringBuilder sql = new StringBuilder("UPDATE " + tableName + " SET ");
-            for (int i = 0; i < columns.length; i++) {
-                sql.append(columns[i]).append("=?");
-                if (i < columns.length - 1) {
-                    sql.append(", ");
-                }
-            }
-            sql.append(" WHERE ").append(whereClause);
+    /**
+     * Update a record in a table
+     * 
+     * @param tableName    The name of the table to update
+     * @param columns      The list of columns to update
+     * @param values       The list of values to update. Must be in the same order
+     *                     as the columns
+     * @param whereClauses The where clauses to use for the update
+     * @return A {@link DatabaseServiceResults} result of the update
+     */
+    public DatabaseServiceResults<UpdateResult> updateRecord(final String tableName, final List<String> columns,
+            final List<String> values, @Nonnull final List<WhereFilter> whereClauses) {
 
-            PreparedStatement pstmt = connection.prepareStatement(sql.toString());
-            for (int i = 0; i < values.length; i++) {
-                pstmt.setString(i + 1, values[i]);
+        final List<String> columnNames = columns.stream().map(c -> c + "=?").toList();
+        final String columnsString = getCommaSeparatedValues(columnNames);
+        final String sql = String.format(UPDATE_FORMATTER, tableName, columnsString,
+                buildWhereFilterString(whereClauses));
+
+        final String sqlString = sql.toString();
+        try {
+            final PreparedStatement pstmt = connection.prepareStatement(sqlString);
+            for (int i = 0; i < values.size(); i++) {
+                pstmt.setString(i + 1, values.get(i));
             }
             pstmt.executeUpdate();
-        } catch (SQLException e) {
-            LOGGER.error("Error updating record", e);
-            throw new ThirdPlaceDatabaseServiceException(
+            final UpdateResult updateResult = new UpdateResult(pstmt.getUpdateCount());
+            return new DatabaseServiceResults<UpdateResult>(sqlString, QueryOperation.UPDATE, null, true, updateResult);
+
+        } catch (final SQLException e) {
+
+            final ThirdPlaceDatabaseServiceException ex = new ThirdPlaceDatabaseServiceException(
+
                     ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_RUNNING_UPDATE, "Error updating record", e);
+            LOGGER.error("Error updating record", ex);
+            return new DatabaseServiceResults<UpdateResult>(sqlString, QueryOperation.UPDATE, e, false,
+                    new UpdateResult(0));
+
         }
     }
 
-    // Delete a record
-    public void deleteRecord(String tableName, String whereClause) {
+    private static String buildWhereFilterString(final List<WhereFilter> whereClauses) {
+        return whereClauses.stream().map(WhereFilter::toString).collect(Collectors.joining(" AND "));
+    }
+
+    /**
+     * Delete a record from a table using the given where clause
+     *
+     * @param tableName    The name of the table to delete from
+     * @param whereClauses The where clauses to use for the delete
+     * @return A {@link DatabaseServiceResults} result of the delete
+     */
+    public DatabaseServiceResults<DeleteResult> deleteRecord(final String tableName,
+            @Nonnull final List<WhereFilter> whereClauses) {
+
+        final String whereClauseString = buildWhereFilterString(whereClauses);
+
+        final String sql = String.format(DELETE_FORMATTER, tableName, whereClauseString);
+
         try {
-            String sql = "DELETE FROM " + tableName + " WHERE " + whereClause;
-            PreparedStatement pstmt = connection.prepareStatement(sql);
+
+            final PreparedStatement pstmt = connection.prepareStatement(sql);
             pstmt.executeUpdate();
-        } catch (SQLException e) {
-            LOGGER.error("Error deleting record", e);
-            throw new ThirdPlaceDatabaseServiceException(
+
+            final DeleteResult deleteResult = new DeleteResult(pstmt.getUpdateCount());
+            return new DatabaseServiceResults<DeleteResult>(sql, QueryOperation.DELETE, null, true, deleteResult);
+
+        } catch (final SQLException e) {
+            final ThirdPlaceDatabaseServiceException ex = new ThirdPlaceDatabaseServiceException(
                     ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_RUNNING_DELETE, "Error deleting record", e);
+            LOGGER.error("Error deleting record", ex);
+            return new DatabaseServiceResults<DeleteResult>(sql, QueryOperation.DELETE, e, false, new DeleteResult(0));
+        }
+    }
+
+    /**
+     * Query a table using the given where clause
+     * 
+     * @param tableName    The name of the table to query
+     * @param columns      The columns to query
+     * @param whereClauses The where clauses to use for the query
+     * @return A {@link DatabaseServiceResults} result of the query
+     */
+    public DatabaseServiceResults<QueryResult> queryRecord(final String tableName, final List<String> columns,
+            final List<WhereFilter> whereClauses) {
+
+        final String sql = String.format(QUERY_FORMATTER, getCommaSeparatedValues(columns), tableName,
+                buildWhereFilterString(whereClauses));
+
+        try {
+            final PreparedStatement pstmt = connection.prepareStatement(sql);
+            final ResultSet rs = pstmt.executeQuery();
+
+            final Map<String, Object> results = new HashMap<>();
+            while (rs.next()) {
+                columns.forEach(c -> {
+                    try {
+                        results.put(c, rs.getObject(c));
+                    } catch (final SQLException e) {
+                        LOGGER.error("Error getting column value", e);
+                        throw new ThirdPlaceDatabaseServiceException(
+                                ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_GETTING_COLUMN_VALUE,
+                                "Error getting column value", e);
+                    }
+                });
+            }
+            final QueryResult queryResult = new QueryResult(results);
+            return new DatabaseServiceResults<QueryResult>(sql, QueryOperation.SELECT, null, true, queryResult);
+
+        } catch (final SQLException e) {
+            final ThirdPlaceDatabaseServiceException ex = new ThirdPlaceDatabaseServiceException(
+                    ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_RUNNING_QUERY, "Error querying record", e);
+            LOGGER.error("Error querying record", ex);
+            return new DatabaseServiceResults<QueryResult>(sql, QueryOperation.SELECT, e, false,
+                    new QueryResult(Map.of()));
         }
     }
 }

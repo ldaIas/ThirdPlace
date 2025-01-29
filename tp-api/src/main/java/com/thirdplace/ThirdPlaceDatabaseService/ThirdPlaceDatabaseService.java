@@ -4,16 +4,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -41,9 +40,13 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     private static final String LEFT_PARAN = "(";
     private static final String RIGHT_PARAN = ")";
 
+    private static final String SERVER_ALREADY_STOPPED = "Is server running?";
+
     final String QUERY_FORMATTER = "SELECT %s FROM %s WHERE %s";
     final String UPDATE_FORMATTER = "UPDATE %s SET %s WHERE %s";
     final String DELETE_FORMATTER = "DELETE FROM %s WHERE %s";
+
+    private static final long PROCESS_TIMEOUT = 5000;
 
     // Constructor to initialize database connection
     public ThirdPlaceDatabaseService() {
@@ -52,14 +55,14 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
         } catch (SQLException e) {
             LOGGER.error("Error acquiring connection to database", e);
-            throw new ThirdPlaceDatabaseServiceException(
-                    ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_GETTING_CONNECTION,
+            throw new ThirdPlaceDatabaseServiceRuntimeError(
+                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_GETTING_CONNECTION,
                     "Error acquiring connection to database", e);
         }
     }
 
     // Start the PostgreSQL server
-    private void startPostgresServer() {
+    protected static void startPostgresServer() {
         try {
             // Detect the OS
             final String os = System.getProperty("os.name").toLowerCase();
@@ -75,7 +78,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
                 startCommand = "pg_ctl start -D /path/to/data -l /path/to/logfile.log";
             }
 
-            final String commandCheckString = "server is running";
+            final String[] commandCheckString = { "server is running" };
             if (runCommand(checkCommand, commandCheckString)) {
                 LOGGER.debug("PostgreSQL is already running.");
             } else {
@@ -92,13 +95,13 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
 
         } catch (Exception e) {
             LOGGER.error("Error starting PostgreSQL server", e);
-            throw new ThirdPlaceDatabaseServiceException(
-                    ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_STARTING_DB_SERVER,
+            throw new ThirdPlaceDatabaseServiceRuntimeError(
+                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_STARTING_DB_SERVER,
                     "Error starting PostgreSQL server", e);
         }
     }
 
-    private void ensureThirdPlaceDatabase() {
+    private static void ensureThirdPlaceDatabase() {
 
         LOGGER.info("Ensuring ThirdPlace database exists");
 
@@ -107,7 +110,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
                 DB_USER, DB_PASSWORD)) {
 
             // Check if database exists
-            PreparedStatement checkStmt = tempConnection
+            final PreparedStatement checkStmt = tempConnection
                     .prepareStatement("SELECT 1 FROM pg_database WHERE datname = 'thirdplace'");
 
             if (!checkStmt.executeQuery().next()) {
@@ -121,12 +124,15 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
 
         } catch (SQLException e) {
             LOGGER.error("Error ensuring ThirdPlace database exists", e);
-            throw new ThirdPlaceDatabaseServiceException(
-                    ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_CREATING_DATABASE,
+            throw new ThirdPlaceDatabaseServiceRuntimeError(
+                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_CREATING_DATABASE,
                     "Error ensuring ThirdPlace database exists", e);
         }
     }
 
+    /**
+     * Close the database service and connection
+     */
     @Override
     public void close() throws Exception {
         if (connection != null) {
@@ -136,51 +142,49 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     }
 
     // Stop the PostgreSQL server
-    private void stopPostgresServer() {
+    protected static void stopPostgresServer() {
         try {
-            final String os = System.getProperty("os.name").toLowerCase();
-            final ProcessBuilder processBuilder;
+            final String command = "pg_ctl stop -D \"C:\\Program Files\\PostgreSQL\\17\\data\"";
 
-            if (os.contains("win")) {
-                // Command for Windows
-                processBuilder = new ProcessBuilder("cmd.exe", "/c", "pg_ctl", "stop", "-D",
-                        "C:\\Program Files\\PostgreSQL\\17\\data", "-l",
-                        "C:\\Program Files\\PostgreSQL\\17\\data\\log\\logfile.log");
-            } else {
-                // Command for Linux/Unix
-                processBuilder = new ProcessBuilder("/bin/bash", "-c",
-                        "pg_ctl start -D /path/to/data -l /path/to/logfile.log");
-            }
+            final boolean commandSuccess = runCommand(command, new String[] { SERVER_ALREADY_STOPPED });
 
-            // Redirect error and output streams
-            processBuilder.redirectErrorStream(true);
-            processBuilder.inheritIO();
-
-            // Start the process
-            final Process process = processBuilder.start();
-
-            // Wait for the process to complete (optional)
-            final int exitCode = process.waitFor();
-
-            if (exitCode != 0) {
+            if (!commandSuccess) {
                 LOGGER.error("Failed to stop PostgreSQL server");
-                throw new ThirdPlaceDatabaseServiceException(
-                        ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_STOPPING_DB_SERVER,
+                throw new ThirdPlaceDatabaseServiceRuntimeError(
+                        ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_STOPPING_DB_SERVER,
                         "Failed to stop PostgreSQL server");
             }
 
             LOGGER.info("PostgreSQL server stopped successfully");
         } catch (Exception e) {
             LOGGER.error("Error stopping PostgreSQL server", e);
-            throw new ThirdPlaceDatabaseServiceException(
-                    ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_STOPPING_DB_SERVER,
+
+            if (!(e instanceof ThirdPlaceDatabaseServiceRuntimeError)) {
+            throw new ThirdPlaceDatabaseServiceRuntimeError(
+                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_STOPPING_DB_SERVER,
                     "Error stopping PostgreSQL server", e);
+            }
         }
     }
 
-    private static boolean runCommand(String command, String searchStr) throws IOException, InterruptedException {
-        final ProcessBuilder processBuilder;
+    /**
+     * Run a command and check if the output contains the search strings, or return
+     * whether the command was successful (exit 0)
+     * 
+     * @param command    The command to run
+     * @param searchStrs The search strings to look for in the output (null for
+     *                   none)
+     * @return True if the command was successful (exit 0) or the output contains
+     *         the search strings. False if the command had a non-zero exit code or
+     *         the process did not finish within the timeout
+     * @implNote Process timeout is {@link #PROCESS_TIMEOUT}
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    private static boolean runCommand(final String command, final String[] searchStrs)
+            throws IOException, InterruptedException {
 
+        final ProcessBuilder processBuilder;
         if (System.getProperty("os.name").toLowerCase().contains("win")) {
             processBuilder = new ProcessBuilder("cmd.exe", "/c", command);
         } else {
@@ -188,20 +192,28 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         }
 
         processBuilder.redirectErrorStream(true);
-        Process process = processBuilder.start();
+        final Process process = processBuilder.start();
 
         try (final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-                if (StringUtils.contains(line, searchStr)) {
+
+            String line = reader.readLine();
+            do {
+                Thread.sleep(50);
+                if (!process.isAlive()) {
+                    break;
+                }
+
+                if (StringUtils.containsAny(line, searchStrs)) {
                     return true;
                 }
-            }
+
+            } while (reader.readLine() != null);
         }
 
-        int exitCode = process.waitFor();
-        return exitCode == 0;
+        // Wait for the process to complete
+        final boolean finished = process.waitFor(PROCESS_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS);
+        final int exitCode = process.exitValue();
+        return finished && exitCode == 0;
     }
 
     /**
@@ -223,8 +235,8 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
             stmt.execute(sql.toString());
         } catch (SQLException e) {
             LOGGER.error("Error creating table", e);
-            throw new ThirdPlaceDatabaseServiceException(
-                    ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_CREATING_TABLE, "Error creating table", e);
+            throw new ThirdPlaceDatabaseServiceRuntimeError(
+                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_CREATING_TABLE, "Error creating table", e);
         }
     }
 
@@ -263,11 +275,13 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
                 pstmt.setString(i + 1, values.get(i));
             }
             pstmt.executeUpdate();
-            return new DatabaseServiceResults<InsertResult>(sqlString, QueryOperation.INSERT, null, true, new InsertResult(1));
+            return new DatabaseServiceResults<InsertResult>(sqlString, QueryOperation.INSERT, null, true,
+                    new InsertResult(1));
 
         } catch (final SQLException e) {
             LOGGER.error("Error inserting record", e);
-            return new DatabaseServiceResults<InsertResult>(sqlString, QueryOperation.INSERT, e, false, new InsertResult(0));
+            return new DatabaseServiceResults<InsertResult>(sqlString, QueryOperation.INSERT, e, false,
+                    new InsertResult(0));
         }
     }
 
@@ -301,9 +315,9 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
 
         } catch (final SQLException e) {
 
-            final ThirdPlaceDatabaseServiceException ex = new ThirdPlaceDatabaseServiceException(
+            final ThirdPlaceDatabaseServiceRuntimeError ex = new ThirdPlaceDatabaseServiceRuntimeError(
 
-                    ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_RUNNING_UPDATE, "Error updating record", e);
+                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_RUNNING_UPDATE, "Error updating record", e);
             LOGGER.error("Error updating record", ex);
             return new DatabaseServiceResults<UpdateResult>(sqlString, QueryOperation.UPDATE, e, false,
                     new UpdateResult(0));
@@ -338,8 +352,8 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
             return new DatabaseServiceResults<DeleteResult>(sql, QueryOperation.DELETE, null, true, deleteResult);
 
         } catch (final SQLException e) {
-            final ThirdPlaceDatabaseServiceException ex = new ThirdPlaceDatabaseServiceException(
-                    ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_RUNNING_DELETE, "Error deleting record", e);
+            final ThirdPlaceDatabaseServiceRuntimeError ex = new ThirdPlaceDatabaseServiceRuntimeError(
+                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_RUNNING_DELETE, "Error deleting record", e);
             LOGGER.error("Error deleting record", ex);
             return new DatabaseServiceResults<DeleteResult>(sql, QueryOperation.DELETE, e, false, new DeleteResult(0));
         }
@@ -370,8 +384,8 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
                         results.put(c, rs.getObject(c));
                     } catch (final SQLException e) {
                         LOGGER.error("Error getting column value", e);
-                        throw new ThirdPlaceDatabaseServiceException(
-                                ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_GETTING_COLUMN_VALUE,
+                        throw new ThirdPlaceDatabaseServiceRuntimeError(
+                                ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_GETTING_COLUMN_VALUE,
                                 "Error getting column value", e);
                     }
                 });
@@ -380,11 +394,31 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
             return new DatabaseServiceResults<QueryResult>(sql, QueryOperation.SELECT, null, true, queryResult);
 
         } catch (final SQLException e) {
-            final ThirdPlaceDatabaseServiceException ex = new ThirdPlaceDatabaseServiceException(
-                    ThirdPlaceDatabaseServiceException.ErrorCode.ERROR_RUNNING_QUERY, "Error querying record", e);
+            final ThirdPlaceDatabaseServiceRuntimeError ex = new ThirdPlaceDatabaseServiceRuntimeError(
+                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_RUNNING_QUERY, "Error querying record", e);
             LOGGER.error("Error querying record", ex);
             return new DatabaseServiceResults<QueryResult>(sql, QueryOperation.SELECT, e, false,
                     new QueryResult(Map.of()));
+        }
+    }
+
+    /**
+     * Check if a table exists in the database
+     * 
+     * @param tableName The name of the table to check
+     * @return True if the table exists, false otherwise
+     */
+    public boolean tableExists(final String tableName) {
+        try {
+            final DatabaseMetaData metaData = connection.getMetaData();
+            try (final ResultSet rs = metaData.getTables(null, null, tableName, null)) {
+                return rs.next();
+            }
+        } catch (final SQLException e) {
+            LOGGER.error("Error checking if table exists", e);
+            throw new ThirdPlaceDatabaseServiceRuntimeError(
+                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_CHECKING_IF_TABLE_EXISTS,
+                    "Error checking if table exists", e);
         }
     }
 }

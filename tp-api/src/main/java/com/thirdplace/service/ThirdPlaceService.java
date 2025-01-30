@@ -22,7 +22,7 @@ public class ThirdPlaceService {
     public static void main(String[] args) {
 
         LOGGER.info("Starting ThirdPlaceService on port " + PORT);
-        try (final ThirdPlaceDatabaseService dbService = new ThirdPlaceDatabaseService()) {
+        try (final ThirdPlaceDatabaseService dbService = ThirdPlaceDatabaseService.getInstance()) {
 
             final Server server = new Server(PORT);
             final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);

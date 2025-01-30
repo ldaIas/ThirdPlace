@@ -2,7 +2,6 @@ package com.thirdplace.ThirdPlaceDatabaseService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -15,9 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,21 +45,56 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
 
     private static final String SERVER_ALREADY_STOPPED = "Is server running?";
 
-    final String QUERY_FORMATTER = "SELECT %s FROM %s WHERE %s";
-    final String UPDATE_FORMATTER = "UPDATE %s SET %s WHERE %s";
-    final String DELETE_FORMATTER = "DELETE FROM %s WHERE %s";
+    final String CREATE_TABLE_FORMATTER = "CREATE TABLE IF NOT EXISTS %s.%s (%s)";
+
+    final String QUERY_FORMATTER = "SELECT %s.%s FROM %s WHERE %s";
+    final String INSERT_FORMATTER = "INSERT INTO %s.%s (%s) VALUES (%s)";
+    final String UPDATE_FORMATTER = "UPDATE %s.%s SET %s WHERE %s";
+    final String DELETE_FORMATTER = "DELETE FROM %s.%s WHERE %s";
+
+    final String DEFAULT_SCHEMA = "prod";
+
+    private static AtomicInteger refCount = new AtomicInteger(0);
+
+    private static ThirdPlaceDatabaseService instance;
+
+    public static ThirdPlaceDatabaseService getInstance() {
+
+        if (instance == null) {
+            instance = new ThirdPlaceDatabaseService();
+        }
+
+        refCount.incrementAndGet();
+        return instance;
+    }
 
     // Constructor to initialize database connection
-    public ThirdPlaceDatabaseService() {
+    protected ThirdPlaceDatabaseService() {
         try {
             startPostgresServer();
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            initializeSchema();
         } catch (SQLException e) {
             LOGGER.error("Error acquiring connection to database", e);
             throw new ThirdPlaceDatabaseServiceRuntimeError(
                     ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_GETTING_CONNECTION,
                     "Error acquiring connection to database", e);
         }
+    }
+
+    protected void initializeSchema() {
+        final String sql = "CREATE SCHEMA IF NOT EXISTS " + getSchemaName();
+        try (final Statement stmt = connection.createStatement()) {
+            stmt.execute(sql.toString());
+        } catch (SQLException e) {
+            LOGGER.error("Error creating table", e);
+            throw new ThirdPlaceDatabaseServiceRuntimeError(
+                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_CREATING_TABLE, "Error creating table", e);
+        }
+    }
+
+    protected String getSchemaName() {
+        return DEFAULT_SCHEMA;
     }
 
     // Start the PostgreSQL server
@@ -135,10 +167,14 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     }
 
     /**
-     * Close the database service and connection
+     * Close the database service and connection when the last reference is closed
      */
     @Override
     public void close() throws Exception {
+        refCount.decrementAndGet();
+        if (refCount.get() > 0) {
+            return;
+        }
         if (connection != null) {
             connection.close();
         }
@@ -237,16 +273,14 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
      * @param columns   The columns of the table to create
      */
     public void createTable(final String tableName, final List<TableColumnType> columns) {
-        try {
-            final StringBuilder sql = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tableName + " (");
-            final List<String> columnDefinitions = columns.stream()
-                    .map(c -> c.columnName() + StringUtils.SPACE + c.columnType()).toList();
-            final String columnDefinitionsString = getCommaSeparatedValues(columnDefinitions);
-            sql.append(columnDefinitionsString);
-            sql.append(")");
 
-            final Statement stmt = connection.createStatement();
-            stmt.execute(sql.toString());
+        final List<String> columnDefinitions = columns.stream()
+                .map(c -> c.columnName() + StringUtils.SPACE + c.columnType()).toList();
+        final String columnDefinitionsString = getCommaSeparatedValues(columnDefinitions);
+        final String sql = String.format(CREATE_TABLE_FORMATTER, getSchemaName(), tableName, columnDefinitionsString);
+
+        try (final Statement stmt = connection.createStatement()) {
+            stmt.execute(sql);
         } catch (SQLException e) {
             LOGGER.error("Error creating table", e);
             throw new ThirdPlaceDatabaseServiceRuntimeError(
@@ -271,30 +305,24 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     public DatabaseServiceResults<InsertResult> insertRecord(final String tableName, final List<String> columns,
             final List<String> values) {
 
-        final StringBuilder sql = new StringBuilder("INSERT INTO " + tableName + " (");
         final String columnsString = getCommaSeparatedValues(columns);
-        sql.append(columnsString);
-        sql.append(RIGHT_PARAN);
-        sql.append(" VALUES " + LEFT_PARAN);
-
         final String valuesString = getCommaSeparatedValues(values);
-        sql.append(valuesString);
-        sql.append(")");
-        final String sqlString = sql.toString();
+
+        final String sql = String.format(INSERT_FORMATTER, getSchemaName(), tableName, columnsString, valuesString);
 
         try {
 
-            final PreparedStatement pstmt = connection.prepareStatement(sqlString);
+            final PreparedStatement pstmt = connection.prepareStatement(sql);
             for (int i = 0; i < values.size(); i++) {
                 pstmt.setString(i + 1, values.get(i));
             }
             pstmt.executeUpdate();
-            return new DatabaseServiceResults<InsertResult>(sqlString, QueryOperation.INSERT, null, true,
+            return new DatabaseServiceResults<InsertResult>(sql, QueryOperation.INSERT, null, true,
                     new InsertResult(1));
 
         } catch (final SQLException e) {
             LOGGER.error("Error inserting record", e);
-            return new DatabaseServiceResults<InsertResult>(sqlString, QueryOperation.INSERT, e, false,
+            return new DatabaseServiceResults<InsertResult>(sql, QueryOperation.INSERT, e, false,
                     new InsertResult(0));
         }
     }
@@ -314,7 +342,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
 
         final List<String> columnNames = columns.stream().map(c -> c + "=?").toList();
         final String columnsString = getCommaSeparatedValues(columnNames);
-        final String sql = String.format(UPDATE_FORMATTER, tableName, columnsString,
+        final String sql = String.format(UPDATE_FORMATTER, getSchemaName(), tableName, columnsString,
                 buildWhereFilterString(whereClauses));
 
         final String sqlString = sql.toString();
@@ -355,7 +383,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
 
         final String whereClauseString = buildWhereFilterString(whereClauses);
 
-        final String sql = String.format(DELETE_FORMATTER, tableName, whereClauseString);
+        final String sql = String.format(DELETE_FORMATTER, getSchemaName(), tableName, whereClauseString);
 
         try {
 
@@ -384,7 +412,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     public DatabaseServiceResults<QueryResult> queryRecord(final String tableName, final List<String> columns,
             final List<WhereFilter> whereClauses) {
 
-        final String sql = String.format(QUERY_FORMATTER, getCommaSeparatedValues(columns), tableName,
+        final String sql = String.format(QUERY_FORMATTER, getCommaSeparatedValues(columns), getSchemaName(), tableName,
                 buildWhereFilterString(whereClauses));
 
         try {
@@ -425,7 +453,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     public boolean tableExists(final String tableName) {
         try {
             final DatabaseMetaData metaData = connection.getMetaData();
-            try (final ResultSet rs = metaData.getTables(null, null, tableName, null)) {
+            try (final ResultSet rs = metaData.getTables(null, getSchemaName(), tableName, null)) {
                 return rs.next();
             }
         } catch (final SQLException e) {
@@ -434,5 +462,9 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
                     ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_CHECKING_IF_TABLE_EXISTS,
                     "Error checking if table exists", e);
         }
+    }
+
+    protected Connection getConnection() {
+        return connection;
     }
 }

@@ -2,6 +2,7 @@ package com.thirdplace.ThirdPlaceDatabaseService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -10,9 +11,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +30,7 @@ import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.QueryResu
 import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.UpdateResult;
 
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 
 public class ThirdPlaceDatabaseService implements AutoCloseable {
 
@@ -45,8 +51,6 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     final String QUERY_FORMATTER = "SELECT %s FROM %s WHERE %s";
     final String UPDATE_FORMATTER = "UPDATE %s SET %s WHERE %s";
     final String DELETE_FORMATTER = "DELETE FROM %s WHERE %s";
-
-    private static final long PROCESS_TIMEOUT = 5000;
 
     // Constructor to initialize database connection
     public ThirdPlaceDatabaseService() {
@@ -159,10 +163,12 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         } catch (Exception e) {
             LOGGER.error("Error stopping PostgreSQL server", e);
 
-            if (!(e instanceof ThirdPlaceDatabaseServiceRuntimeError)) {
-            throw new ThirdPlaceDatabaseServiceRuntimeError(
-                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_STOPPING_DB_SERVER,
-                    "Error stopping PostgreSQL server", e);
+            if (e instanceof final ThirdPlaceDatabaseServiceRuntimeError rtErr) {
+                throw rtErr;
+            } else {
+                throw new ThirdPlaceDatabaseServiceRuntimeError(
+                        ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_STOPPING_DB_SERVER,
+                        "Error stopping PostgreSQL server", e);
             }
         }
     }
@@ -181,9 +187,8 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
      * @throws IOException
      * @throws InterruptedException
      */
-    private static boolean runCommand(final String command, final String[] searchStrs)
+    private static boolean runCommand(final String command, @Nullable final String[] searchStrs)
             throws IOException, InterruptedException {
-
         final ProcessBuilder processBuilder;
         if (System.getProperty("os.name").toLowerCase().contains("win")) {
             processBuilder = new ProcessBuilder("cmd.exe", "/c", command);
@@ -192,28 +197,37 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         }
 
         processBuilder.redirectErrorStream(true);
+
         final Process process = processBuilder.start();
+        final int finished = process.waitFor();
 
-        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+        final List<String> lines = new ArrayList<>();
+        try (final BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                final BufferedReader stderrReader = new BufferedReader(
+                        new InputStreamReader(process.getInputStream()))) {
 
-            String line = reader.readLine();
-            do {
-                Thread.sleep(50);
-                if (!process.isAlive()) {
-                    break;
-                }
+            // Read stdout
+            char[] buff = new char[1024];
+            stdoutReader.read(buff, 0, 1024);
+            final String output = new String(buff);
+            lines.add(output);
 
-                if (StringUtils.containsAny(line, searchStrs)) {
-                    return true;
-                }
-
-            } while (reader.readLine() != null);
+            // Read stderr
+            buff = new char[1024];
+            stderrReader.read(buff, 0, 1024);
+            final String errOutput = new String(buff);
+            lines.add(errOutput);
         }
 
-        // Wait for the process to complete
-        final boolean finished = process.waitFor(PROCESS_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS);
-        final int exitCode = process.exitValue();
-        return finished && exitCode == 0;
+        if (searchStrs != null) {
+            for (final String searchStr : searchStrs) {
+                if (lines.stream().anyMatch(l -> StringUtils.containsIgnoreCase(l, searchStr))) {
+                    return true;
+                }
+            }
+        }
+
+        return finished == 0;
     }
 
     /**

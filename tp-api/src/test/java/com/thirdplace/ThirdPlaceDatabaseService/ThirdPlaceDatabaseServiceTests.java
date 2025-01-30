@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -14,6 +15,7 @@ import com.thirdplace.ThirdPlaceDatabaseService.TableColumnType;
 import com.thirdplace.ThirdPlaceDatabaseService.ThirdPlaceDatabaseService;
 import com.thirdplace.ThirdPlaceDatabaseService.ThirdPlaceDatabaseServiceRuntimeError;
 
+@Timeout(value = 10, unit = TimeUnit.SECONDS)
 public class ThirdPlaceDatabaseServiceTests {
 
     private static final List<TableColumnType> TEST_COLUMNS = List.of(new TableColumnType("id", "INT"),
@@ -23,7 +25,6 @@ public class ThirdPlaceDatabaseServiceTests {
      * Test that verifies that we can start and close out the database service
      */
     @Test
-    @Timeout(value = 10, unit = TimeUnit.SECONDS)
     void testInitializeAndCloseService() {
         try (final ThirdPlaceDatabaseService dbService = new ThirdPlaceDatabaseService()) {
             // If we make it here without an exception, the service was started successfully
@@ -53,8 +54,10 @@ public class ThirdPlaceDatabaseServiceTests {
 
     /**
      * Test that verifies that when the pg_ctl server is already running we can correctly start and stop the database service
+     * This test is repeated as there was a bug in the DBService code with tests being ran one after another. That has been fixed but want to make sure 
+     * we don't regress
      */
-    @Test
+    @RepeatedTest(value = 10)
     void testStopStartDatabaseServer_ServerAlreadyRunning() {
 
         ThirdPlaceDatabaseService.startPostgresServer();

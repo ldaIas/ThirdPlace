@@ -10,7 +10,9 @@ public class ThirdPlaceDatabaseServiceRuntimeError extends RuntimeException {
 
         ERROR_CREATING_DATABASE, ERROR_CHECKING_IF_TABLE_EXISTS,
 
-        ERROR_GETTING_COLUMN_VALUE
+        ERROR_GETTING_COLUMN_VALUE,
+
+        ERROR_EMPTY_WHERE_CLAUSES
     }
 
     private final ErrorCode errorCode;
@@ -34,5 +36,9 @@ public class ThirdPlaceDatabaseServiceRuntimeError extends RuntimeException {
     @Override
     public String toString() {
         return "ThirdPlaceServiceExceptions [errorCode=" + errorCode + ", getMessage()=" + getMessage() + "]";
+    }
+
+    public ErrorCode getErrorCode() {
+        return errorCode;
     }
 }

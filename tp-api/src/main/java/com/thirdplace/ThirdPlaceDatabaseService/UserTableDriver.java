@@ -1,6 +1,8 @@
 package com.thirdplace.ThirdPlaceDatabaseService;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,10 +115,14 @@ public class UserTableDriver {
             userRecord.lastName()
         );
 
+        final List<ColumnSetter> columnSetters = IntStream.range(0, UPDATE_COLUMNS.size())
+            .mapToObj(i -> new ColumnSetter(UPDATE_COLUMNS.get(i), columnValues.get(i)))
+            .toList();
+
         // Filter where id (cast text) equals the input record id
         final WhereFilter userFilter = new WhereFilter(ID_COLUMN + TEXT_CAST, WhereFilter.Operator.EQUAL, Integer.toString(userRecord.id()));
 
-        return dbService.updateRecord(TABLE_NAME, UPDATE_COLUMNS, columnValues, List.of(userFilter));
+        return dbService.updateRecord(TABLE_NAME, columnSetters, List.of(userFilter));
 
     }
 

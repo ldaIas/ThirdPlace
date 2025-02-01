@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -40,16 +41,15 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     private static final String DB_PASSWORD = "0133";
 
     private static final String COMMA_SEPARATOR = ", ";
-    private static final String LEFT_PARAN = "(";
-    private static final String RIGHT_PARAN = ")";
+    private static final String QUESTION = "?";
 
     private static final String SERVER_ALREADY_STOPPED = "Is server running?";
 
     final String CREATE_TABLE_FORMATTER = "CREATE TABLE IF NOT EXISTS %s.%s (%s)";
 
-    final String QUERY_FORMATTER = "SELECT %s.%s FROM %s WHERE %s";
-    final String INSERT_FORMATTER = "INSERT INTO %s.%s (%s) VALUES (%s)";
-    final String UPDATE_FORMATTER = "UPDATE %s.%s SET %s WHERE %s";
+    final String QUERY_FORMATTER = "SELECT %s FROM %s.%s %s";
+    final String INSERT_FORMATTER = "INSERT INTO %s.%s (%s) VALUES (%s) RETURNING id";
+    final String UPDATE_FORMATTER = "UPDATE %s.%s SET %s %s";
     final String DELETE_FORMATTER = "DELETE FROM %s.%s WHERE %s";
 
     final String DEFAULT_SCHEMA = "prod";
@@ -306,24 +306,33 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
             final List<String> values) {
 
         final String columnsString = getCommaSeparatedValues(columns);
-        final String valuesString = getCommaSeparatedValues(values);
+
+        final List<String> valueHolders = values.stream().map(v -> QUESTION).toList();
+        final String valuesString = getCommaSeparatedValues(valueHolders);
 
         final String sql = String.format(INSERT_FORMATTER, getSchemaName(), tableName, columnsString, valuesString);
+        int insertedId = -1;
 
         try {
 
-            final PreparedStatement pstmt = connection.prepareStatement(sql);
-            for (int i = 0; i < values.size(); i++) {
-                pstmt.setString(i + 1, values.get(i));
+            try (final PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                for (int i = 0; i < values.size(); i++) {
+                    pstmt.setString(i + 1, values.get(i));
+                }
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        insertedId = rs.getInt("id");
+                        LOGGER.debug("Inserted record to table " + tableName + " with id " + insertedId);
+                    }
+                }
+                return new DatabaseServiceResults<InsertResult>(pstmt.toString(), QueryOperation.INSERT, null, true,
+                    new InsertResult(1, insertedId));
             }
-            pstmt.executeUpdate();
-            return new DatabaseServiceResults<InsertResult>(sql, QueryOperation.INSERT, null, true,
-                    new InsertResult(1));
 
         } catch (final SQLException e) {
             LOGGER.error("Error inserting record", e);
             return new DatabaseServiceResults<InsertResult>(sql, QueryOperation.INSERT, e, false,
-                    new InsertResult(0));
+                    new InsertResult(0, insertedId));
         }
     }
 
@@ -337,28 +346,32 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
      * @param whereClauses The where clauses to use for the update
      * @return A {@link DatabaseServiceResults} result of the update
      */
-    public DatabaseServiceResults<UpdateResult> updateRecord(final String tableName, final List<String> columns,
-            final List<String> values, @Nonnull final List<WhereFilter> whereClauses) {
+    public DatabaseServiceResults<UpdateResult> updateRecord(final String tableName, final List<ColumnSetter> columnSetters,
+         @Nonnull final List<WhereFilter> whereClauses) {
 
-        final List<String> columnNames = columns.stream().map(c -> c + "=?").toList();
-        final String columnsString = getCommaSeparatedValues(columnNames);
-        final String sql = String.format(UPDATE_FORMATTER, getSchemaName(), tableName, columnsString,
-                buildWhereFilterString(whereClauses));
+        final String columnsString = columnSetters.stream().map(c -> c.bindColumn()).collect(Collectors.joining(COMMA_SEPARATOR));
+        final String filterString = whereClauses.size() > 0 ? "WHERE " + buildValuesToBind(whereClauses) : StringUtils.EMPTY;
+        final String sql = String.format(UPDATE_FORMATTER, getSchemaName(), tableName, columnsString, filterString);
 
         final String sqlString = sql.toString();
         try {
             final PreparedStatement pstmt = connection.prepareStatement(sqlString);
-            for (int i = 0; i < values.size(); i++) {
-                pstmt.setString(i + 1, values.get(i));
+            // Bind columns then filters 
+            int bindCount = 0;
+            for (int i = 0; i < columnSetters.size(); i++) {
+                pstmt.setString(i + 1, columnSetters.get(i).value());
+                bindCount++;
+            }
+            for (int i = 0; i < whereClauses.size(); i++) {
+                pstmt.setString(bindCount + i + 1, whereClauses.get(i).rightHandSide());
             }
             pstmt.executeUpdate();
             final UpdateResult updateResult = new UpdateResult(pstmt.getUpdateCount());
-            return new DatabaseServiceResults<UpdateResult>(sqlString, QueryOperation.UPDATE, null, true, updateResult);
+            return new DatabaseServiceResults<UpdateResult>(pstmt.toString(), QueryOperation.UPDATE, null, true, updateResult);
 
         } catch (final SQLException e) {
 
             final ThirdPlaceDatabaseServiceRuntimeError ex = new ThirdPlaceDatabaseServiceRuntimeError(
-
                     ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_RUNNING_UPDATE, "Error updating record", e);
             LOGGER.error("Error updating record", ex);
             return new DatabaseServiceResults<UpdateResult>(sqlString, QueryOperation.UPDATE, e, false,
@@ -367,31 +380,55 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         }
     }
 
-    private static String buildWhereFilterString(final List<WhereFilter> whereClauses) {
-        return whereClauses.stream().map(WhereFilter::toString).collect(Collectors.joining(" AND "));
+    /**
+     * Build a string with the appropriate amount of bind values for the where
+     * filter
+     * 
+     * @param whereClauses The where clauses to use for the update
+     * @return
+     */
+    private static String buildValuesToBind(List<WhereFilter> whereClauses) {
+
+        return "( " + whereClauses.stream().map(w -> w.leftHandSide() + "::text" + w.operator().getValue() + QUESTION)
+                .collect(Collectors.joining(" AND ")) + " )";
+
     }
 
     /**
      * Delete a record from a table using the given where clause
      *
      * @param tableName    The name of the table to delete from
-     * @param whereClauses The where clauses to use for the delete
+     * @param whereClauses The where clauses to use for the delete. Most not be
+     *                     empty
      * @return A {@link DatabaseServiceResults} result of the delete
      */
     public DatabaseServiceResults<DeleteResult> deleteRecord(final String tableName,
             @Nonnull final List<WhereFilter> whereClauses) {
 
-        final String whereClauseString = buildWhereFilterString(whereClauses);
+        if (whereClauses == null || whereClauses.isEmpty()) {
+            throw new ThirdPlaceDatabaseServiceRuntimeError(
+                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_EMPTY_WHERE_CLAUSES,
+                    "Where clauses cannot be empty for delete operation");
+        }
+
+        final String whereClauseString = buildValuesToBind(whereClauses);
 
         final String sql = String.format(DELETE_FORMATTER, getSchemaName(), tableName, whereClauseString);
 
         try {
 
-            final PreparedStatement pstmt = connection.prepareStatement(sql);
-            pstmt.executeUpdate();
+            try (final PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
-            final DeleteResult deleteResult = new DeleteResult(pstmt.getUpdateCount());
-            return new DatabaseServiceResults<DeleteResult>(sql, QueryOperation.DELETE, null, true, deleteResult);
+                // Bind values
+                for (int i = 0; i < whereClauses.size(); i++) {
+                    pstmt.setString(i + 1, whereClauses.get(i).rightHandSide());
+                }
+
+                pstmt.executeUpdate();
+
+                final DeleteResult deleteResult = new DeleteResult(pstmt.getUpdateCount());
+                return new DatabaseServiceResults<DeleteResult>(pstmt.toString(), QueryOperation.DELETE, null, true, deleteResult);
+            }
 
         } catch (final SQLException e) {
             final ThirdPlaceDatabaseServiceRuntimeError ex = new ThirdPlaceDatabaseServiceRuntimeError(
@@ -412,35 +449,59 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     public DatabaseServiceResults<QueryResult> queryRecord(final String tableName, final List<String> columns,
             final List<WhereFilter> whereClauses) {
 
+        final int filterCount = whereClauses.size();
+        final String filterString = filterCount > 0 ? "WHERE " + buildValuesToBind(whereClauses) : StringUtils.EMPTY;
         final String sql = String.format(QUERY_FORMATTER, getCommaSeparatedValues(columns), getSchemaName(), tableName,
-                buildWhereFilterString(whereClauses));
+                filterString);
 
-        try {
-            final PreparedStatement pstmt = connection.prepareStatement(sql);
-            final ResultSet rs = pstmt.executeQuery();
+        LOGGER.debug("Prepared statement for query: " + sql);
+        try (final PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
-            final Map<String, Object> results = new HashMap<>();
-            while (rs.next()) {
-                columns.forEach(c -> {
-                    try {
-                        results.put(c, rs.getObject(c));
-                    } catch (final SQLException e) {
-                        LOGGER.error("Error getting column value", e);
-                        throw new ThirdPlaceDatabaseServiceRuntimeError(
-                                ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_GETTING_COLUMN_VALUE,
-                                "Error getting column value", e);
-                    }
-                });
+            // Bind values
+            for (int i = 0; i < whereClauses.size(); i++) {
+                pstmt.setString(i + 1, whereClauses.get(i).rightHandSide());
             }
-            final QueryResult queryResult = new QueryResult(results);
-            return new DatabaseServiceResults<QueryResult>(sql, QueryOperation.SELECT, null, true, queryResult);
+
+            try (final ResultSet rs = pstmt.executeQuery()) {
+
+                final List<Map<String, Object>> results = new ArrayList<>();
+                final AtomicInteger count = new AtomicInteger(0);
+
+                // Add each record to the results
+                while (rs.next()) {
+
+                    // For each column asked for add it to the map at the appropriate index in the
+                    // result list
+                    columns.forEach(c -> {
+                        try {
+                            final int ind = count.get();
+                            if (results.size() <= ind) {
+                                results.add(new HashMap<>());
+                            }
+                            final Map<String, Object> resultMap = results.get(ind);
+                            resultMap.put(c, rs.getObject(c));
+
+                        } catch (final SQLException e) {
+                            LOGGER.error("Error getting column value", e);
+                            throw new ThirdPlaceDatabaseServiceRuntimeError(
+                                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_GETTING_COLUMN_VALUE,
+                                    "Error getting column value", e);
+                        }
+                    });
+
+                    count.incrementAndGet();
+                }
+
+                final QueryResult queryResult = new QueryResult(results, count.get());
+                return new DatabaseServiceResults<QueryResult>(pstmt.toString(), QueryOperation.SELECT, null, true, queryResult);
+            }
 
         } catch (final SQLException e) {
             final ThirdPlaceDatabaseServiceRuntimeError ex = new ThirdPlaceDatabaseServiceRuntimeError(
                     ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_RUNNING_QUERY, "Error querying record", e);
             LOGGER.error("Error querying record", ex);
             return new DatabaseServiceResults<QueryResult>(sql, QueryOperation.SELECT, e, false,
-                    new QueryResult(Map.of()));
+                    new QueryResult(List.of(Map.of()), 0));
         }
     }
 

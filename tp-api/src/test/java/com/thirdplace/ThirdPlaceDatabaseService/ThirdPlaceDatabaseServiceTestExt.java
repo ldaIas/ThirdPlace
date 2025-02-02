@@ -4,11 +4,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Test extension class of {@link ThirdPlaceDatabaseService} that ensures we insert to test schema.
- * Also deletes inserted data.
+ * Test extension class of {@link ThirdPlaceDatabaseService} that ensures we
+ * insert to test schema. Also deletes inserted data.
  */
 public class ThirdPlaceDatabaseServiceTestExt extends ThirdPlaceDatabaseService {
-     
+
     public static final String TEST_SCHEMA = "test_schema";
 
     ThirdPlaceDatabaseServiceTestExt() {
@@ -31,7 +31,9 @@ public class ThirdPlaceDatabaseServiceTestExt extends ThirdPlaceDatabaseService 
 
     @Override
     public void close() throws Exception {
-        runSql("DROP SCHEMA IF EXISTS " + TEST_SCHEMA + " CASCADE");
+        if (getRefCount() == 1) {
+            runSql("DROP SCHEMA IF EXISTS " + TEST_SCHEMA + " CASCADE");
+        }
         super.close();
     }
 }

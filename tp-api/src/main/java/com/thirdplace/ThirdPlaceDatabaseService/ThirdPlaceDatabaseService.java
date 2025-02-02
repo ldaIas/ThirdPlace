@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -35,10 +34,10 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ThirdPlaceDatabaseService.class);
 
     // Database connection configuration
-    private final Connection connection;
-    private static final String DB_URL = "jdbc:postgresql://localhost:5432/thirdplace";
-    private static final String DB_USER = "postgres";
-    private static final String DB_PASSWORD = "0133";
+    private Connection connection;
+    static final String DB_URL = "jdbc:postgresql://localhost:5432/thirdplace";
+    static final String DB_USER = "postgres";
+    static final String DB_PASSWORD = "3310";
 
     private static final String COMMA_SEPARATOR = ", ";
     private static final String QUESTION = "?";
@@ -166,6 +165,10 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         }
     }
 
+    protected int getRefCount() {
+        return refCount.get();
+    }
+
     /**
      * Close the database service and connection when the last reference is closed
      */
@@ -177,8 +180,10 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         }
         if (connection != null) {
             connection.close();
+            connection = null;
+            stopPostgresServer();
         }
-        stopPostgresServer();
+        instance = null;
     }
 
     // Stop the PostgreSQL server

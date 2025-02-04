@@ -40,7 +40,13 @@ jobs:
           distribution: 'temurin'
 
       - name: Build with Gradle
-        run: cd tp-api && sh ./gradlew build
+        run: | 
+          cd tp-api && sh ./gradlew build --info 
+          if [ $? -ne 0 ]; then
+            echo "TESTS_FAILED=true" >> $GITHUB_ENV
+          else
+            echo "TESTS_FAILED=false" >> $GITHUB_ENV
+          fi  
         continue-on-error: true
 
       - name: Upload test reports
@@ -50,3 +56,7 @@ jobs:
           name: test-reports
           path: tp-api/build/reports/tests/test/
           retention-days: 2
+      
+      - name: Fail if tests failed
+        if: env.TESTS_FAILED == 'true'
+        run: exit 1    

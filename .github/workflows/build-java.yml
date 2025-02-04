@@ -40,6 +40,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Build with Gradle
+        id: gradle_build
         run: | 
           cd tp-api && sh ./gradlew build --info
         continue-on-error: true  

@@ -62,5 +62,5 @@ jobs:
           retention-days: 2
       
       - name: Fail if tests failed
-        if: env.TESTS_FAILED == true
+        if: env.TESTS_FAILED == 'true'
         run: exit 1    

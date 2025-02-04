@@ -43,8 +43,10 @@ jobs:
         run: | 
           cd tp-api && sh ./gradlew build --info 
           if [ $? -ne 0 ]; then
+            echo "Tests failed"
             echo "TESTS_FAILED=true" >> $GITHUB_ENV
           else
+            echo "Tests passed"
             echo "TESTS_FAILED=false" >> $GITHUB_ENV
           fi  
         continue-on-error: true

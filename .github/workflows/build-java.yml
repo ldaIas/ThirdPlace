@@ -41,15 +41,16 @@ jobs:
 
       - name: Build with Gradle
         run: | 
-          cd tp-api && sh ./gradlew build --info 
-          if [ $? -ne 0 ]; then
-            echo "Tests failed"
+          cd tp-api && sh ./gradlew build --info
+        continue-on-error: true  
+      
+      - name: Check Test Result
+        run: |
+          if [ ${{ steps.gradle_build.outcome }} != "success" ]; then
             echo "TESTS_FAILED=true" >> $GITHUB_ENV
           else
-            echo "Tests passed"
             echo "TESTS_FAILED=false" >> $GITHUB_ENV
-          fi  
-        continue-on-error: true
+          fi 
 
       - name: Upload test reports
         if: always()  # Ensures this runs even if tests fail

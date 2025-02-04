@@ -47,7 +47,7 @@ jobs:
       
       - name: Check Test Result
         run: |
-          if [ ${{ steps.gradle_build.outcome }} != "success" ]; then
+          if [ ${{ steps.gradle_build.outcome }} != success ]; then
             echo "TESTS_FAILED=true" >> $GITHUB_ENV
           else
             echo "TESTS_FAILED=false" >> $GITHUB_ENV

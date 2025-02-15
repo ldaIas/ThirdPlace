@@ -1,0 +1,33 @@
+name: Build Elm
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    types:
+        - synchronize
+        - opened
+        - reopened
+
+jobs:
+  build:
+    name: Build Elm
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Elm
+        run: |
+          npm install -g elm
+
+      - name: Build Elm project
+        run: |
+          cd tp-frontend && elm make src/Room.elm --output=/dev/null

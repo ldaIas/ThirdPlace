@@ -7,4 +7,5 @@ build/
 
 bin/
 
-*.js
+room.js
+login.js

@@ -37,6 +37,9 @@ dependencies {
 
     // PSQL driver
     implementation 'org.postgresql:postgresql:42.6.0'
+
+    // Crypto
+    implementation 'org.mindrot:jbcrypt:0.4'
 }
 
 application {

@@ -1,8 +1,10 @@
 package com.thirdplace.thirdplacedatabaseservice;
 
-public class ThirdPlaceDatabaseServiceRuntimeError extends RuntimeException {
+import com.thirdplace.utils.RuntimeExceptionBase;
 
-    public enum ErrorCode {
+public class ThirdPlaceDatabaseServiceRuntimeError extends RuntimeExceptionBase {
+
+    public enum ErrorCode implements ErrorCodeBase {
         ERROR_GETTING_CONNECTION, ERROR_CREATING_TABLE, ERROR_RUNNING_INSERT, ERROR_RUNNING_QUERY, ERROR_RUNNING_UPDATE,
         ERROR_RUNNING_DELETE,
 
@@ -15,30 +17,11 @@ public class ThirdPlaceDatabaseServiceRuntimeError extends RuntimeException {
         ERROR_EMPTY_WHERE_CLAUSES
     }
 
-    private final ErrorCode errorCode;
-
     public ThirdPlaceDatabaseServiceRuntimeError(ErrorCode errorCode, String message, Throwable cause) {
-        super(message, cause);
-        if (errorCode == null) {
-            throw new IllegalArgumentException("Error code cannot be null");
-        }
-        this.errorCode = errorCode;
+        super(errorCode, message, cause);
     }
 
     public ThirdPlaceDatabaseServiceRuntimeError(ErrorCode errorCode, String message) {
-        super(message);
-        if (errorCode == null) {
-            throw new IllegalArgumentException("Error code cannot be null");
-        }
-        this.errorCode = errorCode;
-    }
-
-    @Override
-    public String toString() {
-        return "ThirdPlaceServiceExceptions [errorCode=" + errorCode + ", getMessage()=" + getMessage() + "]";
-    }
-
-    public ErrorCode getErrorCode() {
-        return errorCode;
+        super(errorCode, message);
     }
 }

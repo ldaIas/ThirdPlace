@@ -1,4 +1,4 @@
-package com.thirdplace;
+package com.thirdplace.service;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

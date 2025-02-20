@@ -1,4 +1,4 @@
-package com.thirdplace.ThirdPlaceDatabaseService;
+package com.thirdplace.thirdplacedatabaseservice;
 
 /**
  * A simple record to abstract a where filter

@@ -1,4 +1,4 @@
-package com.thirdplace.ThirdPlaceDatabaseService;
+package com.thirdplace.thirdplacedatabaseservice;
 
 import java.sql.SQLException;
 import java.util.List;

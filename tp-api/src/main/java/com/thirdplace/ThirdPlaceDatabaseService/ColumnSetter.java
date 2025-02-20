@@ -1,4 +1,4 @@
-package com.thirdplace.ThirdPlaceDatabaseService;
+package com.thirdplace.thirdplacedatabaseservice;
 
 public record ColumnSetter(
     String column,

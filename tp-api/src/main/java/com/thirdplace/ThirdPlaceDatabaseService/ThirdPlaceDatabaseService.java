@@ -1,4 +1,4 @@
-package com.thirdplace.ThirdPlaceDatabaseService;
+package com.thirdplace.thirdplacedatabaseservice;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,10 +21,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.DeleteResult;
-import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.InsertResult;
-import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.QueryResult;
-import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.UpdateResult;
+import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.DeleteResult;
+import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.InsertResult;
+import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.QueryResult;
+import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.UpdateResult;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;

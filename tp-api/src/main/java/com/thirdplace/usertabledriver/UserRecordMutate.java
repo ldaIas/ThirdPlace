@@ -1,4 +1,4 @@
-package com.thirdplace.ThirdPlaceDatabaseService;
+package com.thirdplace.usertabledriver;
 
 public record UserRecordMutate(
     int id,

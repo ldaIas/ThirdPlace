@@ -1,4 +1,4 @@
-package com.thirdplace.ThirdPlaceDatabaseService;
+package com.thirdplace.thirdplacedatabaseservice;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -14,11 +14,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
-import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.DeleteResult;
-import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.InsertResult;
-import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.QueryResult;
-import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.UpdateResult;
-import com.thirdplace.ThirdPlaceDatabaseService.WhereFilter.Operator;
+import com.thirdplace.testutils.ThirdPlaceDatabaseServiceTestExt;
+import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.DeleteResult;
+import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.InsertResult;
+import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.QueryResult;
+import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.UpdateResult;
+import com.thirdplace.thirdplacedatabaseservice.WhereFilter.Operator;
 
 public class ThirdPlaceDatabaseServiceTests {
 

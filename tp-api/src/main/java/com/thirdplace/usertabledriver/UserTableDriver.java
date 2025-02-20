@@ -1,4 +1,4 @@
-package com.thirdplace.ThirdPlaceDatabaseService;
+package com.thirdplace.usertabledriver;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -7,10 +7,16 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.DeleteResult;
-import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.InsertResult;
-import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.QueryResult;
-import com.thirdplace.ThirdPlaceDatabaseService.DatabaseServiceResults.UpdateResult;
+import com.thirdplace.thirdplacedatabaseservice.ColumnSetter;
+import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults;
+import com.thirdplace.thirdplacedatabaseservice.TableColumnType;
+import com.thirdplace.thirdplacedatabaseservice.ThirdPlaceDatabaseService;
+import com.thirdplace.thirdplacedatabaseservice.WhereFilter;
+import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.DeleteResult;
+import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.InsertResult;
+import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.QueryResult;
+import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.UpdateResult;
+import com.thirdplace.thirdplacedatabaseservice.WhereFilter.Operator;
 
 /**
  * Class to drive the user table creation and manipulation

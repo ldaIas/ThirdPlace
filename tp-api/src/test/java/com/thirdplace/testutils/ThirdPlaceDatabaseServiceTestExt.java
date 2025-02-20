@@ -1,7 +1,9 @@
-package com.thirdplace.ThirdPlaceDatabaseService;
+package com.thirdplace.testutils;
 
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import com.thirdplace.thirdplacedatabaseservice.ThirdPlaceDatabaseService;
 
 /**
  * Test extension class of {@link ThirdPlaceDatabaseService} that ensures we
@@ -11,7 +13,7 @@ public class ThirdPlaceDatabaseServiceTestExt extends ThirdPlaceDatabaseService 
 
     public static final String TEST_SCHEMA = "test_schema";
 
-    ThirdPlaceDatabaseServiceTestExt() {
+    public ThirdPlaceDatabaseServiceTestExt() {
         super();
         getInstance();
     }

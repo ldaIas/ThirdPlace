@@ -6,9 +6,9 @@ import org.eclipse.jetty.websocket.jakarta.server.config.JakartaWebSocketServlet
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.thirdplace.ThirdPlaceDatabaseService.ThirdPlaceDatabaseService;
-import com.thirdplace.ThirdPlaceDatabaseService.UserTableDriver;
 import com.thirdplace.roomchat.RoomChatWebsocketEndpoint;
+import com.thirdplace.thirdplacedatabaseservice.ThirdPlaceDatabaseService;
+import com.thirdplace.usertabledriver.UserTableDriver;
 
 public class ThirdPlaceService {
 

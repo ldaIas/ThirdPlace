@@ -1,4 +1,4 @@
-package com.thirdplace.ThirdPlaceDatabaseService;
+package com.thirdplace.thirdplacedatabaseservice;
 
 public class ThirdPlaceDatabaseServiceRuntimeError extends RuntimeException {
 

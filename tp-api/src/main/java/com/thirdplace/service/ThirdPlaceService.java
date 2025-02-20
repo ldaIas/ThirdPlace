@@ -15,7 +15,7 @@ public class ThirdPlaceService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ThirdPlaceService.class);
 
     // default websocket timeout of 5 minutes
-    static final long DEFAULT_TIMEOUT = 5 * 60_000;
+    static final long DEFAULT_TIMEOUT = 5 * 60_000L;
 
     static final int PORT = 8080;
 

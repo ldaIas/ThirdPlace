@@ -42,16 +42,19 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     private static final String COMMA_SEPARATOR = ", ";
     private static final String QUESTION = "?";
 
+    private static final String FILTER_FORMAT = "( %s )";
+    private static final String WHERE_FORMAT = "%s::text %s ?";
+
     private static final String SERVER_ALREADY_STOPPED = "Is server running?";
 
-    final String CREATE_TABLE_FORMATTER = "CREATE TABLE IF NOT EXISTS %s.%s (%s)";
+    private static final String CREATE_TABLE_FORMATTER = "CREATE TABLE IF NOT EXISTS %s.%s (%s)";
 
-    final String QUERY_FORMATTER = "SELECT %s FROM %s.%s %s";
-    final String INSERT_FORMATTER = "INSERT INTO %s.%s (%s) VALUES (%s) RETURNING id";
-    final String UPDATE_FORMATTER = "UPDATE %s.%s SET %s %s";
-    final String DELETE_FORMATTER = "DELETE FROM %s.%s WHERE %s";
+    private static final String QUERY_FORMATTER = "SELECT %s FROM %s.%s %s";
+    private static final String INSERT_FORMATTER = "INSERT INTO %s.%s (%s) VALUES (%s) RETURNING id";
+    private static final String UPDATE_FORMATTER = "UPDATE %s.%s SET %s %s";
+    private static final String DELETE_FORMATTER = "DELETE FROM %s.%s WHERE %s";
 
-    final String DEFAULT_SCHEMA = "prod";
+    private static final String DEFAULT_SCHEMA = "prod";
 
     private static AtomicInteger refCount = new AtomicInteger(0);
 
@@ -330,13 +333,13 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
                         LOGGER.debug("Inserted record to table " + tableName + " with id " + insertedId);
                     }
                 }
-                return new DatabaseServiceResults<InsertResult>(pstmt.toString(), QueryOperation.INSERT, null, true,
+                return new DatabaseServiceResults<>(pstmt.toString(), QueryOperation.INSERT, null, true,
                     new InsertResult(1, insertedId));
             }
 
         } catch (final SQLException e) {
             LOGGER.error("Error inserting record", e);
-            return new DatabaseServiceResults<InsertResult>(sql, QueryOperation.INSERT, e, false,
+            return new DatabaseServiceResults<>(sql, QueryOperation.INSERT, e, false,
                     new InsertResult(0, insertedId));
         }
     }
@@ -355,10 +358,11 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
          @Nonnull final List<WhereFilter> whereClauses) {
 
         final String columnsString = columnSetters.stream().map(c -> c.bindColumn()).collect(Collectors.joining(COMMA_SEPARATOR));
-        final String filterString = whereClauses.size() > 0 ? "WHERE " + buildValuesToBind(whereClauses) : StringUtils.EMPTY;
-        final String sql = String.format(UPDATE_FORMATTER, getSchemaName(), tableName, columnsString, filterString);
+        final String filterString = whereClauses.size() > 0
+            ? "WHERE " + buildValuesToBind(whereClauses)
+            : StringUtils.EMPTY;
+        final String sqlString = String.format(UPDATE_FORMATTER, getSchemaName(), tableName, columnsString, filterString);
 
-        final String sqlString = sql.toString();
         try {
             final PreparedStatement pstmt = connection.prepareStatement(sqlString);
             // Bind columns then filters 
@@ -372,14 +376,14 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
             }
             pstmt.executeUpdate();
             final UpdateResult updateResult = new UpdateResult(pstmt.getUpdateCount());
-            return new DatabaseServiceResults<UpdateResult>(pstmt.toString(), QueryOperation.UPDATE, null, true, updateResult);
+            return new DatabaseServiceResults<>(pstmt.toString(), QueryOperation.UPDATE, null, true, updateResult);
 
         } catch (final SQLException e) {
 
             final ThirdPlaceDatabaseServiceRuntimeError ex = new ThirdPlaceDatabaseServiceRuntimeError(
                     ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_RUNNING_UPDATE, "Error updating record", e);
             LOGGER.error("Error updating record", ex);
-            return new DatabaseServiceResults<UpdateResult>(sqlString, QueryOperation.UPDATE, e, false,
+            return new DatabaseServiceResults<>(sqlString, QueryOperation.UPDATE, e, false,
                     new UpdateResult(0));
 
         }
@@ -390,12 +394,14 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
      * filter
      * 
      * @param whereClauses The where clauses to use for the update
-     * @return
+     * @return A string with the appropriate amount of bind values for the where
+     *         filter
      */
     private static String buildValuesToBind(List<WhereFilter> whereClauses) {
 
-        return "( " + whereClauses.stream().map(w -> w.leftHandSide() + "::text" + w.operator().getValue() + QUESTION)
-                .collect(Collectors.joining(" AND ")) + " )";
+        return String.format(FILTER_FORMAT,
+                whereClauses.stream().map(w -> String.format(WHERE_FORMAT, w.leftHandSide(), w.operator().getValue()))
+                        .collect(Collectors.joining(" AND ")));
 
     }
 

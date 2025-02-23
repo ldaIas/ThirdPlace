@@ -10,6 +10,9 @@ import java.util.HashMap;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link RecordUtils}
+ */
 public class RecordUtilsTests {
 
     record TestRecord(String field1, int field2) {

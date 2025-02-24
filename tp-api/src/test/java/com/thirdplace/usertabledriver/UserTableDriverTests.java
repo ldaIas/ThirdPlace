@@ -1,93 +1,133 @@
-// package com.thirdplace.usertabledriver;
+package com.thirdplace.usertabledriver;
 
-// import com.thirdplace.thirdplacedatabaseservice.ThirdPlaceDatabaseService;
-// import com.thirdplace.usertabledriver.UserRecordMutate;
-// import com.thirdplace.usertabledriver.UserRecordResult;
-// import com.thirdplace.usertabledriver.UserTableDriver;
-// import com.thirdplace.testutils.ThirdPlaceDatabaseServiceTestExt;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.Test;
+import com.thirdplace.thirdplacedatabaseservice.ThirdPlaceDatabaseService;
+import com.thirdplace.utils.RecordUtils;
+import com.thirdplace.testutils.ThirdPlaceDatabaseServiceTestExt;
+import org.junit.jupiter.api.Test;
 
-// import static org.junit.jupiter.api.Assertions.*;
+import java.util.Map;
 
-// public class UserTableDriverTests {
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 
-//     private UserTableDriver userTableDriver;
-//     private ThirdPlaceDatabaseService databaseService;
+public class UserTableDriverTests {
 
-//     @BeforeEach
-//     public void setUp() {
-//         // Initialize the database service and user table driver
-//         databaseService = new ThirdPlaceDatabaseServiceTestExt();
-//         userTableDriver = new UserTableDriver(databaseService);
-//     }
+    private static final String TEST_USERNAME = "testUsername";
+    private static final String TEST_NAME = "test";
+    private static final String TEST_LAST = "user";
+    private static final String TEST_EMAIL = "test@example.com";
 
-//     @Test
-//     public void testInsertUser() {
-//         // Arrange
-//         UserRecordMutate userRecord = new UserRecordMutate("testUser", "test@example.com");
 
-//         // Act
-//         UserRecordResult result = userTableDriver.insertUser(userRecord);
+    private static UserTableDriver userTableDriver;
+    private static ThirdPlaceDatabaseService databaseService;
 
-//         // Assert
-//         assertNotNull(result);
-//         assertTrue(result.isSuccess());
-//         assertEquals("testUser", result.getUserName());
-//     }
+    @BeforeAll
+    static void setUp() {
+        // Initialize the database service and user table driver
+        databaseService = new ThirdPlaceDatabaseServiceTestExt();
+        userTableDriver = new UserTableDriver(databaseService);
+    }
 
-//     @Test
-//     public void testUpdateUser() {
-//         // Arrange
-//         UserRecordMutate userRecord = new UserRecordMutate("testUser", "test@example.com");
-//         userTableDriver.insertUser(userRecord);
-//         userRecord.setEmail("updated@example.com");
+    @AfterAll
+    static void tearDown() throws Exception {
+        // Close the database service
+        databaseService.close();
+    }
 
-//         // Act
-//         UserRecordResult result = userTableDriver.updateUser(userRecord);
+    /**
+     * Test to ensure that we can insert a user record into the database successfully
+     */
+    @Test
+    public void testInsertUser() {
 
-//         // Assert
-//         assertNotNull(result);
-//         assertTrue(result.isSuccess());
-//         assertEquals("updated@example.com", result.getEmail());
-//     }
+        final UserRecordInsert userRecord = new UserRecordInsert("testUsername", "testpass", "test@example.com", "test", "user");
 
-//     @Test
-//     public void testDeleteUser() {
-//         // Arrange
-//         UserRecordMutate userRecord = new UserRecordMutate("testUser", "test@example.com");
-//         userTableDriver.insertUser(userRecord);
+        final UserRecordResult result = userTableDriver.insertUserRecord(userRecord);
 
-//         // Act
-//         boolean deleteResult = userTableDriver.deleteUser(userRecord.getUserName());
+        // Validate the result record
+        Assertions.assertNotNull(result);
+        Assertions.assertNotNull(result.id());
+        Assertions.assertEquals(userRecord.username(), result.username(), "Expected username to equal that of the insert record");
+        Assertions.assertEquals(userRecord.email(), result.email(), "Expected email to equal that of the insert record");
+        Assertions.assertEquals(userRecord.firstName(), result.firstName(), "Expected first name to equal that of the insert record");
+        Assertions.assertEquals(userRecord.lastName(), result.lastName(), "Expected last name to equal that of the insert record");
 
-//         // Assert
-//         assertTrue(deleteResult);
-//     }
+        // Valide the created and updated times
+        Assertions.assertNotNull(result.createdAt(), "Expected createdAt to be non-null");
+        Assertions.assertNotNull(result.updatedAt(), "Expected updatedAt to be non-null");
+        Assertions.assertEquals(result.createdAt(), result.updatedAt());
 
-//     @Test
-//     public void testGetUser() {
-//         // Arrange
-//         UserRecordMutate userRecord = new UserRecordMutate("testUser", "test@example.com");
-//         userTableDriver.insertUser(userRecord);
+    }
 
-//         // Act
-//         UserRecordResult result = userTableDriver.getUser(userRecord.getUserName());
+    /**
+     * Test to ensure that we can correctly update a user and the updated time is correctly changed
+     */
+    @Test
+    public void testUpdateUser() {
 
-//         // Assert
-//         assertNotNull(result);
-//         assertEquals("testUser", result.getUserName());
-//         assertEquals("test@example.com", result.getEmail());
-//     }
+        final Class<UserRecordInsert> recordClass = UserRecordInsert.class;
+        final UserRecordInsert insertUser = RecordUtils.init(recordClass, Map.of(
+            UserRecordInsert.USERNAME, TEST_USERNAME,
+            UserRecordInsert.EMAIL, TEST_EMAIL,
+            UserRecordInsert.FIRST_NAME, TEST_NAME + "testUpdateUser()"
+        ));
 
-//     @Test
-//     public void testGetNonExistentUser() {
-//         // Act
-//         UserRecordResult result = userTableDriver.getUser("nonExistentUser");
+        // Insert initial record
+        final UserRecordResult initRec = userTableDriver.insertUserRecord(insertUser);
+        final String initRecUpdated = initRec.updatedAt();
 
-//         // Assert
-//         assertNull(result);
-//     }
+        final String newUsername = "new username";
+        final UserRecordMutate mutateUser = RecordUtils.init(UserRecordMutate.class, Map.of(
+            UserRecordMutate.USERNAME, newUsername
+        ));
 
-//     // Additional tests can be added here for edge cases, error handling, etc.
-// }
+        // Update the record
+        final UserRecordResult result = userTableDriver.updateUserRecord(mutateUser, true);
+
+        // Verify it has the new user name and updated date
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(newUsername, result.username(), "Expected result to have new username");
+        Assertions.assertNotEquals(initRecUpdated, result.updatedAt(), "Expected updated time to be different from initial record");
+
+    }
+
+    // @Test
+    // public void testDeleteUser() {
+    //     // Arrange
+    //     UserRecordMutate userRecord = new UserRecordMutate("testUser", "test@example.com");
+    //     userTableDriver.insertUser(userRecord);
+
+    //     // Act
+    //     boolean deleteResult = userTableDriver.deleteUser(userRecord.getUserName());
+
+    //     // Assert
+    //     assertTrue(deleteResult);
+    // }
+
+    // @Test
+    // public void testGetUser() {
+    //     // Arrange
+    //     UserRecordMutate userRecord = new UserRecordMutate("testUser", "test@example.com");
+    //     userTableDriver.insertUser(userRecord);
+
+    //     // Act
+    //     UserRecordResult result = userTableDriver.getUser(userRecord.getUserName());
+
+    //     // Assert
+    //     assertNotNull(result);
+    //     assertEquals("testUser", result.getUserName());
+    //     assertEquals("test@example.com", result.getEmail());
+    // }
+
+    // @Test
+    // public void testGetNonExistentUser() {
+    //     // Act
+    //     UserRecordResult result = userTableDriver.getUser("nonExistentUser");
+
+    //     // Assert
+    //     assertNull(result);
+    // }
+
+    // Additional tests can be added here for edge cases, error handling, etc.
+}

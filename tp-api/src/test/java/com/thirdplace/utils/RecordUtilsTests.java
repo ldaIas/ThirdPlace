@@ -1,12 +1,14 @@
 package com.thirdplace.utils;
 
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.HashMap;
 
+import org.eclipse.jetty.util.StringUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -21,11 +23,11 @@ public class RecordUtilsTests {
     }
 
     /**
-     * Test to ensure that we can create a TestRecord using RecordUtils.init()
-     * with valid fields and values.
+     * Test to ensure that we can create a TestRecord using RecordUtils.init() with
+     * valid fields and values.
      */
     @Test
-    public void testInitWithValidFieldsAndValues() {
+    void testInitWithValidFieldsAndValues() {
         final Class<TestRecord> recordClass = TestRecord.class;
         final Map<String, Object> fieldValues = new HashMap<>();
         fieldValues.put(TestRecord.FIELD_1, "value1");
@@ -39,25 +41,27 @@ public class RecordUtilsTests {
     }
 
     /**
-     * Test to ensure that we get the correct error when an incompatible type is supplied
+     * Test to ensure that we get the correct error when an incompatible type is
+     * supplied
      */
     @Test
-    public void testInitIncompatibleValueType() {
+    void testInitIncompatibleValueType() {
         final Map<String, Object> fieldValues = new HashMap<>();
         fieldValues.put(TestRecord.FIELD_2, "not an integer");
 
         try {
             RecordUtils.init(TestRecord.class, fieldValues);
-        }  catch (RecordUtilsException e) {
+        } catch (RecordUtilsException e) {
             assertEquals(RecordUtilsException.ErrorCode.BAD_FIELD_TYPE, e.getErrorCode());
         }
     }
 
     /**
-     * Test to ensure that if a field is supplied that doesn't exist on the record, we throw the correct error
+     * Test to ensure that if a field is supplied that doesn't exist on the record,
+     * we throw the correct error
      */
     @Test
-    public void testInitNonExistentField() {
+    void testInitNonExistentField() {
         Map<String, Object> fieldValues = new HashMap<>();
         fieldValues.put(TestRecord.FIELD_1, "value1");
         fieldValues.put("nonExistentField", "value2");
@@ -66,7 +70,7 @@ public class RecordUtilsTests {
             RecordUtils.init(TestRecord.class, fieldValues);
         } catch (RecordUtilsException e) {
             assertEquals(RecordUtilsException.ErrorCode.BAD_FIELDS_SUPPLIED, e.getErrorCode(),
-                "Expected error for bad values supplied to Record init");
+                    "Expected error for bad values supplied to Record init");
         }
     }
 
@@ -74,13 +78,10 @@ public class RecordUtilsTests {
      * Test to ensure that if no values are passed in, we return a defaulted record
      */
     @Test
-    public void testInitEmptyMap() {
-        record TestFnRecord(
-            boolean field1, byte field2, char field3,
-            double field4, float field5, int field6,
-            long field7, short field8,       
-            Object fieldO
-        ) {}
+    void testInitEmptyMap() {
+        record TestFnRecord(boolean field1, byte field2, char field3, double field4, float field5, int field6,
+                long field7, short field8, Object fieldO) {
+        }
 
         final TestFnRecord result = RecordUtils.init(TestFnRecord.class, Map.of());
 

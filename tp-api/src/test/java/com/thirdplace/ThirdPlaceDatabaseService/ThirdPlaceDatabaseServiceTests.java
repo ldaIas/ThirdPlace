@@ -154,7 +154,7 @@ public class ThirdPlaceDatabaseServiceTests {
 
         final Map<String, Object> resultMap = queryRes.result().results().getFirst();
         Assertions.assertTrue(resultMap.containsKey(TESTC_ID), "Expected query result to have an id key");
-        Assertions.assertEquals(insertRes.result().id(), resultMap.get(TESTC_ID),
+        Assertions.assertEquals(insertRes.result().inserted().get("id"), resultMap.get(TESTC_ID),
                 "Expected to have the same id as the insert");
 
         Assertions.assertTrue(resultMap.containsKey(TESTC_NAME), "Expected query result to have a name key");
@@ -333,9 +333,10 @@ public class ThirdPlaceDatabaseServiceTests {
     /**
      * Test ensuring that we can update records correctly: - Inserts 5 records -
      * updates record with id = 3 to have name = "updated"
+     * Does not return the updated records
      */
     @Test
-    void testUpdateData_Success() {
+    void testUpdateDataNoReturn_Success() {
 
         final String tableName = getTableName();
 
@@ -350,8 +351,9 @@ public class ThirdPlaceDatabaseServiceTests {
         final ColumnSetter column = new ColumnSetter(TESTC_NAME, "updated");
         final WhereFilter filter = new WhereFilter(TESTC_ID, Operator.EQUAL, "3");
         final DatabaseServiceResults<UpdateResult> updateRes = staticDbService.updateRecord(tableName, List.of(column),
-                List.of(filter));
+                List.of(filter), false);
 
+        Assertions.assertTrue(updateRes.result().updated().isEmpty(), "Expected empty list returned in update res");
         Assertions.assertEquals(1, updateRes.result().rowsUpdated(), "Expected update result to have 1 result");
         Assertions.assertEquals(QueryOperation.UPDATE, updateRes.operation(),
                 "Expected operation to be an update operation");
@@ -371,6 +373,46 @@ public class ThirdPlaceDatabaseServiceTests {
         Assertions.assertTrue(resultMap.containsKey(TESTC_NAME), "Expected query result to have a name key");
         Assertions.assertEquals("updated", resultMap.get(TESTC_NAME), "Expected to have name updated");
 
+    }
+
+    /**
+     * Test that inserts serveral records and asks for the updated records back.
+     * Verifies the updated records have been modified correctly and been updated correctly
+     */
+    @Test
+    void testUpdateReturnData_Success() {
+
+        final String tableName = getTableName();
+
+        staticDbService.createTable(tableName, TEST_COLUMNS);
+
+        // Insert 5 records
+        for (int i = 0; i < 5; i++) {
+            staticDbService.insertRecord(tableName, List.of(TESTC_NAME), List.of(TEST_NAME + (i + 1)));
+        }
+
+        // Update record with id = 3
+        final ColumnSetter column = new ColumnSetter(TESTC_NAME, "updated");
+        final WhereFilter filter = new WhereFilter(TESTC_ID, Operator.EQUAL, "3");
+        final DatabaseServiceResults<UpdateResult> updateRes = staticDbService.updateRecord(tableName, List.of(column),
+                List.of(filter), true);
+
+        Assertions.assertFalse(updateRes.result().updated().isEmpty(), "Expected to have list of results in update result");
+        Assertions.assertEquals(1, updateRes.result().rowsUpdated(), "Expected update result to have 1 result");
+        Assertions.assertEquals(QueryOperation.UPDATE, updateRes.operation(),
+                "Expected operation to be an update operation");
+        Assertions.assertTrue(updateRes.successful(), "Expected update operation to be successful");
+
+        // Validate the updated record
+        final UpdateResult updateResObj = updateRes.result();
+        Assertions.assertEquals(1, updateResObj.rowsUpdated(), "Expected update result to have 1 result");
+
+        final Map<String, Object> resultMap = updateRes.result().updated().getFirst();
+        Assertions.assertTrue(resultMap.containsKey(TESTC_ID), "Expected update result to have an id key");
+        Assertions.assertEquals(3, resultMap.get(TESTC_ID), "Expected to have id 3");
+
+        Assertions.assertTrue(resultMap.containsKey(TESTC_NAME), "Expected query result to have a name key");
+        Assertions.assertEquals("updated", resultMap.get(TESTC_NAME), "Expected to have name updated");
     }
 
     /**

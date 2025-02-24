@@ -1,19 +1,17 @@
 package com.thirdplace.usertabledriver;
 
 /**
- * Used in update queries
+ * Used in insert queries
  */
-public record UserRecordMutate(
-    int id,
+public record UserRecordInsert(
     String username,
     String password,
     String email,
     String firstName,
     String lastName
 ) implements UserTableMutation {
-
-    // Mainly for use in RecordUtils#init
-    public static final String ID = "id";
+    
+    // For use with RecordUtils#init
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
     public static final String EMAIL = "email";

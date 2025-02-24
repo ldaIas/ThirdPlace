@@ -8,9 +8,11 @@ import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,7 @@ import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.DeleteRes
 import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.InsertResult;
 import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.QueryResult;
 import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.UpdateResult;
+import com.thirdplace.usertabledriver.UserTableDriver;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
@@ -51,7 +54,10 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
 
     private static final String QUERY_FORMATTER = "SELECT %s FROM %s.%s %s";
     private static final String INSERT_FORMATTER = "INSERT INTO %s.%s (%s) VALUES (%s) RETURNING id";
-    private static final String UPDATE_FORMATTER = "UPDATE %s.%s SET %s %s";
+
+    // UPDATE schema.table SET columns values RETURNING *
+    private static final String UPDATE_FORMATTER = "UPDATE %s.%s SET %s %s %s";
+    private static final String RETURNING = " RETURNING *";
     private static final String DELETE_FORMATTER = "DELETE FROM %s.%s WHERE %s";
 
     private static final String DEFAULT_SCHEMA = "prod";
@@ -327,45 +333,62 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
                 for (int i = 0; i < values.size(); i++) {
                     pstmt.setString(i + 1, values.get(i));
                 }
+
+                final Map<String, Object> record = new HashMap<>();
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
-                        insertedId = rs.getInt("id");
+                        insertedId = rs.getInt(UserTableDriver.ID_COLUMN);
+                        columns.forEach(col -> {
+                            try {
+                                record.put(col, rs.getObject(col));
+                            } catch (SQLException e) {
+                                throw new ThirdPlaceDatabaseServiceRuntimeError(
+                                        ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_RUNNING_INSERT,
+                                        "Error inserting record", e);
+                            }
+                        });
                         LOGGER.debug("Inserted record to table " + tableName + " with id " + insertedId);
                     }
                 }
                 return new DatabaseServiceResults<>(pstmt.toString(), QueryOperation.INSERT, null, true,
-                    new InsertResult(1, insertedId));
+                        new InsertResult(record, 1));
             }
 
         } catch (final SQLException e) {
             LOGGER.error("Error inserting record", e);
-            return new DatabaseServiceResults<>(sql, QueryOperation.INSERT, e, false,
-                    new InsertResult(0, insertedId));
+            return new DatabaseServiceResults<>(sql, QueryOperation.INSERT, e, false, new InsertResult(Map.of(), 0));
         }
     }
 
     /**
      * Update a record in a table
      * 
-     * @param tableName    The name of the table to update
-     * @param columns      The list of columns to update
-     * @param values       The list of values to update. Must be in the same order
-     *                     as the columns
-     * @param whereClauses The where clauses to use for the update
+     * @param tableName     The name of the table to update
+     * @param columns       The list of columns to update
+     * @param values        The list of values to update. Must be in the same order
+     *                      as the columns
+     * @param whereClauses  The where clauses to use for the update
+     * @param returnUpdated Whether to return the updated record(s)
      * @return A {@link DatabaseServiceResults} result of the update
      */
-    public DatabaseServiceResults<UpdateResult> updateRecord(final String tableName, final List<ColumnSetter> columnSetters,
-         @Nonnull final List<WhereFilter> whereClauses) {
+    public DatabaseServiceResults<UpdateResult> updateRecord(final String tableName,
+            final List<ColumnSetter> columnSetters, @Nonnull final List<WhereFilter> whereClauses,
+            final boolean returnUpdated) {
 
-        final String columnsString = columnSetters.stream().map(c -> c.bindColumn()).collect(Collectors.joining(COMMA_SEPARATOR));
-        final String filterString = whereClauses.size() > 0
-            ? "WHERE " + buildValuesToBind(whereClauses)
-            : StringUtils.EMPTY;
-        final String sqlString = String.format(UPDATE_FORMATTER, getSchemaName(), tableName, columnsString, filterString);
+        final String columnSettersString = columnSetters.stream().map(c -> c.bindColumn())
+                .collect(Collectors.joining(COMMA_SEPARATOR));
 
-        try {
-            final PreparedStatement pstmt = connection.prepareStatement(sqlString);
-            // Bind columns then filters 
+        final String filterString = whereClauses.size() > 0 ? "WHERE " + buildValuesToBind(whereClauses)
+                : StringUtils.EMPTY;
+
+        final String returningString = returnUpdated ? RETURNING : StringUtils.EMPTY;
+
+        final String sqlString = String.format(UPDATE_FORMATTER, getSchemaName(), tableName, columnSettersString,
+                filterString, returningString);
+
+        try (final PreparedStatement pstmt = connection.prepareStatement(sqlString)) {
+
+            // Bind columns then filters
             int bindCount = 0;
             for (int i = 0; i < columnSetters.size(); i++) {
                 pstmt.setString(i + 1, columnSetters.get(i).value());
@@ -374,8 +397,22 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
             for (int i = 0; i < whereClauses.size(); i++) {
                 pstmt.setString(bindCount + i + 1, whereClauses.get(i).rightHandSide());
             }
-            pstmt.executeUpdate();
-            final UpdateResult updateResult = new UpdateResult(pstmt.getUpdateCount());
+
+            // Execute the update as a query in case the "RETURNING *" was added. Build the records to return in the UpdateResult
+            final ResultSet updateResultSet = pstmt.executeQuery();
+            final List<Map<String, Object>> updatedRecords = new ArrayList<>();
+            while (updateResultSet.next()) {
+                final Map<String, Object> record = new HashMap<>();
+                final ResultSetMetaData metaData = updateResultSet.getMetaData();
+                final int columnCount = metaData.getColumnCount();
+                for (int i = 1; i <= columnCount; i++) {
+                    String columnName = metaData.getColumnName(i);
+                    record.put(columnName, updateResultSet.getObject(i));
+                }
+                updatedRecords.add(record);
+            }
+
+            final UpdateResult updateResult = new UpdateResult(Collections.unmodifiableList(updatedRecords), pstmt.getUpdateCount());
             return new DatabaseServiceResults<>(pstmt.toString(), QueryOperation.UPDATE, null, true, updateResult);
 
         } catch (final SQLException e) {
@@ -383,8 +420,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
             final ThirdPlaceDatabaseServiceRuntimeError ex = new ThirdPlaceDatabaseServiceRuntimeError(
                     ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_RUNNING_UPDATE, "Error updating record", e);
             LOGGER.error("Error updating record", ex);
-            return new DatabaseServiceResults<>(sqlString, QueryOperation.UPDATE, e, false,
-                    new UpdateResult(0));
+            return new DatabaseServiceResults<>(sqlString, QueryOperation.UPDATE, e, false, new UpdateResult(List.of(), 0));
 
         }
     }
@@ -438,7 +474,8 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
                 pstmt.executeUpdate();
 
                 final DeleteResult deleteResult = new DeleteResult(pstmt.getUpdateCount());
-                return new DatabaseServiceResults<DeleteResult>(pstmt.toString(), QueryOperation.DELETE, null, true, deleteResult);
+                return new DatabaseServiceResults<DeleteResult>(pstmt.toString(), QueryOperation.DELETE, null, true,
+                        deleteResult);
             }
 
         } catch (final SQLException e) {
@@ -503,8 +540,9 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
                     count.incrementAndGet();
                 }
 
-                final QueryResult queryResult = new QueryResult(results, count.get());
-                return new DatabaseServiceResults<QueryResult>(pstmt.toString(), QueryOperation.SELECT, null, true, queryResult);
+                final QueryResult queryResult = new QueryResult(Collections.unmodifiableList(results), count.get());
+                return new DatabaseServiceResults<QueryResult>(pstmt.toString(), QueryOperation.SELECT, null, true,
+                        queryResult);
             }
 
         } catch (final SQLException e) {

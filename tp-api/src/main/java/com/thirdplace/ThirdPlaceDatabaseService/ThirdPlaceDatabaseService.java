@@ -53,7 +53,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     private static final String CREATE_TABLE_FORMATTER = "CREATE TABLE IF NOT EXISTS %s.%s (%s)";
 
     private static final String QUERY_FORMATTER = "SELECT %s FROM %s.%s %s";
-    private static final String INSERT_FORMATTER = "INSERT INTO %s.%s (%s) VALUES (%s) RETURNING id";
+    private static final String INSERT_FORMATTER = "INSERT INTO %s.%s (%s) VALUES (%s) RETURNING *";
 
     // UPDATE schema.table SET columns values RETURNING *
     private static final String UPDATE_FORMATTER = "UPDATE %s.%s SET %s %s %s";

@@ -1,7 +1,7 @@
 ## Description
 _Provide a summary of the changes and the motivation behind them._
 
-## Changes (
+## Changes
 - [ ] Feature added
 - [ ] Bug fixed
 - [ ] Refactoring

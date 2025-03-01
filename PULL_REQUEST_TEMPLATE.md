@@ -1,5 +1,5 @@
 ## Description
-__Provide a summary of the changes and the motivation behind them.__
+_Provide a summary of the changes and the motivation behind them._
 
 ## Changes (
 - [ ] Feature added
@@ -9,7 +9,7 @@ __Provide a summary of the changes and the motivation behind them.__
 - [ ] Other: _____
 
 ## Testing
-__Include net new test files, or test cases for bugs or small features__
+_Include net new test files, or test cases for bugs or small features_
 
 ## Checklist
 - [ ] Style Guidelines

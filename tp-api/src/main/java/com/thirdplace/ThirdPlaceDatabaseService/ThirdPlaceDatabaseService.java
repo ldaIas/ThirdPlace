@@ -338,15 +338,13 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
                         insertedId = rs.getInt(UserTableDriver.ID_COLUMN);
-                        columns.forEach(col -> {
-                            try {
-                                record.put(col, rs.getObject(col));
-                            } catch (SQLException e) {
-                                throw new ThirdPlaceDatabaseServiceRuntimeError(
-                                        ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_RUNNING_INSERT,
-                                        "Error inserting record", e);
-                            }
-                        });
+                        // Add each column from the result to the return ecord
+                        final int colCount = rs.getMetaData().getColumnCount();
+                        for (int i = 1; i <= colCount; i++) {
+                            final String columnName = rs.getMetaData().getColumnName(i);
+                            final Object columnValue = rs.getObject(i);
+                            record.put(columnName, columnValue);
+                        }
                         LOGGER.debug("Inserted record to table " + tableName + " with id " + insertedId);
                     }
                 }

@@ -14,6 +14,20 @@ jobs:
   build:
     name: Build Java
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 3310
+          POSTGRES_DB: thirdplace
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U testuser"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout code
@@ -26,4 +40,27 @@ jobs:
           distribution: 'temurin'
 
       - name: Build with Gradle
-        run: cd tp-api && sh ./gradlew build
+        id: gradle_build
+        run: | 
+          cd tp-api && sh ./gradlew build --info
+        continue-on-error: true  
+      
+      - name: Check Test Result
+        run: |
+          if [ ${{ steps.gradle_build.outcome }} != success ]; then
+            echo "TESTS_FAILED=true" >> $GITHUB_ENV
+          else
+            echo "TESTS_FAILED=false" >> $GITHUB_ENV
+          fi 
+
+      - name: Upload test reports
+        if: always()  # Ensures this runs even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: tp-api/build/reports/tests/test/
+          retention-days: 2
+      
+      - name: Fail if tests failed
+        if: env.TESTS_FAILED == 'true'
+        run: exit 1    

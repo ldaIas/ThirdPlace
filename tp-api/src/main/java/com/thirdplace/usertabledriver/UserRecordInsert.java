@@ -1,7 +1,7 @@
 package com.thirdplace.usertabledriver;
 
 /**
- * Used in insert queries
+ * Used in insert queries. Names of fields are the same as the column names in the database.
  */
 public record UserRecordInsert(
     String username,
@@ -12,9 +12,9 @@ public record UserRecordInsert(
 ) implements UserTableMutation {
     
     // For use with RecordUtils#init
-    public static final String USERNAME = "username";
-    public static final String PASSWORD = "password";
-    public static final String EMAIL = "email";
-    public static final String FIRST_NAME = "firstName";
-    public static final String LAST_NAME = "lastName";
+    public static final String USERNAME = UserTableDriver.USERNAME_COLUMN;
+    public static final String PASSWORD = UserTableDriver.PASSWORD_COLUMN;
+    public static final String EMAIL = UserTableDriver.EMAIL_COLUMN;
+    public static final String FIRST_NAME = UserTableDriver.FIRST_NAME_COLUMN;
+    public static final String LAST_NAME = UserTableDriver.LAST_NAME_COLUMN;
  }

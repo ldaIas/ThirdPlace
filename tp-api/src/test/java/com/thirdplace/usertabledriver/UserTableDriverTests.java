@@ -27,6 +27,7 @@ public class UserTableDriverTests {
         // Initialize the database service and user table driver
         databaseService = new ThirdPlaceDatabaseServiceTestExt();
         userTableDriver = new UserTableDriver(databaseService);
+        userTableDriver.init();
     }
 
     @AfterAll
@@ -69,6 +70,7 @@ public class UserTableDriverTests {
         final Class<UserRecordInsert> recordClass = UserRecordInsert.class;
         final UserRecordInsert insertUser = RecordUtils.init(recordClass, Map.of(
             UserRecordInsert.USERNAME, TEST_USERNAME,
+            UserRecordInsert.PASSWORD, "testpass!23",
             UserRecordInsert.EMAIL, TEST_EMAIL,
             UserRecordInsert.FIRST_NAME, TEST_NAME + "testUpdateUser()"
         ));
@@ -83,7 +85,7 @@ public class UserTableDriverTests {
         ));
 
         // Update the record
-        final UserRecordResult result = userTableDriver.updateUserRecord(mutateUser, true);
+        final UserRecordResult result = userTableDriver.updateUserRecord(mutateUser);
 
         // Verify it has the new user name and updated date
         Assertions.assertNotNull(result);

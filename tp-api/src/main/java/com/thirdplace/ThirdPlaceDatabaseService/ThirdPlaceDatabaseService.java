@@ -316,41 +316,39 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
      *                  the columns
      * @return A {@link DatabaseServiceResults} result of the insert
      */
-    public DatabaseServiceResults<InsertResult> insertRecord(final String tableName, final List<String> columns,
-            final List<String> values) {
+    public DatabaseServiceResults<InsertResult> insertRecord(final String tableName,
+            final List<ColumnSetter> columnSetters) {
 
-        final String columnsString = getCommaSeparatedValues(columns);
-
-        final List<String> valueHolders = values.stream().map(v -> QUESTION).toList();
-        final String valuesString = getCommaSeparatedValues(valueHolders);
+        final String columnsString = columnSetters.stream().map(c -> c.column())
+                .collect(Collectors.joining(COMMA_SEPARATOR));
+        final String valuesString = columnSetters.stream().map(c -> QUESTION)
+                .collect(Collectors.joining(COMMA_SEPARATOR));
 
         final String sql = String.format(INSERT_FORMATTER, getSchemaName(), tableName, columnsString, valuesString);
         int insertedId = -1;
 
-        try {
-
-            try (final PreparedStatement pstmt = connection.prepareStatement(sql)) {
-                for (int i = 0; i < values.size(); i++) {
-                    pstmt.setString(i + 1, values.get(i));
-                }
-
-                final Map<String, Object> record = new HashMap<>();
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    if (rs.next()) {
-                        insertedId = rs.getInt(UserTableDriver.ID_COLUMN);
-                        // Add each column from the result to the return ecord
-                        final int colCount = rs.getMetaData().getColumnCount();
-                        for (int i = 1; i <= colCount; i++) {
-                            final String columnName = rs.getMetaData().getColumnName(i);
-                            final Object columnValue = rs.getObject(i);
-                            record.put(columnName, columnValue);
-                        }
-                        LOGGER.debug("Inserted record to table " + tableName + " with id " + insertedId);
-                    }
-                }
-                return new DatabaseServiceResults<>(pstmt.toString(), QueryOperation.INSERT, null, true,
-                        new InsertResult(record, 1));
+        final List<String> values = columnSetters.stream().map(ColumnSetter::value).toList();
+        try (final PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            for (int i = 0; i < values.size(); i++) {
+                pstmt.setString(i + 1, values.get(i));
             }
+
+            final Map<String, Object> record = new HashMap<>();
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    insertedId = rs.getInt(UserTableDriver.ID_COLUMN);
+                    // Add each column from the result to the return ecord
+                    final int colCount = rs.getMetaData().getColumnCount();
+                    for (int i = 1; i <= colCount; i++) {
+                        final String columnName = rs.getMetaData().getColumnName(i);
+                        final Object columnValue = rs.getObject(i);
+                        record.put(columnName, columnValue);
+                    }
+                    LOGGER.debug("Inserted record to table " + tableName + " with id " + insertedId);
+                }
+            }
+            return new DatabaseServiceResults<>(pstmt.toString(), QueryOperation.INSERT, null, true,
+                    new InsertResult(record, 1));
 
         } catch (final SQLException e) {
             LOGGER.error("Error inserting record", e);

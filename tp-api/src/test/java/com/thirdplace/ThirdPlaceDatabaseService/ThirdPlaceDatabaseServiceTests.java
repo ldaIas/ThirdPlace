@@ -138,7 +138,7 @@ public class ThirdPlaceDatabaseServiceTests {
         staticDbService.createTable(tableName, TEST_COLUMNS);
 
         final DatabaseServiceResults<InsertResult> insertRes = staticDbService.insertRecord(tableName,
-                List.of(TESTC_NAME), List.of(TEST_NAME));
+        List.of(new ColumnSetter(TESTC_NAME, TEST_NAME)));
 
         Assertions.assertEquals(1, insertRes.result().rowsInserted(), "Expected insert result to have 1 result");
         Assertions.assertEquals(QueryOperation.INSERT, insertRes.operation(),
@@ -170,7 +170,7 @@ public class ThirdPlaceDatabaseServiceTests {
     void testInsertData_TableDoesNotExist() {
 
         final DatabaseServiceResults<InsertResult> insertRes = staticDbService.insertRecord("thistabledne",
-                List.of(TESTC_NAME), List.of(TEST_NAME));
+        List.of(new ColumnSetter(TESTC_NAME, TEST_NAME)));
 
         final SQLException insertEx = insertRes.exception();
         Assertions.assertNotNull(insertEx, "Expected insert exception to be non-null");
@@ -189,7 +189,7 @@ public class ThirdPlaceDatabaseServiceTests {
 
         staticDbService.createTable(tableName, TEST_COLUMNS);
 
-        staticDbService.insertRecord(tableName, List.of(TESTC_NAME), List.of(TEST_NAME));
+        staticDbService.insertRecord(tableName, List.of(new ColumnSetter(TESTC_NAME, TEST_NAME)));
 
         final WhereFilter filter = new WhereFilter(TESTC_NAME, Operator.EQUAL, TEST_NAME);
         final DatabaseServiceResults<QueryResult> queryRes = staticDbService.queryRecord(tableName,
@@ -261,7 +261,7 @@ public class ThirdPlaceDatabaseServiceTests {
 
         // Insert 5 records
         for (int i = 0; i < 5; i++) {
-            staticDbService.insertRecord(tableName, List.of(TESTC_NAME), List.of(TEST_NAME + (i + 1)));
+            staticDbService.insertRecord(tableName, List.of(new ColumnSetter(TESTC_NAME, TEST_NAME + (i+1))));
         }
 
         // Find all records
@@ -317,7 +317,7 @@ public class ThirdPlaceDatabaseServiceTests {
 
         // Insert 5 records
         for (int i = 0; i < 5; i++) {
-            staticDbService.insertRecord(tableName, List.of(TESTC_NAME), List.of(TEST_NAME + (i + 1)));
+            staticDbService.insertRecord(tableName, List.of(new ColumnSetter(TESTC_NAME, TEST_NAME + (i+1))));
         }
 
         // Try to find all records via injection
@@ -344,7 +344,7 @@ public class ThirdPlaceDatabaseServiceTests {
 
         // Insert 5 records
         for (int i = 0; i < 5; i++) {
-            staticDbService.insertRecord(tableName, List.of(TESTC_NAME), List.of(TEST_NAME + (i + 1)));
+            staticDbService.insertRecord(tableName, List.of(new ColumnSetter(TESTC_NAME, TEST_NAME + (i+1))));
         }
 
         // Update record with id = 3
@@ -388,7 +388,7 @@ public class ThirdPlaceDatabaseServiceTests {
 
         // Insert 5 records
         for (int i = 0; i < 5; i++) {
-            staticDbService.insertRecord(tableName, List.of(TESTC_NAME), List.of(TEST_NAME + (i + 1)));
+            staticDbService.insertRecord(tableName, List.of(new ColumnSetter(TESTC_NAME, TEST_NAME + (i+1))));
         }
 
         // Update record with id = 3

@@ -46,7 +46,8 @@ public class RecordUtils {
 
             if (fieldValue != null && !component.getType().isInstance(fieldValue)) {
                 throw new RecordUtilsException(RecordUtilsException.ErrorCode.BAD_FIELD_TYPE,
-                        "Field value " + fieldValue + " is not of type " + component.getType() + " when constructing " + recordClass.getName());
+                        "Field value " + fieldValue + " is not of type " + component.getType() + " when constructing "
+                                + recordClass.getName());
             }
 
             // If the field value is null, get the default value for the component
@@ -103,6 +104,28 @@ public class RecordUtils {
         default -> null;
         };
 
+    }
+
+    /**
+     * Get the value of a record field by name.
+     *
+     * @param record    The record to get the value from
+     * @param fieldName The name of the field to get the value of
+     * @return The value of the field
+     */
+    @Nullable
+    public static Object getRecordValue(final Record record, final String fieldName) {
+        final RecordComponent component = Arrays.stream(record.getClass().getRecordComponents())
+                .filter(c -> c.getName().equals(fieldName)).findFirst()
+                .orElseThrow(() -> new RecordUtilsException(RecordUtilsException.ErrorCode.FIELD_NOT_FOUND,
+                        "Field " + fieldName + " not found on record " + record));
+
+        try {
+            return component.getAccessor().invoke(record);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RecordUtilsException(RecordUtilsException.ErrorCode.FIELD_ACCESS_ERROR,
+                    "Error trying to access field " + fieldName + " on record " + record, e);
+        }
     }
 
 }

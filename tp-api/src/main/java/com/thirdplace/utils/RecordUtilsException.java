@@ -6,7 +6,10 @@ public class RecordUtilsException extends RuntimeExceptionBase {
         BAD_FIELD_TYPE,
         BAD_FIELDS_SUPPLIED,
         INSTANTIATION_ERROR,
-        BAD_METHOD_REFERENCE
+        BAD_METHOD_REFERENCE,
+
+        FIELD_ACCESS_ERROR,
+        FIELD_NOT_FOUND
     }
 
     public RecordUtilsException(ErrorCodeBase errorCode, String message, Throwable cause) {

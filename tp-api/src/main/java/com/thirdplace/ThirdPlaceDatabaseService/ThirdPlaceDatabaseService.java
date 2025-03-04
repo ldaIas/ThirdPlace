@@ -396,29 +396,40 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
                 pstmt.setString(bindCount + i + 1, whereClauses.get(i).rightHandSide());
             }
 
-            // Execute the update as a query in case the "RETURNING *" was added. Build the records to return in the UpdateResult
-            final ResultSet updateResultSet = pstmt.executeQuery();
-            final List<Map<String, Object>> updatedRecords = new ArrayList<>();
-            while (updateResultSet.next()) {
-                final Map<String, Object> record = new HashMap<>();
-                final ResultSetMetaData metaData = updateResultSet.getMetaData();
-                final int columnCount = metaData.getColumnCount();
-                for (int i = 1; i <= columnCount; i++) {
-                    String columnName = metaData.getColumnName(i);
-                    record.put(columnName, updateResultSet.getObject(i));
-                }
-                updatedRecords.add(record);
-            }
+            // If return data is true, execute as query to loop through results
+            // Otherwise, just execute the update and return the empty success result
+            if (returnUpdated) {
+                try (final ResultSet updateResultSet = pstmt.executeQuery()) {
+                    final List<Map<String, Object>> updatedRecords = new ArrayList<>();
+                    while (updateResultSet.next()) {
+                        final Map<String, Object> record = new HashMap<>();
+                        final ResultSetMetaData metaData = updateResultSet.getMetaData();
+                        final int columnCount = metaData.getColumnCount();
+                        for (int i = 1; i <= columnCount; i++) {
+                            String columnName = metaData.getColumnName(i);
+                            record.put(columnName, updateResultSet.getObject(i));
+                        }
+                        updatedRecords.add(record);
+                    }
 
-            final UpdateResult updateResult = new UpdateResult(Collections.unmodifiableList(updatedRecords), pstmt.getUpdateCount());
-            return new DatabaseServiceResults<>(pstmt.toString(), QueryOperation.UPDATE, null, true, updateResult);
+                    final UpdateResult updateResult = new UpdateResult(Collections.unmodifiableList(updatedRecords),
+                            updatedRecords.size());
+                    return new DatabaseServiceResults<>(pstmt.toString(), QueryOperation.UPDATE, null, true,
+                            updateResult);
+                }
+            } else {
+                pstmt.executeUpdate();
+                return new DatabaseServiceResults<>(pstmt.toString(), QueryOperation.UPDATE, null, true,
+                        new UpdateResult(Collections.emptyList(), pstmt.getUpdateCount()));
+            }
 
         } catch (final SQLException e) {
 
             final ThirdPlaceDatabaseServiceRuntimeError ex = new ThirdPlaceDatabaseServiceRuntimeError(
                     ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_RUNNING_UPDATE, "Error updating record", e);
             LOGGER.error("Error updating record", ex);
-            return new DatabaseServiceResults<>(sqlString, QueryOperation.UPDATE, e, false, new UpdateResult(List.of(), 0));
+            return new DatabaseServiceResults<>(sqlString, QueryOperation.UPDATE, e, false,
+                    new UpdateResult(List.of(), 0));
 
         }
     }

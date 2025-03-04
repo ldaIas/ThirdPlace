@@ -407,7 +407,7 @@ public class ThirdPlaceDatabaseServiceTests {
         final UpdateResult updateResObj = updateRes.result();
         Assertions.assertEquals(1, updateResObj.rowsUpdated(), "Expected update result to have 1 result");
 
-        final Map<String, Object> resultMap = updateRes.result().updated().getFirst();
+        final Map<String, Object> resultMap = updateResObj.updated().getFirst();
         Assertions.assertTrue(resultMap.containsKey(TESTC_ID), "Expected update result to have an id key");
         Assertions.assertEquals(3, resultMap.get(TESTC_ID), "Expected to have id 3");
 

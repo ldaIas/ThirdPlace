@@ -6,6 +6,8 @@ import com.thirdplace.testutils.ThirdPlaceDatabaseServiceTestExt;
 import org.junit.jupiter.api.Test;
 
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.Temporal;
+import java.time.temporal.TemporalAccessor;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
@@ -95,10 +97,12 @@ class UserTableDriverTests {
         Assertions.assertEquals(newUsername, result.username(), "Expected result to have new username");
         Assertions.assertNotEquals(initRecUpdated, result.updatedAt(), "Expected updated time to be different from initial record");
 
-        // assert updated at is formatted as a postgres date
-        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");
+        // Assert updated at is formatted as a postgres date and we can get the date objects from the record
+        final DateTimeFormatter formatter = UserTableDriver.DATE_FORMATTER;
         try {
             formatter.parse(result.updatedAt());
+            result.createdDate();
+            result.updatedDate();
         } catch (Exception e) {
             Assertions.fail("Expected updatedAt to be formatted as a postgres date. Found: " + result.updatedAt());
         }

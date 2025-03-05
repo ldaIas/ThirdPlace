@@ -7,4 +7,9 @@ Steps to setup a development environment for the backend:
     - Gradle may not be immediately visible as an extension in vscode. Try creating a new gradle project with Ctrl+Shift+P -> Gradle: Create Gradle Java Project (Advanced) and follow the steps. See https://github.com/microsoft/vscode-gradle/issues/1462 for more
 - Ensure you can build and run by using `sh gradlew build` and `sh gradlew run`
 
+CODACY
+- Codacy (https://www.codacy.com/) is a code quality tool. It is integrated in the GitHub repo to run analyses on PRs.
+- Codacy has extensions available on various IDEs, including vscode: https://marketplace.visualstudio.com/items?itemName=codacy-app.codacy.
+    It is recommended to install the extension to gain insight into code quality as you write
+
 Add to this file if you find info is missing/incorrect or if additional info would be helpful.

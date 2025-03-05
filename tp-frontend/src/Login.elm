@@ -5,8 +5,11 @@ import Browser.Navigation as Navigation exposing (Key)
 import Html exposing (Html, button, div, h1, input, p, text)
 import Html.Attributes exposing (class, placeholder, type_)
 import Html.Events exposing (onClick, onInput)
-import LoginStyles exposing (loginContainer, logoBody)
+import LoginStyles exposing (accountPane, loginContainer, logoBody)
 import Url exposing (Url)
+import LoginStyles exposing (createContainer)
+import LoginStyles exposing (fieldsContainer)
+import LoginStyles exposing (separator)
 
 
 type alias Model =
@@ -56,11 +59,23 @@ view model =
     , body =
         [ div [ class logoBody ]
             [ p [] [ text "ThirdPlace" ] ]
-        , div [ class loginContainer ]
-            [ h1 [] [ text "Login" ]
-            , input [ type_ "text", placeholder "Username", onInput UpdateUsername ] []
-            , input [ type_ "password", placeholder "Password", onInput UpdatePassword ] []
-            , button [ onClick Login ] [ text "Login" ]
+        , div [ class accountPane ]
+            [ h1 [] [ text "🏢💁\u{200D}♀️💬" ]
+            , div [ class fieldsContainer ]
+                [ div [ class createContainer ]
+                    [ input [ type_ "text", placeholder "Email", onInput UpdateUsername ] []
+                    , input [ type_ "text", placeholder "Username", onInput UpdateUsername ] []
+                    , input [ type_ "password", placeholder "Password", onInput UpdatePassword ] []
+                    , input [ type_ "password", placeholder "Re-type password", onInput UpdatePassword ] []
+                    , button [ onClick Login ] [ text "Create Account" ]
+                    ]
+                , div [ class separator ] []
+                , div [ class loginContainer ]
+                    [ input [ type_ "text", placeholder "Username", onInput UpdateUsername ] []
+                    , input [ type_ "password", placeholder "Password", onInput UpdatePassword ] []
+                    , button [ onClick Login ] [ text "Login" ]
+                    ]
+                ]
             ]
         ]
     }

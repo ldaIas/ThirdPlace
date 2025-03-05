@@ -117,6 +117,23 @@ class UserTableDriverTests {
     @Test
     void testUpdateNoIdRequested() {
 
+        final UserRecordMutate mutateUser = RecordUtils.init(UserRecordMutate.class, Map.of(
+            UserRecordMutate.USERNAME_KEY, "test"
+        ));
+
+        try {
+            userTableDriver.updateUserRecord(mutateUser);
+            Assertions.fail("Expected an error to be thrown when updating a user record without an ID");
+        } catch (Exception e) {
+
+            if (e instanceof UserTableDriverException userTableDriverException) {
+                Assertions.assertEquals(UserTableDriverException.ErrorCode.ERROR_UPDATING_NULL_ID, userTableDriverException.getErrorCode());
+            } else {
+                Assertions.fail("Expected a UserTableDriverException to be thrown, instead got: " + e);
+            }
+        
+        }
+
     }
 
     // @Test

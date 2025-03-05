@@ -21,4 +21,9 @@ PostgreSQL
 - While in `psql`, run `CREATE ROLE postgres WITH SUPERUSER LOGIN PASSWORD '3310';`
 - Verify the postgres user was created by exiting psql and running `psql -U postgres`
 
+CODACY
+- Codacy (https://www.codacy.com/) is a code quality tool. It is integrated in the GitHub repo to run analyses on PRs.
+- Codacy has extensions available on various IDEs, including vscode: https://marketplace.visualstudio.com/items?itemName=codacy-app.codacy.
+    It is recommended to install the extension to gain insight into code quality as you write
+
 Add to this file if you find info is missing/incorrect or if additional info would be helpful.

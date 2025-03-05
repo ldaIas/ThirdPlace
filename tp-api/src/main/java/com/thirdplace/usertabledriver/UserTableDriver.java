@@ -211,9 +211,9 @@ public class UserTableDriver {
      * Other properties are ignored.
      *
      * @param userRecord The user record to delete
-     * @return The results of the delete operation
+     * @return Whether a user record was deleted
      */
-    public DatabaseServiceResults<DeleteResult> deleteUserRecord(final UserRecordMutate userRecord) {
+    public boolean deleteUserRecord(final UserRecordMutate userRecord) {
         LOGGER.debug("Deleting user record: " + userRecord);
 
         if (userRecord.id() == null) {
@@ -225,7 +225,18 @@ public class UserTableDriver {
         final WhereFilter userFilter = new WhereFilter(ID_COLUMN + TEXT_CAST, WhereFilter.Operator.EQUAL,
           Integer.toString(userRecord.id()));
 
-        return dbService.deleteRecord(TABLE_NAME, List.of(userFilter));
+        final DatabaseServiceResults<DeleteResult> dbDeleteResult = dbService.deleteRecord(TABLE_NAME, List.of(userFilter));
+
+        if (!dbDeleteResult.successful()) {
+
+            final UserTableDriverException ex = new UserTableDriverException(UserTableDriverException.ErrorCode.ERROR_DELETING_USER,
+                "Error trying to delete user record " + userRecord, dbDeleteResult.exception());
+
+            LOGGER.error("Error deleting user record with user record mutation: " + userRecord, ex);
+            throw ex;
+        }
+
+        return dbDeleteResult.result().rowsDeleted() > 0;
     }
 
     /**
@@ -234,8 +245,16 @@ public class UserTableDriver {
      * @param recordFilters The filters to apply to the select operation
      * @return The results of the select operation
      */
-    public DatabaseServiceResults<QueryResult> getUserRecord(final List<WhereFilter> recordFilters) {
-        return dbService.queryRecord(TABLE_NAME, List.of(WILDCARD), recordFilters);
+    public List<UserRecordResult> getUserRecord(final List<WhereFilter> recordFilters) {
+
+        final DatabaseServiceResults<QueryResult> dbResult = dbService.queryRecord(TABLE_NAME, List.of(WILDCARD), recordFilters);
+
+        if (!dbResult.successful()) {
+            throw new UserTableDriverException(UserTableDriverException.ErrorCode.ERROR_QUERYING_USER,
+              "Error trying to get user record", dbResult.exception());
+        }
+
+        return dbResult.result().results().stream().map(UserTableDriver::dbResultToUserRecordResult).toList();
     }
 
 }

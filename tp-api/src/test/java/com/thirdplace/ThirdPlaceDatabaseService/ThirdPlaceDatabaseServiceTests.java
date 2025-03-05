@@ -21,7 +21,10 @@ import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.QueryResu
 import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.UpdateResult;
 import com.thirdplace.thirdplacedatabaseservice.WhereFilter.Operator;
 
-public class ThirdPlaceDatabaseServiceTests {
+/**
+ * Test class for the {@link ThirdPlaceDatabaseService}
+ */
+class ThirdPlaceDatabaseServiceTests {
 
     private static final String TEST_TABLE_NAME = "testt";
 

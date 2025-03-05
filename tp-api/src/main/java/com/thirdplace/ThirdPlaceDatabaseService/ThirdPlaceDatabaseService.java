@@ -519,35 +519,8 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
 
             try (final ResultSet rs = pstmt.executeQuery()) {
 
-                final List<Map<String, Object>> results = new ArrayList<>();
-                final AtomicInteger count = new AtomicInteger(0);
-
-                // Add each record to the results
-                while (rs.next()) {
-
-                    // For each column asked for add it to the map at the appropriate index in the
-                    // result list
-                    columns.forEach(c -> {
-                        try {
-                            final int ind = count.get();
-                            if (results.size() <= ind) {
-                                results.add(new HashMap<>());
-                            }
-                            final Map<String, Object> resultMap = results.get(ind);
-                            resultMap.put(c, rs.getObject(c));
-
-                        } catch (final SQLException e) {
-                            LOGGER.error("Error getting column value", e);
-                            throw new ThirdPlaceDatabaseServiceRuntimeError(
-                                    ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_GETTING_COLUMN_VALUE,
-                                    "Error getting column value", e);
-                        }
-                    });
-
-                    count.incrementAndGet();
-                }
-
-                final QueryResult queryResult = new QueryResult(Collections.unmodifiableList(results), count.get());
+                final List<Map<String, Object>> results = getResults(rs);
+                final QueryResult queryResult = new QueryResult(Collections.unmodifiableList(results), results.size());
                 return new DatabaseServiceResults<QueryResult>(pstmt.toString(), QueryOperation.SELECT, null, true,
                         queryResult);
             }
@@ -559,6 +532,21 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
             return new DatabaseServiceResults<QueryResult>(sql, QueryOperation.SELECT, e, false,
                     new QueryResult(List.of(Map.of()), 0));
         }
+    }
+
+    private static List<Map<String, Object>> getResults(final ResultSet rs) throws SQLException {
+        final List<Map<String, Object>> results = new ArrayList<>();
+        while (rs.next()) {
+            final Map<String, Object> record = new HashMap<>();
+            final ResultSetMetaData metaData = rs.getMetaData();
+            final int columnCount = metaData.getColumnCount();
+            for (int i = 1; i <= columnCount; i++) {
+                String columnName = metaData.getColumnName(i);
+                record.put(columnName, rs.getObject(i));
+            }
+            results.add(record);
+        }
+        return results;
     }
 
     /**

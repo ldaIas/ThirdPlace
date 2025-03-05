@@ -1,25 +1,30 @@
 package com.thirdplace.usertabledriver;
 
 import com.thirdplace.thirdplacedatabaseservice.ThirdPlaceDatabaseService;
+import com.thirdplace.thirdplacedatabaseservice.WhereFilter;
+import com.thirdplace.thirdplacedatabaseservice.WhereFilter.Operator;
 import com.thirdplace.utils.RecordUtils;
 import com.thirdplace.testutils.ThirdPlaceDatabaseServiceTestExt;
 import org.junit.jupiter.api.Test;
 
+
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.Temporal;
-import java.time.temporal.TemporalAccessor;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 
+/**
+ * Tests for the {@link UserTableDriver} class
+ */
 class UserTableDriverTests {
 
     private static final String TEST_USERNAME = "testUsername";
     private static final String TEST_NAME = "test";
-    private static final String TEST_LAST = "user";
     private static final String TEST_EMAIL = "test@example.com";
+    private static final String TEST_PASSWORD = "testpass!23";
 
 
     private static UserTableDriver userTableDriver;
@@ -70,13 +75,7 @@ class UserTableDriverTests {
     @Test
     void testUpdateUser() {
 
-        final Class<UserRecordInsert> recordClass = UserRecordInsert.class;
-        final UserRecordInsert insertUser = RecordUtils.init(recordClass, Map.of(
-            UserRecordInsert.USERNAME, TEST_USERNAME,
-            UserRecordInsert.PASSWORD, "testpass!23",
-            UserRecordInsert.EMAIL, TEST_EMAIL,
-            UserRecordInsert.FIRST_NAME, TEST_NAME + "testUpdateUser()"
-        ));
+        final UserRecordInsert insertUser = createTestUserRecord();
 
         // Insert initial record
         final UserRecordResult initRec = userTableDriver.insertUserRecord(insertUser);
@@ -136,42 +135,81 @@ class UserTableDriverTests {
 
     }
 
-    // @Test
-    // public void testDeleteUser() {
-    //     // Arrange
-    //     UserRecordMutate userRecord = new UserRecordMutate("testUser", "test@example.com");
-    //     userTableDriver.insertUser(userRecord);
+    /**
+     * Test to ensure that we can insert and delete a user record successfully
+     */
+    @Test
+    void testDeleteUser() {
 
-    //     // Act
-    //     boolean deleteResult = userTableDriver.deleteUser(userRecord.getUserName());
+        final UserRecordInsert insertUser = createTestUserRecord();
+        final UserRecordResult insertRes = userTableDriver.insertUserRecord(insertUser);
 
-    //     // Assert
-    //     assertTrue(deleteResult);
-    // }
+        final UserRecordMutate deleteUser = RecordUtils.init(UserRecordMutate.class, Map.of(
+            UserRecordMutate.ID_KEY, Integer.parseInt(insertRes.id())
+        ));
 
-    // @Test
-    // public void testGetUser() {
-    //     // Arrange
-    //     UserRecordMutate userRecord = new UserRecordMutate("testUser", "test@example.com");
-    //     userTableDriver.insertUser(userRecord);
+        boolean deleteResult = userTableDriver.deleteUserRecord(deleteUser);
 
-    //     // Act
-    //     UserRecordResult result = userTableDriver.getUser(userRecord.getUserName());
+        Assertions.assertTrue(deleteResult, "Expected delete result to be true");
+    }
 
-    //     // Assert
-    //     assertNotNull(result);
-    //     assertEquals("testUser", result.getUserName());
-    //     assertEquals("test@example.com", result.getEmail());
-    // }
+    /**
+     * Test to ensure that if we try to delete a user that doesn't exist, we get a false result
+     */
+    @Test
+    void testDeleteUser_UserDNE() {
 
-    // @Test
-    // public void testGetNonExistentUser() {
-    //     // Act
-    //     UserRecordResult result = userTableDriver.getUser("nonExistentUser");
+        final UserRecordMutate deleteUser = RecordUtils.init(UserRecordMutate.class, Map.of(
+            UserRecordMutate.ID_KEY, 999999
+        ));
 
-    //     // Assert
-    //     assertNull(result);
-    // }
+        boolean deleteResult = userTableDriver.deleteUserRecord(deleteUser);
 
-    // Additional tests can be added here for edge cases, error handling, etc.
+        Assertions.assertFalse(deleteResult, "Expected delete result to be false");
+    }
+
+    /**
+     * Test to ensure that we can correctly get the user record from the database
+     */
+    @Test
+    public void testGetSingleUser() {
+
+        final UserRecordInsert insertUser = createTestUserRecord();
+        final UserRecordResult insertRes = userTableDriver.insertUserRecord(insertUser);
+
+        final List<WhereFilter> recordFilters = List.of(
+            new WhereFilter(UserTableDriver.ID_COLUMN, Operator.EQUAL, insertRes.id())
+        );
+        final List<UserRecordResult> result = userTableDriver.getUserRecord(recordFilters);
+
+        Assertions.assertNotNull(result);
+        final UserRecordResult resultUser = result.getFirst();
+        Assertions.assertEquals(insertRes.id(), resultUser.id(), "Expected found record to have the same id as the inserted record");
+        Assertions.assertEquals(TEST_USERNAME, resultUser.username(), "Expected found record to have same username as inserted record");
+    }
+
+    /**
+     * Test to ensure that when we try to get a user that doesn't exist, we just get an empty list
+     */
+    @Test
+    public void testGetNonExistentUser() {
+
+        final List<WhereFilter> recordFilters = List.of(
+            new WhereFilter(UserTableDriver.USERNAME_COLUMN, Operator.EQUAL, "nonExistentUser")
+        );
+
+        final List<UserRecordResult> result = userTableDriver.getUserRecord(recordFilters);
+
+        Assertions.assertNotNull(result);
+        Assertions.assertTrue(result.isEmpty(), "Expected no records to be found for non-existent user");
+    }
+
+    private static UserRecordInsert createTestUserRecord() {
+        return RecordUtils.init(UserRecordInsert.class, Map.of(
+            UserRecordInsert.USERNAME, TEST_USERNAME,
+            UserRecordInsert.PASSWORD, TEST_PASSWORD,
+            UserRecordInsert.EMAIL, TEST_EMAIL,
+            UserRecordInsert.FIRST_NAME, TEST_NAME
+        ));
+    }
 }

@@ -5,13 +5,14 @@ import com.thirdplace.utils.RecordUtils;
 import com.thirdplace.testutils.ThirdPlaceDatabaseServiceTestExt;
 import org.junit.jupiter.api.Test;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 
-public class UserTableDriverTests {
+class UserTableDriverTests {
 
     private static final String TEST_USERNAME = "testUsername";
     private static final String TEST_NAME = "test";
@@ -40,7 +41,7 @@ public class UserTableDriverTests {
      * Test to ensure that we can insert a user record into the database successfully
      */
     @Test
-    public void testInsertUser() {
+    void testInsertUser() {
 
         final UserRecordInsert userRecord = new UserRecordInsert("testUsername", "testpass", "test@example.com", "test", "user");
 
@@ -65,7 +66,7 @@ public class UserTableDriverTests {
      * Test to ensure that we can correctly update a user and the updated time is correctly changed
      */
     @Test
-    public void testUpdateUser() {
+    void testUpdateUser() {
 
         final Class<UserRecordInsert> recordClass = UserRecordInsert.class;
         final UserRecordInsert insertUser = RecordUtils.init(recordClass, Map.of(
@@ -78,10 +79,12 @@ public class UserTableDriverTests {
         // Insert initial record
         final UserRecordResult initRec = userTableDriver.insertUserRecord(insertUser);
         final String initRecUpdated = initRec.updatedAt();
+        final String initRecCreated = initRec.createdAt();
 
         final String newUsername = "new username";
         final UserRecordMutate mutateUser = RecordUtils.init(UserRecordMutate.class, Map.of(
-            UserRecordMutate.USERNAME, newUsername
+            UserRecordMutate.ID_KEY, Integer.parseInt(initRec.id()),
+            UserRecordMutate.USERNAME_KEY, newUsername
         ));
 
         // Update the record
@@ -91,6 +94,24 @@ public class UserTableDriverTests {
         Assertions.assertNotNull(result);
         Assertions.assertEquals(newUsername, result.username(), "Expected result to have new username");
         Assertions.assertNotEquals(initRecUpdated, result.updatedAt(), "Expected updated time to be different from initial record");
+
+        // assert updated at is formatted as a postgres date
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");
+        try {
+            formatter.parse(result.updatedAt());
+        } catch (Exception e) {
+            Assertions.fail("Expected updatedAt to be formatted as a postgres date. Found: " + result.updatedAt());
+        }
+        
+        Assertions.assertEquals(initRecCreated, result.createdAt(), "Expected created time to be the same as initial record");
+
+    }
+
+    /**
+     * Test to ensure when we update a user record, if we don't have an ID on the UserRecordMutation record, we get an error
+     */
+    @Test
+    void testUpdateNoIdRequested() {
 
     }
 

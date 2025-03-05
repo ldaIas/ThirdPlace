@@ -15,10 +15,10 @@ public record UserRecordMutate(
 ) implements UserTableMutation {
 
     // Mainly for use in RecordUtils#init
-    public static final String ID = UserTableDriver.ID_COLUMN;
-    public static final String USERNAME = UserTableDriver.USERNAME_COLUMN;
-    public static final String PASSWORD = UserTableDriver.PASSWORD_COLUMN;
-    public static final String EMAIL = UserTableDriver.EMAIL_COLUMN;
+    public static final String ID_KEY = UserTableDriver.ID_COLUMN;
+    public static final String USERNAME_KEY = UserTableDriver.USERNAME_COLUMN;
+    public static final String PASSWORD_KEY = UserTableDriver.PASSWORD_COLUMN;
+    public static final String EMAIL_KEY = UserTableDriver.EMAIL_COLUMN;
     public static final String FIRST_NAME = UserTableDriver.FIRST_NAME_COLUMN;
     public static final String LAST_NAME = UserTableDriver.LAST_NAME_COLUMN;
  }

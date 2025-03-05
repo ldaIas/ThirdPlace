@@ -90,10 +90,10 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         }
     }
 
-    protected void initializeSchema() {
+    private void initializeSchema() {
         final String sql = "CREATE SCHEMA IF NOT EXISTS " + getSchemaName();
         try (final Statement stmt = connection.createStatement()) {
-            stmt.execute(sql.toString());
+            stmt.execute(sql);
         } catch (SQLException e) {
             LOGGER.error("Error creating table", e);
             throw new ThirdPlaceDatabaseServiceRuntimeError(
@@ -151,17 +151,16 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
 
         // Connect to default postgres database first
         try (final Connection tempConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres",
-                DB_USER, DB_PASSWORD)) {
-
-            // Check if database exists
-            final PreparedStatement checkStmt = tempConnection
-                    .prepareStatement("SELECT 1 FROM pg_database WHERE datname = 'thirdplace'");
+                DB_USER, DB_PASSWORD);
+                final PreparedStatement checkStmt = tempConnection
+                        .prepareStatement("SELECT 1 FROM pg_database WHERE datname = 'thirdplace'")) {
 
             if (!checkStmt.executeQuery().next()) {
                 // Database doesn't exist, create it
-                Statement stmt = tempConnection.createStatement();
-                stmt.execute("CREATE DATABASE thirdplace");
-                LOGGER.info("ThirdPlace database created successfully");
+                try (final Statement stmt = tempConnection.createStatement()) {
+                    stmt.execute("CREATE DATABASE thirdplace");
+                    LOGGER.info("ThirdPlace database created successfully");
+                }
             } else {
                 LOGGER.debug("ThirdPlace database already exists");
             }

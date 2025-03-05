@@ -48,8 +48,6 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     private static final String FILTER_FORMAT = "( %s )";
     private static final String WHERE_FORMAT = "%s::text %s ?";
 
-    private static final String SERVER_ALREADY_STOPPED = "Is server running?";
-
     private static final String CREATE_TABLE_FORMATTER = "CREATE TABLE IF NOT EXISTS %s.%s (%s)";
 
     private static final String QUERY_FORMATTER = "SELECT %s FROM %s.%s %s";

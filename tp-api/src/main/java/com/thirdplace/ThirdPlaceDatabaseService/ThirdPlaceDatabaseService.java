@@ -190,37 +190,8 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         if (connection != null) {
             connection.close();
             connection = null;
-            stopPostgresServer();
         }
         instance = null;
-    }
-
-    // Stop the PostgreSQL server
-    protected static void stopPostgresServer() {
-        try {
-            final String command = "pg_ctl stop -D \"C:\\Program Files\\PostgreSQL\\17\\data\"";
-
-            final boolean commandSuccess = runCommand(command, new String[] { SERVER_ALREADY_STOPPED });
-
-            if (!commandSuccess) {
-                LOGGER.error("Failed to stop PostgreSQL server");
-                throw new ThirdPlaceDatabaseServiceRuntimeError(
-                        ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_STOPPING_DB_SERVER,
-                        "Failed to stop PostgreSQL server");
-            }
-
-            LOGGER.info("PostgreSQL server stopped successfully");
-        } catch (Exception e) {
-            LOGGER.error("Error stopping PostgreSQL server", e);
-
-            if (e instanceof final ThirdPlaceDatabaseServiceRuntimeError rtErr) {
-                throw rtErr;
-            } else {
-                throw new ThirdPlaceDatabaseServiceRuntimeError(
-                        ThirdPlaceDatabaseServiceRuntimeError.ErrorCode.ERROR_STOPPING_DB_SERVER,
-                        "Error stopping PostgreSQL server", e);
-            }
-        }
     }
 
     /**

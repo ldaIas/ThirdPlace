@@ -59,8 +59,8 @@ class UserTableDriverTests {
         Assertions.assertNotNull(result.id());
         Assertions.assertEquals(userRecord.username(), result.username(), "Expected username to equal that of the insert record");
         Assertions.assertEquals(userRecord.email(), result.email(), "Expected email to equal that of the insert record");
-        Assertions.assertEquals(userRecord.firstName(), result.firstName(), "Expected first name to equal that of the insert record");
-        Assertions.assertEquals(userRecord.lastName(), result.lastName(), "Expected last name to equal that of the insert record");
+        Assertions.assertEquals(userRecord.firstname(), result.firstname(), "Expected first name to equal that of the insert record");
+        Assertions.assertEquals(userRecord.lastname(), result.lastname(), "Expected last name to equal that of the insert record");
 
         // Valide the created and updated times
         Assertions.assertNotNull(result.createdAt(), "Expected createdAt to be non-null");

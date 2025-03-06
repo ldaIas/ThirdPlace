@@ -7,8 +7,8 @@ public record UserRecordInsert(
     String username,
     String password,
     String email,
-    String firstName,
-    String lastName
+    String firstname,
+    String lastname
 ) implements UserTableMutation {
     
     // For use with RecordUtils#init

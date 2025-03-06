@@ -1,17 +1,13 @@
 package com.thirdplace.usertabledriver;
 
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalAccessor;
 
 public record UserRecordResult (
     String id,
     String username,
     String email,
-    String firstName,
-    String lastName,
+    String firstname,
+    String lastname,
     String createdAt,
     String updatedAt
 ) { 

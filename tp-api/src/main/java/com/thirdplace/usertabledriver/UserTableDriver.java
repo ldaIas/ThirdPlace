@@ -41,8 +41,8 @@ public class UserTableDriver {
     public static final String USERNAME_COLUMN = "username";
     public static final String PASSWORD_COLUMN = "password";
     public static final String EMAIL_COLUMN = "email";
-    public static final String FIRST_NAME_COLUMN = "firstName";
-    public static final String LAST_NAME_COLUMN = "lastName";
+    public static final String FIRST_NAME_COLUMN = "firstname";
+    public static final String LAST_NAME_COLUMN = "lastname";
     public static final String CREATED_AT_COLUMN = "created_at";
     public static final String UPDATED_AT_COLUMN = "updated_at";
 

@@ -10,8 +10,8 @@ public record UserRecordMutate(
     String username,
     String password,
     String email,
-    String firstName,
-    String lastName
+    String firstname,
+    String lastname
 ) implements UserTableMutation {
 
     // Mainly for use in RecordUtils#init

@@ -180,15 +180,13 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
      */
     @Override
     public void close() throws Exception {
-        refCount.decrementAndGet();
-        if (refCount.get() > 0) {
+        final int newRefCount = refCount.decrementAndGet();
+        if (newRefCount > 0) {
             return;
         }
         if (connection != null) {
             connection.close();
-            connection = null;
         }
-        instance = null;
     }
 
     /**

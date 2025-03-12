@@ -42,7 +42,7 @@ jobs:
       - name: Build with Gradle
         id: gradle_build
         run: | 
-          cd tp-api && sh ./gradlew build --info
+          cd tp-api && sh ./gradlew build --info -PDB_BOOTSTRAP_PW=3310 -PDB_DATA_PATH="/usr/local/var/postgreSQL/17/data"
         continue-on-error: true  
       
       - name: Check Test Result

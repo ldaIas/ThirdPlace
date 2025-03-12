@@ -16,8 +16,8 @@
 - Download postgres 17 from the appropriate OS here <https://www.postgresql.org/download/>
   - If using Mac you can run `brew install postgresql`
 - Run the installer or let it install if using brew
-- If using Windows, the database should have been setup in c:\Program Files\postgres. If not, use the command below to initialize
-- If using Mac/Unix, the database should have been setup in /usr/local/var/postgres. If not, use the command below to initialize
+- If using Windows, the database should have been setup in c:\Program Files\postgreSQL. If not, use the command below to initialize
+- If using Mac/Unix, the database should have been setup in /usr/local/var/postgreSQL. If not, use the command below to initialize
 - Run `initdb <path to db>` to initialize a postgres database in a specific directory. \<path to db\> is the path on your system where postgres will store database contents
 
 ### Create Postgres user

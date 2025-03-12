@@ -10,7 +10,7 @@ public class RuntimeExceptionBase extends RuntimeException{
         return errorCode;
     }
 
-    private ErrorCodeBase errorCode;
+    private final ErrorCodeBase errorCode;
 
     public RuntimeExceptionBase(ErrorCodeBase errorCode, String message, Throwable cause) {
         super(message, cause);

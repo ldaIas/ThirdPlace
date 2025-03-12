@@ -172,7 +172,7 @@ class UserTableDriverTests {
      * Test to ensure that we can correctly get the user record from the database
      */
     @Test
-    public void testGetSingleUser() {
+    void testGetSingleUser() {
 
         final UserRecordInsert insertUser = createTestUserRecord();
         final UserRecordResult insertRes = userTableDriver.insertUserRecord(insertUser);
@@ -192,7 +192,7 @@ class UserTableDriverTests {
      * Test to ensure that when we try to get a user that doesn't exist, we just get an empty list
      */
     @Test
-    public void testGetNonExistentUser() {
+    void testGetNonExistentUser() {
 
         final List<WhereFilter> recordFilters = List.of(
             new WhereFilter(UserTableDriver.USERNAME_COLUMN, Operator.EQUAL, "nonExistentUser")

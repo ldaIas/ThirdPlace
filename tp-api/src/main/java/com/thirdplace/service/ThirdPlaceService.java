@@ -21,6 +21,9 @@ public class ThirdPlaceService {
 
     public static void main(String[] args) {
 
+        // Parse and load the arguments for use by the application
+        ServiceArguments.parseArguments(args);
+
         LOGGER.info("Starting ThirdPlaceService on port " + PORT);
         try (final ThirdPlaceDatabaseService dbService = ThirdPlaceDatabaseService.getInstance()) {
 

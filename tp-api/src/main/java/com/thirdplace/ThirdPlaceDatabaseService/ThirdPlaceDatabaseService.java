@@ -3,6 +3,7 @@ package com.thirdplace.thirdplacedatabaseservice;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.Provider.Service;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -23,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.thirdplace.service.ServiceArguments;
 import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.DeleteResult;
 import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.InsertResult;
 import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.QueryResult;
@@ -32,6 +35,8 @@ import com.thirdplace.usertabledriver.UserTableDriver;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 
+import static com.thirdplace.service.ServiceArguments.Argument.DB_BOOTSTRAP_PW;
+
 public class ThirdPlaceDatabaseService implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ThirdPlaceDatabaseService.class);
@@ -40,7 +45,6 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     private Connection connection;
     static final String DB_URL = "jdbc:postgresql://localhost:5432/thirdplace";
     static final String DB_USER = "postgres";
-    static final String DB_PASSWORD = "3310";
 
     private static final String COMMA_SEPARATOR = ", ";
     private static final String QUESTION = "?";
@@ -78,7 +82,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     protected ThirdPlaceDatabaseService() {
         try {
             startPostgresServer();
-            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            connection = DriverManager.getConnection(DB_URL, DB_USER, ServiceArguments.getArgument(DB_BOOTSTRAP_PW));
             initializeSchema();
         } catch (SQLException e) {
             LOGGER.error("Error acquiring connection to database", e);
@@ -106,19 +110,9 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     // Start the PostgreSQL server
     protected static void startPostgresServer() {
         try {
-            // Detect the OS
-            final String os = System.getProperty("os.name").toLowerCase();
-            final String checkCommand, startCommand;
-
-            if (os.contains("win")) {
-                // Windows commands
-                checkCommand = "pg_ctl status -D \"C:\\Program Files\\PostgreSQL\\17\\data\"";
-                startCommand = "pg_ctl start -D \"C:\\Program Files\\PostgreSQL\\17\\data\" -l \"C:\\Program Files\\PostgreSQL\\17\\data\\log\\logfile.log\"";
-            } else {
-                // Linux/Unix commands
-                checkCommand = "pg_ctl status -D /path/to/data";
-                startCommand = "pg_ctl start -D /path/to/data -l /path/to/logfile.log";
-            }
+            final String dbPath = ServiceArguments.getArgument(ServiceArguments.Argument.DB_DATA_PATH);
+            final String checkCommand = String.format("pg_ctl status -D %s", dbPath);
+            final String startCommand = String.format("pg_ctl start -D %s -l %s", dbPath, dbPath + "/logfile.log");
 
             final String[] commandCheckString = { "server is running" };
             if (runCommand(checkCommand, commandCheckString)) {
@@ -149,7 +143,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
 
         // Connect to default postgres database first
         try (final Connection tempConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres",
-                DB_USER, DB_PASSWORD);
+                DB_USER, ServiceArguments.getArgument(DB_BOOTSTRAP_PW));
                 final PreparedStatement checkStmt = tempConnection
                         .prepareStatement("SELECT 1 FROM pg_database WHERE datname = 'thirdplace'")) {
 
@@ -205,12 +199,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
      */
     private static boolean runCommand(final String command, @Nullable final String[] searchStrs)
             throws IOException, InterruptedException {
-        final ProcessBuilder processBuilder;
-        if (System.getProperty("os.name").toLowerCase().contains("win")) {
-            processBuilder = new ProcessBuilder("cmd.exe", "/c", command);
-        } else {
-            processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
-        }
+        final ProcessBuilder processBuilder = new ProcessBuilder(command);
 
         processBuilder.redirectErrorStream(true);
 
@@ -285,7 +274,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     public DatabaseServiceResults<InsertResult> insertRecord(final String tableName,
             final List<ColumnSetter> columnSetters) {
 
-        final String columnsString = columnSetters.stream().map(c -> c.column())
+        final String columnsString = columnSetters.stream().map(ColumnSetter::column)
                 .collect(Collectors.joining(COMMA_SEPARATOR));
         final String valuesString = columnSetters.stream().map(c -> QUESTION)
                 .collect(Collectors.joining(COMMA_SEPARATOR));

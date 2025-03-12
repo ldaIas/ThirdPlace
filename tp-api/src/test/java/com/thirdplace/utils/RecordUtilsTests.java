@@ -1,21 +1,19 @@
 package com.thirdplace.utils;
 
 import java.util.Map;
-import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.HashMap;
 
-import org.eclipse.jetty.util.StringUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link RecordUtils}
  */
-public class RecordUtilsTests {
+class RecordUtilsTests {
 
     record TestRecord(String field1, int field2) {
         static final String FIELD_1 = "field1";
@@ -35,9 +33,9 @@ public class RecordUtilsTests {
 
         final TestRecord result = RecordUtils.init(recordClass, fieldValues);
 
-        assertNotNull(result);
-        assertEquals("value1", result.field1());
-        assertEquals(42, result.field2());
+        assertNotNull(result, "The result should not be null");
+        assertEquals("value1", result.field1(), "Expected field1 to be 'value1'");
+        assertEquals(42, result.field2(), "Expected field2 to be 42");
     }
 
     /**
@@ -52,7 +50,7 @@ public class RecordUtilsTests {
         try {
             RecordUtils.init(TestRecord.class, fieldValues);
         } catch (RecordUtilsException e) {
-            assertEquals(RecordUtilsException.ErrorCode.BAD_FIELD_TYPE, e.getErrorCode());
+            assertEquals(RecordUtilsException.ErrorCode.BAD_FIELD_TYPE, e.getErrorCode(), "Expected error for bad field type");
         }
     }
 

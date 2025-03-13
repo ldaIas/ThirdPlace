@@ -30,6 +30,6 @@ public class RuntimeExceptionBase extends RuntimeException{
 
     @Override
     public String toString() {
-        return this.getClass().getCanonicalName() + errorCode + ": " + getMessage() + "Caused by: " + getCause();
+        return this.getClass().getCanonicalName() + "#" + errorCode + ": " + getMessage() + "Caused by: " + getCause();
     }
 }

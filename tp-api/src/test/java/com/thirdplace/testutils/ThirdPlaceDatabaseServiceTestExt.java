@@ -12,7 +12,7 @@ import com.thirdplace.thirdplacedatabaseservice.ThirdPlaceDatabaseService;
  */
 public class ThirdPlaceDatabaseServiceTestExt extends ThirdPlaceDatabaseService {
 
-    {
+    static {
         ServiceArguments.parseArguments(new String[] { "DB_BOOTSTRAP_PW=" + System.getProperty("DB_BOOTSTRAP_PW"),
                 "DB_DATA_PATH=" + System.getProperty("DB_DATA_PATH") });
     }

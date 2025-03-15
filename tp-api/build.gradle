@@ -46,4 +46,6 @@ application {
 
 tasks.test {
     useJUnitPlatform()
+    systemProperty "DB_BOOTSTRAP_PW", System.getProperty("DB_BOOTSTRAP_PW") ?: "3310"
+    systemProperty "DB_DATA_PATH", System.getProperty("DB_DATA_PATH") ?: "/usr/local/var/postgreSQL/17/data"
 }

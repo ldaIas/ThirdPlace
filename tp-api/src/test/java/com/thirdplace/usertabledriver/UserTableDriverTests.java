@@ -4,6 +4,7 @@ import com.thirdplace.thirdplacedatabaseservice.ThirdPlaceDatabaseService;
 import com.thirdplace.thirdplacedatabaseservice.WhereFilter;
 import com.thirdplace.thirdplacedatabaseservice.WhereFilter.Operator;
 import com.thirdplace.utils.RecordUtils;
+import com.thirdplace.testutils.TestArgsLoader;
 import com.thirdplace.testutils.ThirdPlaceDatabaseServiceTestExt;
 import org.junit.jupiter.api.Test;
 
@@ -32,6 +33,7 @@ class UserTableDriverTests {
 
     @BeforeAll
     static void setUp() {
+        TestArgsLoader.loadArgs();
         // Initialize the database service and user table driver
         databaseService = new ThirdPlaceDatabaseServiceTestExt();
         userTableDriver = new UserTableDriver(databaseService);

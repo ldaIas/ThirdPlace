@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
+import com.thirdplace.testutils.TestArgsLoader;
 import com.thirdplace.testutils.ThirdPlaceDatabaseServiceTestExt;
 import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.DeleteResult;
 import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.InsertResult;
@@ -40,6 +41,7 @@ class ThirdPlaceDatabaseServiceTests {
 
     @BeforeAll
     static void setup() {
+        TestArgsLoader.loadArgs();
         staticDbService = new ThirdPlaceDatabaseServiceTestExt();
     }
 

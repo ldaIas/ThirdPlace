@@ -3,7 +3,6 @@ package com.thirdplace.testutils;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import com.thirdplace.service.ServiceArguments;
 import com.thirdplace.thirdplacedatabaseservice.ThirdPlaceDatabaseService;
 
 /**
@@ -11,11 +10,6 @@ import com.thirdplace.thirdplacedatabaseservice.ThirdPlaceDatabaseService;
  * insert to test schema. Also deletes inserted data.
  */
 public class ThirdPlaceDatabaseServiceTestExt extends ThirdPlaceDatabaseService {
-
-    static {
-        ServiceArguments.parseArguments(new String[] { "DB_BOOTSTRAP_PW=" + System.getProperty("DB_BOOTSTRAP_PW"),
-                "DB_DATA_PATH=" + System.getProperty("DB_DATA_PATH") });
-    }
 
     public static final String TEST_SCHEMA = "test_schema";
 

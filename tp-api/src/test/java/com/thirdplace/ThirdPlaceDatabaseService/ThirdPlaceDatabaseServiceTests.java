@@ -41,6 +41,7 @@ class ThirdPlaceDatabaseServiceTests {
 
     @BeforeAll
     static void setup() {
+        System.getProperties().forEach((key, value) -> System.out.println(key + " = " + value));
         TestArgsLoader.loadArgs();
         staticDbService = new ThirdPlaceDatabaseServiceTestExt();
     }

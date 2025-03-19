@@ -43,8 +43,8 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
 
     // Database connection configuration
     private Connection connection;
-    static final String DB_URL = "jdbc:postgresql://localhost:5432/thirdplace";
-    static final String DB_USER = "postgres";
+    private static String DB_URL;
+    private static String DB_USER;
 
     private static final String COMMA_SEPARATOR = ", ";
     private static final String QUESTION = "?";
@@ -110,19 +110,25 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     // Start the PostgreSQL server
     protected static void startPostgresServer() {
         try {
-            final String dbPath = ServiceArguments.getArgument(ServiceArguments.Argument.DB_DATA_PATH);
-            final String checkCommand = String.format("pg_ctl status -D %s", dbPath);
-            final String startCommand = String.format("pg_ctl start -D %s -l %s", dbPath, dbPath + "/logfile.log");
 
-            final String[] commandCheckString = { "server is running" };
-            if (runCommand(checkCommand, commandCheckString)) {
-                LOGGER.debug("PostgreSQL is already running.");
-            } else {
-                LOGGER.debug("PostgreSQL is not running. Starting the server...");
-                if (runCommand(startCommand, null)) {
-                    LOGGER.info("PostgreSQL server started successfully.");
+            final String dbBootstrapPw = ServiceArguments.getArgument(DB_BOOTSTRAP_PW);
+            final String dbHost = ServiceArguments.getArgument(ServiceArguments.Argument.DB_HOST);
+
+
+            try (final Connection tempConnection = DriverManager.getConnection(
+                    "jdbc:postgresql://localhost:5432/postgres", DB_USER,
+                    ServiceArguments.getArgument(DB_BOOTSTRAP_PW));
+                    final PreparedStatement checkStmt = tempConnection
+                            .prepareStatement("SELECT 1 FROM pg_database WHERE datname = 'thirdplace'")) {
+
+                if (!checkStmt.executeQuery().next()) {
+                    // Database doesn't exist, create it
+                    try (final Statement stmt = tempConnection.createStatement()) {
+                        stmt.execute("CREATE DATABASE thirdplace");
+                        LOGGER.info("ThirdPlace database created successfully");
+                    }
                 } else {
-                    LOGGER.error("Failed to start PostgreSQL server. Check the logs for more details.");
+                    LOGGER.debug("ThirdPlace database already exists");
                 }
             }
 

@@ -13,7 +13,10 @@ public class ServiceArguments {
     
     public enum Argument {
         DB_BOOTSTRAP_PW,
-        DB_DATA_PATH
+        DB_HOST,
+        DB_PORT,
+        DB_USER,
+        DB_NAME
     }
 
     private static final Map<Argument, String> arguments = new HashMap<>();
@@ -22,6 +25,7 @@ public class ServiceArguments {
     private static final String ARG_SPLIT = "=";
 
     public static void parseArguments(final String[] args) {
+        final Map<Argument, String> tempArgs = new HashMap<>();
         for (final String arg : args) {
 
             if (!arg.contains(ARG_SPLIT)) {
@@ -38,8 +42,9 @@ public class ServiceArguments {
             }
             
             final String value = split[1];
-            arguments.put(argument, value);
+            tempArgs.put(argument, value);
         }
+        arguments.putAll(tempArgs);
         isInitialized = true;
     }
 

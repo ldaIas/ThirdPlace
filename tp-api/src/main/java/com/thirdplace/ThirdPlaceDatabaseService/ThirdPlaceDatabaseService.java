@@ -3,7 +3,6 @@ package com.thirdplace.thirdplacedatabaseservice;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.security.Provider.Service;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -16,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -33,7 +31,6 @@ import com.thirdplace.thirdplacedatabaseservice.DatabaseServiceResults.UpdateRes
 import com.thirdplace.usertabledriver.UserTableDriver;
 
 import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 
 import static com.thirdplace.service.ServiceArguments.Argument.DB_BOOTSTRAP_PW;
 
@@ -111,13 +108,14 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
     protected static void startPostgresServer() {
         try {
 
-            final String dbBootstrapPw = ServiceArguments.getArgument(DB_BOOTSTRAP_PW);
             final String dbHost = ServiceArguments.getArgument(ServiceArguments.Argument.DB_HOST);
+            final String dbPort = ServiceArguments.getArgument(ServiceArguments.Argument.DB_PORT);
+            final String dbName = ServiceArguments.getArgument(ServiceArguments.Argument.DB_NAME);
+            DB_USER = ServiceArguments.getArgument(ServiceArguments.Argument.DB_USER);
+            DB_URL = String.format("jdbc:postgresql://%s:%s/%s", dbHost, dbPort, dbName);
 
-
-            try (final Connection tempConnection = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5432/postgres", DB_USER,
-                    ServiceArguments.getArgument(DB_BOOTSTRAP_PW));
+            final String dbBootstrapPw = ServiceArguments.getArgument(DB_BOOTSTRAP_PW);
+            try (final Connection tempConnection = DriverManager.getConnection(DB_URL, DB_USER, dbBootstrapPw);
                     final PreparedStatement checkStmt = tempConnection
                             .prepareStatement("SELECT 1 FROM pg_database WHERE datname = 'thirdplace'")) {
 
@@ -148,7 +146,7 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         LOGGER.info("Ensuring ThirdPlace database exists");
 
         // Connect to default postgres database first
-        try (final Connection tempConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres",
+        try (final Connection tempConnection = DriverManager.getConnection(DB_URL,
                 DB_USER, ServiceArguments.getArgument(DB_BOOTSTRAP_PW));
                 final PreparedStatement checkStmt = tempConnection
                         .prepareStatement("SELECT 1 FROM pg_database WHERE datname = 'thirdplace'")) {
@@ -187,58 +185,6 @@ public class ThirdPlaceDatabaseService implements AutoCloseable {
         if (connection != null) {
             connection.close();
         }
-    }
-
-    /**
-     * Run a command and check if the output contains the search strings, or return
-     * whether the command was successful (exit 0)
-     * 
-     * @param command    The command to run
-     * @param searchStrs The search strings to look for in the output (null for
-     *                   none)
-     * @return True if the command was successful (exit 0) or the output contains
-     *         the search strings. False if the command had a non-zero exit code or
-     *         the process did not finish within the timeout
-     * @implNote Process timeout is {@link #PROCESS_TIMEOUT}
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    private static boolean runCommand(final String command, @Nullable final String[] searchStrs)
-            throws IOException, InterruptedException {
-        final ProcessBuilder processBuilder = new ProcessBuilder(command);
-
-        processBuilder.redirectErrorStream(true);
-
-        final Process process = processBuilder.start();
-        final int finished = process.waitFor();
-
-        final List<String> lines = new ArrayList<>();
-        try (final BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                final BufferedReader stderrReader = new BufferedReader(
-                        new InputStreamReader(process.getInputStream()))) {
-
-            // Read stdout
-            char[] buff = new char[1024];
-            stdoutReader.read(buff, 0, 1024);
-            final String output = new String(buff);
-            lines.add(output);
-
-            // Read stderr
-            buff = new char[1024];
-            stderrReader.read(buff, 0, 1024);
-            final String errOutput = new String(buff);
-            lines.add(errOutput);
-        }
-
-        if (searchStrs != null) {
-            for (final String searchStr : searchStrs) {
-                if (lines.stream().anyMatch(l -> StringUtils.containsIgnoreCase(l, searchStr))) {
-                    return true;
-                }
-            }
-        }
-
-        return finished == 0;
     }
 
     /**

@@ -42,8 +42,7 @@ jobs:
       - name: Build with Gradle
         id: gradle_test
         run: | 
-          cd tp-api && sh ./gradlew test --info -DDB_BOOTSTRAP_PW=3310 -DDB_DATA_PATH="/usr/local/var/postgreSQL/17/data"
-        continue-on-error: true  
+          cd tp-api && sh ./gradlew test --info -Dorg.gradle.jvmargs="-ea, -DDB_HOST=localhost, -DDB_PORT=5432, -DDB_USER=postgres, -DDB_BOOTSTRAP_PW=3310, -DDB_NAME=thirdplace"
       
       - name: Check Test Result
         run: |

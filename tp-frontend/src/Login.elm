@@ -5,30 +5,43 @@ import Browser.Navigation as Navigation exposing (Key)
 import Html exposing (Html, button, div, h1, input, p, text)
 import Html.Attributes exposing (class, placeholder, type_)
 import Html.Events exposing (onClick, onInput)
-import LoginStyles exposing (accountPane, loginContainer, logoBody)
+import Identity
+import LoginStyles exposing (accountPane, createContainer, fieldsContainer, loginContainer, logoBody, separator)
 import Url exposing (Url)
-import LoginStyles exposing (createContainer)
-import LoginStyles exposing (fieldsContainer)
-import LoginStyles exposing (separator)
 
 
+{-| The model for the login page. It contains the page key, url, and user DID.
+-| userDid is initialized using the Identity module and starts off with Nothing.
+-}
 type alias Model =
-    { username : String
-    , password : String
-    , pageKey : Key
+    { pageKey : Key
     , pageUrl : Url
+    , userDid : Identity.Model
     }
 
 
 init : flags -> Url -> Key -> ( Model, Cmd Msg )
 init _ url key =
-    ( { username = "", password = "", pageKey = key, pageUrl = url }, Cmd.none )
+    let
+        identityInit : ( Identity.Model, Cmd Identity.Msg )
+        identityInit =
+            Identity.init
+
+        ( didModel, didCmd ) =
+            identityInit
+
+        loginModel : Model
+        loginModel =
+            { pageKey = key, pageUrl = url, userDid = didModel }
+    in
+    -- Create the login model using the initialized identity and return the command to update the identity model
+    ( loginModel, Cmd.map (always IdentityMsg didCmd) didCmd )
 
 
 type Msg
-    = UpdateUsername String
-    | UpdatePassword String
+    = CreateAccount
     | Login
+    | IdentityMsg Identity.Msg
     | UrlChanged Url
     | NoOp
 
@@ -36,11 +49,24 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        UpdateUsername newUsername ->
-            ( { model | username = newUsername }, Cmd.none )
+        IdentityMsg identityMsg ->
+            let
+                ( updatedDidModel, cmd ) =
+                    Identity.update identityMsg model.userDid
+            in
+            ( { model | userDid = updatedDidModel }, Cmd.map IdentityMsg cmd )
 
-        UpdatePassword newPassword ->
-            ( { model | password = newPassword }, Cmd.none )
+        CreateAccount ->
+            let
+                identityCreate : ( Identity.Model, Cmd Identity.Msg )
+                identityCreate =
+                    Identity.update Identity.RequestDID model.userDid
+
+                ( didModel, cmd ) =
+                    identityCreate
+            in
+            -- Navigate to the Room page
+            ( { model | userDid = didModel }, Cmd.map (always IdentityMsg cmd) cmd )
 
         Login ->
             -- Navigate to the Room page
@@ -63,16 +89,11 @@ view model =
             [ h1 [] [ text "🏢💁\u{200D}♀️💬" ]
             , div [ class fieldsContainer ]
                 [ div [ class createContainer ]
-                    [ input [ type_ "text", placeholder "Email", onInput UpdateUsername ] []
-                    , input [ type_ "text", placeholder "Username", onInput UpdateUsername ] []
-                    , input [ type_ "password", placeholder "Password", onInput UpdatePassword ] []
-                    , input [ type_ "password", placeholder "Re-type password", onInput UpdatePassword ] []
-                    , button [ onClick Login ] [ text "Create Account" ]
+                    [ button [ onClick CreateAccount, Html.Attributes.disabled (model.userDid.did /= Nothing) ] [ text "Create Account" ]
                     ]
                 , div [ class separator ] []
                 , div [ class loginContainer ]
-                    [ input [ type_ "text", placeholder "Username", onInput UpdateUsername ] []
-                    , input [ type_ "password", placeholder "Password", onInput UpdatePassword ] []
+                    [ displayDid model.userDid
                     , button [ onClick Login ] [ text "Login" ]
                     ]
                 ]
@@ -81,13 +102,28 @@ view model =
     }
 
 
+displayDid : Identity.Model -> Html Msg
+displayDid maybeDid =
+    case maybeDid.did of
+        Just did ->
+            input [ type_ "text", placeholder ("User DID: " ++ did) ] []
+
+        Nothing ->
+            input [ type_ "text", placeholder "No DID" ] []
+
+
 main : Program () Model Msg
 main =
     Browser.application
         { init = init
         , update = update
         , view = view
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         , onUrlChange = UrlChanged
         , onUrlRequest = \_ -> NoOp
         }
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.map IdentityMsg (Identity.subscriptions model.userDid)

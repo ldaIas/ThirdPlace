@@ -1,12 +1,25 @@
-import * as crypto from '@libp2p/crypto';
+import { keys } from "https://esm.sh/@libp2p/crypto";
+
+function toBase64(uint8Array) {
+    return btoa(String.fromCharCode(...uint8Array));
+}
 
 // Generate a DID and private key pair
 async function generateDID() {
+    console.log("Generating DID...");
     try {
-        const key = await crypto.keys.generateKeyPair('Ed25519');
-        const privKey = (await key.export()).toString('base64');
-        const pubKey = (await key.public.export()).toString('base64');
+
+        // Key shape: { type: "Ed25519", raw: Uint8Array, publicKey: { raw: Uint8Array, type: "Ed25519" } }
+        const key = await keys.generateKeyPair("Ed25519");
         
+        console.log("Generated Key:", key); // Debugging log
+
+        const privKey = toBase64(key.raw).toString('base64');
+        const pubKey = toBase64(key.publicKey.raw).toString('base64');
+        
+        console.log("Private Key:", privKey);
+        console.log("Public Key:", pubKey);
+
         const did = `did:key:z${pubKey}`; // Simple DID encoding
         
         // Send result to Elm
@@ -15,6 +28,8 @@ async function generateDID() {
         console.error("DID generation failed:", error);
     }
 }
+
+export { generateDID };
 
 // Listen for Elm's request to generate a DID
 app.ports.generateDID.subscribe(() => {

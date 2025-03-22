@@ -1,12 +1,12 @@
 module Identity exposing (Model, Msg(..), init, update, subscriptions)
 
 import Json.Decode exposing (Decoder, field, string)
-import Utils.Ports exposing (didGenerated)
+import Utils.Ports exposing (didGenerated, generateDID)
 
 type alias Model =
-    { did : Maybe String
+    { did : Maybe String -- did:key:z[ed25519 public key]
     , privKey : Maybe String
-    , pubKey : Maybe String
+    , pubKey : Maybe String -- ed25519 public key
     }
 
 type Msg
@@ -23,7 +23,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         RequestDID ->
-            ( model, Ports.generateDID () )
+            ( model, Debug.log "calling to generateDid()" Utils.Ports.generateDID () )
 
         DIDGenerated did privKey pubKey ->
             ( { model | did = Just did, privKey = Just privKey, pubKey = Just pubKey }
@@ -39,4 +39,4 @@ didDecoder =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    didGenerated didDecoder
+    Utils.Ports.didGenerated (\json -> Json.Decode.decodeValue didDecoder json |> Result.withDefault (DIDGenerated "err" "err" "err"))

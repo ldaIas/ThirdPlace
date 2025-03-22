@@ -1,5 +1,6 @@
-port module Utils.Ports exposing (socket)
+port module Utils.Ports exposing (socket, generateDID, didGenerated)
 
+import Json.Encode
 import Websockets
 
 
@@ -15,3 +16,6 @@ socket =
         { command = webSocketCommand
         , event = webSocketEvent
         }
+
+port generateDID : () -> Cmd msg
+port didGenerated : (Json.Encode.Value -> msg) -> Sub msg

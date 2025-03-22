@@ -1,4 +1,4 @@
-module Room exposing (..)
+module RoomPage exposing (..)
 
 import Browser
 import Browser.Dom as Dom exposing (..)

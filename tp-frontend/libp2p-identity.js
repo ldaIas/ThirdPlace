@@ -6,20 +6,14 @@ function toBase64(uint8Array) {
 
 // Generate a DID and private key pair
 async function generateDID() {
-    console.log("Generating DID...");
     try {
 
         // Key shape: { type: "Ed25519", raw: Uint8Array, publicKey: { raw: Uint8Array, type: "Ed25519" } }
         const key = await keys.generateKeyPair("Ed25519");
         
-        console.log("Generated Key:", key); // Debugging log
-
         const privKey = toBase64(key.raw).toString('base64');
         const pubKey = toBase64(key.publicKey.raw).toString('base64');
-        
-        console.log("Private Key:", privKey);
-        console.log("Public Key:", pubKey);
-
+    
         const did = `did:key:z${pubKey}`; // Simple DID encoding
         
         // Send result to Elm

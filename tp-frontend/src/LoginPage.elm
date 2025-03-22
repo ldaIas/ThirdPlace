@@ -1,4 +1,4 @@
-module Login exposing (..)
+module LoginPage exposing (..)
 
 import Browser
 import Browser.Navigation as Navigation exposing (Key)
@@ -11,8 +11,8 @@ import Url exposing (Url)
 
 
 {-| The model for the login page. It contains the page key, url, and user DID.
--| userDid is initialized using the Identity module and starts off with Nothing.
--}
+ -| userDid is initialized using the Identity module and starts off with Nothing.
+ -}
 type alias Model =
     { pageKey : Key
     , pageUrl : Url
@@ -94,7 +94,7 @@ view model =
                 , div [ class separator ] []
                 , div [ class loginContainer ]
                     [ displayDid model.userDid
-                    , button [ onClick Login ] [ text "Login" ]
+                    , button [ onClick Login, Html.Attributes.disabled (model.userDid.did == Nothing) ] [ text "Login" ]
                     ]
                 ]
             ]

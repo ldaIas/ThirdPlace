@@ -23,7 +23,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         RequestDID ->
-            ( model, Debug.log "calling to generateDid()" Utils.Ports.generateDID () )
+            ( model, Utils.Ports.generateDID () )
 
         DIDGenerated did privKey pubKey ->
             ( { model | did = Just did, privKey = Just privKey, pubKey = Just pubKey }

@@ -31,7 +31,6 @@ app.ports.generateDID.subscribe(() => {
 });
 
 async function authenticate(did, privKey) {
-    console.log(`did: ${did} privkey: ${privKey}`)
     try {
 
         const privKeyBytes = Uint8Array.from(atob(privKey), c => c.charCodeAt(0));
@@ -40,8 +39,7 @@ async function authenticate(did, privKey) {
         console.log(key)
         const message = new TextEncoder().encode("auth-test");
         const signature = await key.sign(message);
-        const isValid = await key.public.verify(message, signature);
-
+        const isValid = await key.publicKey.verify(message, signature);
         return isValid;
     } catch (error) {
         console.error("Authentication failed:", error);

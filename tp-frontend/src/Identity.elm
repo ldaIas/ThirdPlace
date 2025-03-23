@@ -1,23 +1,29 @@
-module Identity exposing (Model, Msg(..), init, update, subscriptions)
+module Identity exposing (Model, Msg(..), init, subscriptions, update)
 
 import Json.Decode exposing (Decoder, field, string)
 import Utils.Ports
+
 
 type alias Model =
     { did : Maybe String -- did:key:z[ed25519 public key]
     , privKey : Maybe String
     , pubKey : Maybe String -- ed25519 public key
+    , loginAuthenticated : Maybe Bool -- When logging in with a DID
     }
+
 
 type Msg
     = RequestDID
-    | DIDGenerated String String String  -- (did, privKey, pubKey)
+    | DIDGenerated String String String -- (did, privKey, pubKey)
+    | DIDAuthenticated Bool -- When logging in with a DID
+
 
 init : ( Model, Cmd Msg )
 init =
-    ( { did = Nothing, privKey = Nothing, pubKey = Nothing }
+    ( { did = Nothing, privKey = Nothing, pubKey = Nothing, loginAuthenticated = Nothing }
     , Cmd.none
     )
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -30,6 +36,10 @@ update msg model =
             , Cmd.none
             )
 
+        DIDAuthenticated authed ->
+            ( { model | loginAuthenticated = Just authed }, Cmd.none )
+
+
 didDecoder : Decoder Msg
 didDecoder =
     Json.Decode.map3 DIDGenerated
@@ -37,6 +47,10 @@ didDecoder =
         (field "privKey" string)
         (field "pubKey" string)
 
+
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Utils.Ports.didGenerated (\json -> Json.Decode.decodeValue didDecoder json |> Result.withDefault (DIDGenerated "err" "err" "err"))
+    Sub.batch
+        [ Utils.Ports.didGenerated (\json -> Json.Decode.decodeValue didDecoder json |> Result.withDefault (DIDGenerated "err" "err" "err"))
+        , Utils.Ports.authenticationResult (\result -> DIDAuthenticated result)
+        ]

@@ -1,2 +1,1 @@
-elm make src/LoginPage.elm --output=login.js
-elm make src/RoomPage.elm --output=room.js
+elm make src/ThirdPlaceApp.elm --output=tpapp.js

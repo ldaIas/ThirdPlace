@@ -8,15 +8,19 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background-image: url('thirdplacebg.png');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-
 }
 
 h1 {
     color: #333;
+}
+
+.login-view {
+    width: 100vw;
+    height: 100vh;
+    background-image: url('thirdplacebg.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 .logo-body {

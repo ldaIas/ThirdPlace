@@ -9,10 +9,11 @@ import Identity
 import Html exposing (input)
 import Html.Attributes exposing (type_)
 import Html.Attributes exposing (placeholder)
+import LoginStyles exposing (loginView)
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [ class loginView ]
         [ div [ class logoBody ]
             [ p [] [ text "ThirdPlace" ] ]
         , div [ class accountPane ]

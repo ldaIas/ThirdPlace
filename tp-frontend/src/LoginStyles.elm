@@ -5,6 +5,9 @@
 
 module LoginStyles exposing (..)
 
+loginView : String
+loginView =
+    "login-view"
 
 loginContainer : String
 loginContainer =

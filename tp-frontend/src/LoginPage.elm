@@ -8,6 +8,7 @@ import Html.Events exposing (onClick, onInput)
 import Identity
 import LoginStyles exposing (accountPane, createContainer, fieldsContainer, loginContainer, logoBody, separator)
 import Url exposing (Url)
+import Utils.Ports
 
 
 {-| The model for the login page. It contains the page key, url, and user DID.
@@ -17,6 +18,7 @@ type alias Model =
     { pageKey : Key
     , pageUrl : Url
     , userDid : Identity.Model
+    , authenticated : Bool
     }
 
 
@@ -32,7 +34,7 @@ init _ url key =
 
         loginModel : Model
         loginModel =
-            { pageKey = key, pageUrl = url, userDid = didModel }
+            { pageKey = key, pageUrl = url, userDid = didModel, authenticated = False }
     in
     -- Create the login model using the initialized identity and return the command to update the identity model
     ( loginModel, Cmd.map (always IdentityMsg didCmd) didCmd )
@@ -40,7 +42,8 @@ init _ url key =
 
 type Msg
     = CreateAccount
-    | Login
+    | AttemptLogin
+    | AuthResult Bool
     | IdentityMsg Identity.Msg
     | UrlChanged Url
     | NoOp
@@ -68,9 +71,11 @@ update msg model =
             -- Navigate to the Room page
             ( { model | userDid = didModel }, Cmd.map (always IdentityMsg cmd) cmd )
 
-        Login ->
-            -- Navigate to the Room page
-            ( model, Navigation.load "/room.html" )
+        AttemptLogin -> 
+            (model, Utils.Ports.authenticate {did = model.userDid.did |> Maybe.withDefault "", privKey = Debug.log "privkey from elm" model.userDid.privKey |> Maybe.withDefault ""} )
+
+        AuthResult res -> 
+            ( {model | authenticated = res}, Navigation.load "/room.html")       
 
         UrlChanged url ->
             ( model, Cmd.none )
@@ -94,7 +99,7 @@ view model =
                 , div [ class separator ] []
                 , div [ class loginContainer ]
                     [ displayDid model.userDid
-                    , button [ onClick Login, Html.Attributes.disabled (model.userDid.did == Nothing) ] [ text "Login" ]
+                    , button [ onClick AttemptLogin, Html.Attributes.disabled (model.userDid.did == Nothing) ] [ text "Login" ]
                     ]
                 ]
             ]

@@ -1,4 +1,4 @@
-port module Utils.Ports exposing (socket, generateDID, didGenerated)
+port module Utils.Ports exposing (socket, generateDID, didGenerated, authenticate, authenticationResult)
 
 import Json.Encode
 import Websockets
@@ -19,3 +19,6 @@ socket =
 
 port generateDID : () -> Cmd msg
 port didGenerated : (Json.Encode.Value -> msg) -> Sub msg
+
+port authenticate : ({did: String, privKey: String} -> Cmd msg)
+port authenticationResult : (Bool -> msg) -> Sub msg

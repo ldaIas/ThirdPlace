@@ -1,7 +1,7 @@
 module Identity exposing (Model, Msg(..), init, update, subscriptions)
 
 import Json.Decode exposing (Decoder, field, string)
-import Utils.Ports exposing (didGenerated, generateDID)
+import Utils.Ports
 
 type alias Model =
     { did : Maybe String -- did:key:z[ed25519 public key]

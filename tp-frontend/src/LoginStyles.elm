@@ -1,25 +1,30 @@
-{- This file should only contain string constants to properties found in the appropriate stylesheets files
-   - This one goes with loginstyles.css
+module LoginStyles exposing (..)
+
+{-
+-| This file should only contain string constants to properties found in the appropriate stylesheets files
+-| This one goes with loginstyles.css
 -}
 
-
-module LoginStyles exposing (..)
 
 loginView : String
 loginView =
     "login-view"
 
+
 loginContainer : String
 loginContainer =
     "login-container"
+
 
 fieldsContainer : String
 fieldsContainer =
     "fields-container"
 
+
 separator : String
-separator = 
+separator =
     "separator"
+
 
 createContainer : String
 createContainer =

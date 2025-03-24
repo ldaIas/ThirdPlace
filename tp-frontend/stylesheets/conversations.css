@@ -1,0 +1,92 @@
+.conversations {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: scroll;
+}
+
+.conv-window {
+    height: 100%;
+}
+
+.conv-header {
+    background: var(--thirdplace-bg-color);
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+    display: flex;
+    border-radius: 10px;
+    border: 2px solid black;
+}
+
+.conv-header-spacer {
+    flex: 1;
+}
+
+.conv-header-text {
+    border-radius: 5px;
+    border: 1px solid rgb(41, 41, 41);
+    padding: 2px;
+}
+
+#conv-lobby-id-text {
+    text-align: left;
+    font-size: smaller;
+    margin-right: auto;
+}
+
+#conv-lobby-size-text {
+    text-align: right;
+    font-size: smaller;
+    margin-left: auto;
+}
+
+.conv-body {
+    padding: 15px;
+}
+
+.conversation-block {
+    background: var(--thirdplace-bg-color);
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    border: 2px solid black;
+}
+
+.conversation-block strong {
+    color: #333;
+    font-size: 14px;
+}
+
+.conversation-text {
+    font-size: 16px;
+    color: #222;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.conv-people-here {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.conv-people-here img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 5px;
+    border: 2px solid white;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+}
+
+.conv-more-people {
+    background: #555;
+    color: white;
+    font-size: 14px;
+    padding: 5px 10px;
+    border-radius: 15px;
+    margin-left: 5px;
+    width: fit-content;
+}

@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@chainsafe/libp2p-noise": "^16.1.0",
+    "@libp2p/kad-dht": "^14.2.15",
+    "@libp2p/peer-id": "^5.1.0",
+    "@libp2p/webrtc": "^5.2.9",
+    "libp2p": "^2.8.2"
+  }
+}

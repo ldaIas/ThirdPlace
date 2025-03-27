@@ -7,7 +7,7 @@ import LoginView exposing (view)
 import RoomView exposing (view)
 import ThirdPlaceModel exposing (Model, Msg(..))
 import Url exposing (Url)
-import Utils.Ports
+import JSPorts.Identity.IdentityPorts
 
 
 init : flags -> Url -> Key -> ( Model, Cmd Msg )
@@ -56,7 +56,7 @@ update msg model =
             ( { model | userDid = didModel }, Cmd.map (always IdentityMsg cmd) cmd )
 
         AttemptLogin ->
-            ( model, Utils.Ports.authenticate { did = model.userDid.did |> Maybe.withDefault "", privKey = model.userDid.privKey |> Maybe.withDefault "" } )
+            ( model, JSPorts.Identity.IdentityPorts.authenticate { did = model.userDid.did |> Maybe.withDefault "", privKey = model.userDid.privKey |> Maybe.withDefault "" } )
 
         UrlChanged _ ->
             ( model, Cmd.none )

@@ -1,4 +1,4 @@
-port module Utils.Ports exposing (socket, generateDID, didGenerated, authenticate, authenticationResult)
+port module JSPorts.Identity.IdentityPorts exposing (socket, generateDID, didGenerated, authenticate, authenticationResult)
 
 import Json.Encode
 import Websockets

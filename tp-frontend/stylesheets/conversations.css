@@ -7,6 +7,7 @@
 
 .conv-window {
     height: 100%;
+    overflow: hidden;
 }
 
 .conv-header {
@@ -26,8 +27,8 @@
 
 .conv-header-text {
     border-radius: 5px;
-    border: 1px solid rgb(41, 41, 41);
-    padding: 2px;
+    border: .2em solid rgb(41, 41, 41);
+    padding: .4em;
 }
 
 #conv-lobby-id-text {
@@ -44,6 +45,9 @@
 
 .conv-body {
     padding: 15px;
+    height: 100%;
+    overflow: scroll;
+    box-sizing: border-box;
 }
 
 .conversation-block {

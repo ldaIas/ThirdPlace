@@ -1,7 +1,7 @@
 module Identity exposing (Model, Msg(..), init, subscriptions, update)
 
 import Json.Decode exposing (Decoder, field, string)
-import Utils.Ports
+import JSPorts.Identity.IdentityPorts as IdentityPorts
 
 
 type alias Model =
@@ -29,7 +29,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         RequestDID ->
-            ( model, Utils.Ports.generateDID () )
+            ( model, IdentityPorts.generateDID () )
 
         DIDGenerated did privKey pubKey ->
             ( { model | did = Just did, privKey = Just privKey, pubKey = Just pubKey }
@@ -51,6 +51,6 @@ didDecoder =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ Utils.Ports.didGenerated (\json -> Json.Decode.decodeValue didDecoder json |> Result.withDefault (DIDGenerated "err" "err" "err"))
-        , Utils.Ports.authenticationResult (\result -> DIDAuthenticated result)
+        [ IdentityPorts.didGenerated (\json -> Json.Decode.decodeValue didDecoder json |> Result.withDefault (DIDGenerated "err" "err" "err"))
+        , IdentityPorts.authenticationResult (\result -> DIDAuthenticated result)
         ]

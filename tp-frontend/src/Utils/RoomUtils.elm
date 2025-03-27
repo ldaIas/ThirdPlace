@@ -1,8 +1,8 @@
-module RoomUtils exposing (..)
+module Utils.RoomUtils exposing (..)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Utils.Ports
+import JSPorts.Identity.IdentityPorts
 
 
 type alias ChatMessage =
@@ -35,4 +35,4 @@ decodeMessage val =
 
 sendMessage : ChatMessage -> Cmd msg
 sendMessage message =
-    Utils.Ports.socket.send "chat" (encodeMessage message)
+    JSPorts.Identity.IdentityPorts.socket.send "chat" (encodeMessage message)

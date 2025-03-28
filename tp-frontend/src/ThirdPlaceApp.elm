@@ -1,21 +1,21 @@
 module ThirdPlaceApp exposing (init, main, subscriptions, update, view)
 
 import Browser
-import Browser.Navigation as Navigation exposing (Key)
-import Identity
-import LoginView exposing (view)
-import RoomView exposing (view)
+import Browser.Navigation as Navigation
+import JSPorts.Identity.IdentityHandler as IdentityHandler
+import Views.Login.LoginView as LoginView exposing (view)
+import Views.Room.Conversations.RoomView as RoomView exposing (view)
 import ThirdPlaceModel exposing (Model, Msg(..))
 import Url exposing (Url)
-import JSPorts.Identity.IdentityPorts
+import JSPorts.Identity.IdentityPorts as IdentityPorts
 
 
-init : flags -> Url -> Key -> ( Model, Cmd Msg )
+init : flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init _ url key =
     let
-        identityInit : ( Identity.Model, Cmd Identity.Msg )
+        identityInit : ( IdentityHandler.Model, Cmd IdentityHandler.Msg )
         identityInit =
-            Identity.init
+            IdentityHandler.init
 
         ( didModel, didCmd ) =
             identityInit
@@ -34,7 +34,7 @@ update msg model =
         IdentityMsg identityMsg ->
             let
                 ( updatedDidModel, cmd ) =
-                    Identity.update identityMsg model.userDid
+                    IdentityHandler.update identityMsg model.userDid
             in
             -- If the identity model shows a successful login update app model to show authenticated
             if updatedDidModel.loginAuthenticated == Just True then
@@ -46,9 +46,9 @@ update msg model =
 
         CreateAccount ->
             let
-                identityCreate : ( Identity.Model, Cmd Identity.Msg )
+                identityCreate : ( IdentityHandler.Model, Cmd IdentityHandler.Msg )
                 identityCreate =
-                    Identity.update Identity.RequestDID model.userDid
+                    IdentityHandler.update IdentityHandler.RequestDID model.userDid
 
                 ( didModel, cmd ) =
                     identityCreate
@@ -56,7 +56,7 @@ update msg model =
             ( { model | userDid = didModel }, Cmd.map (always IdentityMsg cmd) cmd )
 
         AttemptLogin ->
-            ( model, JSPorts.Identity.IdentityPorts.authenticate { did = model.userDid.did |> Maybe.withDefault "", privKey = model.userDid.privKey |> Maybe.withDefault "" } )
+            ( model, IdentityPorts.authenticate { did = model.userDid.did |> Maybe.withDefault "", privKey = model.userDid.privKey |> Maybe.withDefault "" } )
 
         UrlChanged _ ->
             ( model, Cmd.none )
@@ -103,4 +103,4 @@ main =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.map IdentityMsg (Identity.subscriptions model.userDid)
+    Sub.map IdentityMsg (IdentityHandler.subscriptions model.userDid)

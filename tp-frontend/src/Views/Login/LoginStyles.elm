@@ -1,4 +1,4 @@
-module LoginStyles exposing (..)
+module Views.Login.LoginStyles exposing (..)
 
 {-
 -| This file should only contain string constants to properties found in the appropriate stylesheets files

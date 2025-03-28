@@ -1,6 +1,6 @@
-module RoomView exposing (view)
+module Views.Room.Conversations.RoomView exposing (view)
 
-import ConversationsView exposing (ConversationModel, view)
+import Views.Room.Conversations.ConversationsView exposing (ConversationModel, view)
 import Html exposing (Html, div, h2, text)
 import Html.Attributes exposing (class)
 
@@ -35,7 +35,7 @@ userAvatar name =
 conversations : List ConversationModel -> Html msg
 conversations convos =
     div [ class "container", class "conversations" ]
-        [ ConversationsView.view convos ]
+        [ Views.Room.Conversations.ConversationsView.view convos ]
 
 
 chatPanel : List String -> Html msg

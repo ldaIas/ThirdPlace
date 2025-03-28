@@ -1,7 +1,7 @@
 module ThirdPlaceModel exposing (Model, Msg(..))
 
 import Browser.Navigation exposing (Key)
-import Identity
+import JSPorts.Identity.IdentityHandler as Identity
 import Url exposing (Url)
 
 {-

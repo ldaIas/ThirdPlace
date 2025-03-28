@@ -1,4 +1,4 @@
-port module JSPorts.WebRTC.WebRTC exposing (..)
+port module JSPorts.WebRTC.WebRTCPorts exposing (..)
 
 -- Node Initialization Ports
 port createConnection : () -> Cmd msg

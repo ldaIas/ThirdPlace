@@ -1,4 +1,4 @@
-module Identity exposing (Model, Msg(..), init, subscriptions, update)
+module JSPorts.Identity.IdentityHandler exposing (Model, Msg(..), init, subscriptions, update)
 
 import Json.Decode exposing (Decoder, field, string)
 import JSPorts.Identity.IdentityPorts as IdentityPorts

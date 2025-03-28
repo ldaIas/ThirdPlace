@@ -1,15 +1,14 @@
-module LoginView exposing (view)
+module Views.Login.LoginView exposing (view)
 
 import Html exposing (Html, button, div, h1, p, text)
 import Html.Attributes exposing (class)
-import LoginStyles exposing (accountPane, createContainer, fieldsContainer, loginContainer, logoBody, separator)
+import Views.Login.LoginStyles exposing (accountPane, createContainer, fieldsContainer, loginContainer, logoBody, separator, loginView)
 import Html.Events exposing (onClick)
 import ThirdPlaceModel exposing (Model, Msg(..))
-import Identity
+import JSPorts.Identity.IdentityHandler as IdentityHandler
 import Html exposing (input)
 import Html.Attributes exposing (type_)
 import Html.Attributes exposing (placeholder)
-import LoginStyles exposing (loginView)
 
 view : Model -> Html Msg
 view model =
@@ -38,7 +37,7 @@ view model =
             ]
         ]
 
-displayDid : Identity.Model -> Html Msg
+displayDid : IdentityHandler.Model -> Html Msg
 displayDid maybeDid =
     case maybeDid.did of
         Just did ->

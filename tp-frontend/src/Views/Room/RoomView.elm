@@ -1,4 +1,4 @@
-module Views.Room.Conversations.RoomView exposing (view)
+module Views.Room.RoomView exposing (view)
 
 import Views.Room.Conversations.ConversationsView exposing (ConversationModel, view)
 import Html exposing (Html, div, h2, text)

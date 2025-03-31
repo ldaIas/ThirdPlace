@@ -6,7 +6,6 @@ module JSPorts.WebRTC.WebRTCHandler exposing ( Model
     )
 
 import JSPorts.WebRTC.WebRTCPorts as WebRTC
-import Json.Decode as Decode
 import Json.Encode as Encode
 
 -- Model represents the state of the P2P network connection
@@ -55,8 +54,8 @@ type Msg
     | HandleNetworkError String
 
 -- Initial model state
-init : () -> (Model, Cmd Msg)
-init _ =
+init : (Model, Cmd Msg)
+init =
     ( { nodeId = Nothing
       , connectedPeers = []
       , pendingConnections = []

@@ -1,4 +1,4 @@
-module Views.Room.Conversations.RoomStyles exposing (..)
+module Views.Room.RoomStyles exposing (..)
 
 {-
 -| This file should only contain string constants to properties found in the appropriate stylesheets files

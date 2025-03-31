@@ -3,11 +3,12 @@ module ThirdPlaceApp exposing (init, main, subscriptions, update, view)
 import Browser
 import Browser.Navigation as Navigation
 import JSPorts.Identity.IdentityHandler as IdentityHandler
-import Views.Login.LoginView as LoginView exposing (view)
-import Views.Room.Conversations.RoomView as RoomView exposing (view)
+import JSPorts.Identity.IdentityPorts as IdentityPorts
+import JSPorts.WebRTC.WebRTCHandler as WebRTCHandler
 import ThirdPlaceModel exposing (Model, Msg(..))
 import Url exposing (Url)
-import JSPorts.Identity.IdentityPorts as IdentityPorts
+import Views.Login.LoginView as LoginView exposing (view)
+import Views.Room.RoomView as RoomView exposing (view)
 
 
 init : flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
@@ -17,15 +18,27 @@ init _ url key =
         identityInit =
             IdentityHandler.init
 
+        webRtcHandlerInit : ( WebRTCHandler.Model, Cmd WebRTCHandler.Msg )
+        webRtcHandlerInit =
+            -- Initialize the WebRTC handler, this will be used for P2P communication in the chat room
+            WebRTCHandler.init
+
+        ( webRtcHandler, webRtcCmd ) =
+            webRtcHandlerInit
+
         ( didModel, didCmd ) =
             identityInit
 
         loginModel : Model
         loginModel =
-            { pageKey = key, pageUrl = url, userDid = didModel, authenticated = False }
+            { pageKey = key, pageUrl = url, userDid = didModel, authenticated = False, webRtcHandler = webRtcHandler }
     in
-    -- Create the login model using the initialized identity and return the command to update the identity model
-    ( loginModel, Cmd.map (always IdentityMsg didCmd) didCmd )
+    ( loginModel
+    , Cmd.batch
+        [ Cmd.map IdentityMsg didCmd
+        , Cmd.map WebRTCMsg webRtcCmd
+        ]
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -43,6 +56,13 @@ update msg model =
             else
                 -- Otherwise, just update the model with the new identity state
                 ( { model | userDid = updatedDidModel }, Cmd.map IdentityMsg cmd )
+
+        WebRTCMsg webRtcMsg ->
+            let
+                ( updatedWebRtcModel, cmd ) =
+                    WebRTCHandler.update webRtcMsg model.webRtcHandler
+            in
+            ( { model | webRtcHandler = updatedWebRtcModel }, Cmd.map WebRTCMsg cmd )
 
         CreateAccount ->
             let

@@ -123,4 +123,7 @@ main =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.map IdentityMsg (IdentityHandler.subscriptions model.userDid)
+    Sub.batch
+        [ Sub.map IdentityMsg (IdentityHandler.subscriptions model.userDid)
+        , Sub.map WebRTCMsg (WebRTCHandler.subscriptions model.webRtcHandler)
+        ]

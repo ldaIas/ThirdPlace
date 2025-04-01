@@ -8,7 +8,12 @@ build/
 
 node_modules/
 
+# Elm/frontend files
 bin/
 deploy/
-
 tpapp.js
+
+
+# Rust files
+target/
+Cargo.lock

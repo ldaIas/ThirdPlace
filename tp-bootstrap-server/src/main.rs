@@ -1,7 +1,8 @@
+use libp2p::swarm::Config;
 use libp2p::{
     core::upgrade,
     identity, noise, swarm::SwarmEvent,
-    tcp, yamux, Multiaddr, PeerId, Swarm,
+    tcp, Transport, yamux, Multiaddr, PeerId, Swarm
 };
 use log::{error, info};
 use std::error::Error;
@@ -9,6 +10,7 @@ use std::net::{IpAddr, Ipv4Addr};
 use std::str::FromStr;
 use tokio::sync::mpsc;
 use warp::Filter;
+use futures::{executor, SinkExt, StreamExt};
 
 mod behavior;
 use behavior::SignalingBehavior;
@@ -25,18 +27,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
     info!("Local peer id: {}", local_peer_id);
 
     // Create a transport
-    let transport = tcp::tokio::Transport::new(tcp::Config::default().nodelay(true))
+    let transport = tcp::Transport::new(tcp::Config::default().nodelay(true))
         .upgrade(upgrade::Version::V1)
-        .authenticate(noise::NoiseAuthenticated::xx(&local_key))
-        .multiplex(yamux::YamuxConfig::default())
+        .authenticate(noise::Config::new(&local_key).unwrap())
+        .multiplex(yamux::Config::default())
         .boxed();
 
     // Create a behavior for signaling
     let behavior = SignalingBehavior::new();
     
     // Create the swarm
-    let mut swarm = Swarm::with_tokio_executor(transport, behavior, local_peer_id);
-
+    let executor = Box::new(|fut| { tokio::spawn(fut); });
+    let mut swarm = Swarm::new(transport, behavior, local_peer_id, Config::with_executor(executor));
+    
     // Listen on all interfaces and a specific port
     let listen_addr = Multiaddr::from_str("/ip4/0.0.0.0/tcp/9090")?;
     swarm.listen_on(listen_addr.clone())?;

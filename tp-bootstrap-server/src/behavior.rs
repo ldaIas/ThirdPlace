@@ -1,10 +1,18 @@
 use libp2p::{
-    core::connection::ConnectionId,
-    swarm::{
-        NetworkBehaviour, NetworkBehaviourAction, NotifyHandler,
-        PollParameters, ToSwarm,
-    },
     PeerId,
+    Multiaddr,
+    core::ConnectedPoint,
+    swarm::{
+        ConnectionId, 
+        NetworkBehaviour, 
+        NotifyHandler, 
+        ToSwarm,
+        ConnectionDenied,
+        ConnectionHandler, 
+        SubstreamProtocol, 
+        KeepAlive,
+        ConnectionHandlerEvent,
+    },
 };
 use log::{error, info};
 use std::collections::{HashMap, VecDeque};
@@ -18,8 +26,8 @@ pub const SIGNALING_PROTOCOL: &[u8] = b"/libp2p/webrtc-signaling/1.0.0";
 pub struct SignalingBehavior {
     // Peers connected to our signaling server
     connected_peers: HashMap<PeerId, ()>,
-    // Queue of events to emit
-    events: VecDeque<ToSwarm<SignalingEvent, SignalingHandlerIn>>,
+    // Queue of events to emit (note: ToSwarm here is used without generics)
+    events: VecDeque<ToSwarm>,
 }
 
 // Events emitted by our behavior
@@ -42,7 +50,7 @@ pub enum SignalingHandlerIn {
 
 impl SignalingBehavior {
     pub fn new() -> Self {
-        SignalingBehavior {
+        Self {
             connected_peers: HashMap::new(),
             events: VecDeque::new(),
         }
@@ -54,10 +62,7 @@ impl SignalingBehavior {
         self.events.push_back(ToSwarm::NotifyHandler {
             peer_id: to,
             handler: NotifyHandler::Any,
-            event: SignalingHandlerIn::SendSignal {
-                peer: from,
-                signal,
-            },
+            event: SignalingHandlerIn::SendSignal { peer: from, signal },
         });
     }
 }
@@ -67,43 +72,42 @@ impl NetworkBehaviour for SignalingBehavior {
     type ConnectionHandler = SignalingHandler;
     type ToSwarm = SignalingEvent;
 
-    fn new_handler(&mut self) -> Self::ConnectionHandler {
-        SignalingHandler {}
-    }
-
-    fn addresses_of_peer(&mut self, _peer_id: &PeerId) -> Vec<libp2p::Multiaddr> {
-        Vec::new() // We don't provide addresses in this simple example
-    }
-
-    fn inject_connection_established(
+    fn handle_established_inbound_connection(
         &mut self,
-        peer_id: &PeerId,
-        _connection_id: &ConnectionId,
-        _endpoint: &libp2p::core::ConnectedPoint,
-        _failed_addresses: Option<&Vec<libp2p::Multiaddr>>,
-        _other_established: usize,
+        _connection: ConnectionId,
+        peer: PeerId,
+        _remote_addr: &Multiaddr,
+        _local_addr: &Multiaddr,
+    ) -> Result<Self::ConnectionHandler, ConnectionDenied> {
+        info!("Inbound connection established with {}", peer);
+        self.connected_peers.insert(peer, ());
+        Ok(SignalingHandler {})
+    }
+
+    fn handle_established_outbound_connection(
+        &mut self,
+        _connection: ConnectionId,
+        peer: PeerId,
+        _remote_addr: &Multiaddr,
+        _endpoint: ConnectedPoint,
+    ) -> Result<Self::ConnectionHandler, ConnectionDenied> {
+        info!("Outbound connection established with {}", peer);
+        self.connected_peers.insert(peer, ());
+        Ok(SignalingHandler {})
+    }
+
+    fn on_swarm_event(&mut self, _event: libp2p::swarm::FromSwarm<Self::ConnectionHandler>) {
+    }
+
+    fn on_connection_handler_event(
+        &mut self,
+        _peer: PeerId,
+        _connection: ConnectionId,
+        _event: SignalingHandlerIn,
     ) {
-        info!("Connection established with {}", peer_id);
-        self.connected_peers.insert(*peer_id, ());
     }
 
-    fn inject_connection_closed(
-        &mut self,
-        peer_id: &PeerId,
-        _connection_id: &ConnectionId,
-        _endpoint: &libp2p::core::ConnectedPoint,
-        _handler: Self::ConnectionHandler,
-        _remaining_established: usize,
-    ) {
-        info!("Connection closed with {}", peer_id);
-        self.connected_peers.remove(peer_id);
-    }
-
-    fn poll(
-        &mut self,
-        _cx: &mut Context<'_>,
-        _params: &mut impl PollParameters,
-    ) -> Poll<ToSwarm<Self::ToSwarm, SignalingHandlerIn>> {
+    fn poll(&mut self, _cx: &mut Context<'_>) -> Poll<ToSwarm> {
         if let Some(event) = self.events.pop_front() {
             return Poll::Ready(event);
         }
@@ -114,5 +118,36 @@ impl NetworkBehaviour for SignalingBehavior {
 // A simple handler for our behavior
 pub struct SignalingHandler {}
 
-// Note: This is a simplified implementation. For a real application,
-// you would need to implement the ConnectionHandler trait properly.
+// Dummy ConnectionHandler implementation for SignalingHandler using the updated trait API.
+// Note: This stub satisfies the new required associated types and methods.
+impl ConnectionHandler for SignalingHandler {
+    type InboundProtocol = ();
+    type OutboundProtocol = ();
+    type InboundOpenInfo = ();
+    type OutboundOpenInfo = ();
+    type InEvent = ();
+    type OutEvent = ();
+    type Error = std::io::Error;
+    type FromBehaviour = ();
+    type ToBehaviour = ();
+
+    fn listen_protocol(&self) -> SubstreamProtocol<Self::InboundProtocol, Self::InboundOpenInfo> {
+        SubstreamProtocol::new((), ())
+    }
+
+    fn on_behaviour_event(&mut self, _event: Self::FromBehaviour) {}
+
+    fn on_connection_event(&mut self, _event: Self::ToBehaviour) {}
+
+    fn inject_dial_upgrade_error(&mut self, _info: Self::OutboundOpenInfo, _error: Self::Error) {}
+
+    fn inject_event(&mut self, _event: Self::InEvent) {}
+
+    fn connection_keep_alive(&self) -> KeepAlive {
+        KeepAlive::Yes
+    }
+
+    fn poll(&mut self, _cx: &mut Context<'_>) -> Poll<ConnectionHandlerEvent<Self::OutboundProtocol, Self::OutEvent, Self::Error>> {
+        Poll::Pending
+    }
+}

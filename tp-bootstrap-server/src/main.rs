@@ -1,7 +1,6 @@
-use libp2p::swarm::Config;
 use libp2p::{
-    core::upgrade,
-    identity, noise, swarm::SwarmEvent,
+    core::upgrade, core::transport::Boxed, core::muxing::StreamMuxerBox,
+    identity, noise, swarm::SwarmEvent, swarm::Config,
     tcp, Transport, yamux, Multiaddr, PeerId, Swarm
 };
 use log::{error, info};
@@ -27,7 +26,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     info!("Local peer id: {}", local_peer_id);
 
     // Create a transport
-    let transport = tcp::Transport::new(tcp::Config::default().nodelay(true))
+    let transport: Boxed<(PeerId, StreamMuxerBox)> = tcp::Transport::<GenTcpConfig>::new(tcp::Config::default().nodelay(true))
         .upgrade(upgrade::Version::V1)
         .authenticate(noise::Config::new(&local_key).unwrap())
         .multiplex(yamux::Config::default())

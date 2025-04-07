@@ -10,11 +10,16 @@
   <link rel="stylesheet" href="stylesheets/conversations.css">
   <script src="tpapp.js"></script>
   <script type="module" src="src/JSPorts/Identity/libp2p-identity.js"></script>
+  <script type="module" src="src/JSPorts/Sporran/sporran.js"></script>
 </head>
 
 <body>
-  <script>
-    var app = Elm.ThirdPlaceApp.init();
+  <script type="module">
+    import './src/JSPorts/Sporran/sporran.js';
+    import {setupIdentityPorts } from './src/JSPorts/Identity/libp2p-identity.js'
+    var app = Elm.ThirdPlaceApp.init({node: document.getElementById('app')});
+    //setupSporranPorts(app);
+    setupIdentityPorts(app);
   </script>
 </body>
 

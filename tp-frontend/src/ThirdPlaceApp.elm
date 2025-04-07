@@ -4,6 +4,8 @@ import Browser
 import Browser.Navigation as Navigation
 import JSPorts.Identity.IdentityHandler as IdentityHandler
 import JSPorts.Identity.IdentityPorts as IdentityPorts
+import JSPorts.Sporran.SporranHandler as SporranHandler
+import JSPorts.Sporran.SporranPorts as SporranPorts
 import JSPorts.WebRTC.WebRTCHandler as WebRTCHandler
 import ThirdPlaceModel exposing (Model, Msg(..))
 import Url exposing (Url)
@@ -18,6 +20,10 @@ init _ url key =
         identityInit =
             IdentityHandler.init
 
+        sporranInit : ( SporranHandler.Model, Cmd SporranHandler.Msg )
+        sporranInit =
+            SporranHandler.init
+
         webRtcHandlerInit : ( WebRTCHandler.Model, Cmd WebRTCHandler.Msg )
         webRtcHandlerInit =
             -- Initialize the WebRTC handler, this will be used for P2P communication in the chat room
@@ -29,13 +35,17 @@ init _ url key =
         ( didModel, didCmd ) =
             identityInit
 
+        ( sporranModel, sporranCmd ) =
+            sporranInit
+
         loginModel : Model
         loginModel =
-            { pageKey = key, pageUrl = url, userDid = didModel, authenticated = False, webRtcHandler = webRtcHandler }
+            { pageKey = key, pageUrl = url, userDid = didModel, authenticated = False, webRtcHandler = webRtcHandler, sporranHandler = sporranModel }
     in
     ( loginModel
     , Cmd.batch
         [ Cmd.map IdentityMsg didCmd
+        , Cmd.map SporranMsg sporranCmd
         , Cmd.map WebRTCMsg webRtcCmd
         ]
     )
@@ -56,6 +66,13 @@ update msg model =
             else
                 -- Otherwise, just update the model with the new identity state
                 ( { model | userDid = updatedDidModel }, Cmd.map IdentityMsg cmd )
+
+        SporranMsg sporranMsg ->
+            let
+                ( updatedSporranModel, cmd ) =
+                    SporranHandler.update sporranMsg model.sporranHandler
+            in
+            ( { model | sporranHandler = updatedSporranModel }, Cmd.map SporranMsg cmd )
 
         WebRTCMsg webRtcMsg ->
             let
@@ -125,5 +142,6 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Sub.map IdentityMsg (IdentityHandler.subscriptions model.userDid)
+        , Sub.map SporranMsg (SporranHandler.subscriptions model.sporranHandler)
         , Sub.map WebRTCMsg (WebRTCHandler.subscriptions model.webRtcHandler)
         ]

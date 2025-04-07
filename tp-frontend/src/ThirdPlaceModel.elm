@@ -3,6 +3,7 @@ module ThirdPlaceModel exposing (Model, Msg(..))
 import Browser.Navigation exposing (Key)
 import JSPorts.Identity.IdentityHandler as Identity
 import JSPorts.WebRTC.WebRTCHandler as WebRTCHandler
+import JSPorts.Sporran.SporranHandler as SporranHandler
 import Url exposing (Url)
 
 {-
@@ -15,6 +16,7 @@ type alias Model =
     , userDid : Identity.Model
     , authenticated : Bool
     , webRtcHandler : WebRTCHandler.Model
+    , sporranHandler : SporranHandler.Model
     }
 
 
@@ -22,6 +24,7 @@ type Msg
     = CreateAccount
     | AttemptLogin
     | IdentityMsg Identity.Msg
+    | SporranMsg SporranHandler.Msg
     | WebRTCMsg WebRTCHandler.Msg
     | UrlChanged Url
     | NoOp

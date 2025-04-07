@@ -4,6 +4,17 @@ function toBase64(uint8Array) {
     return btoa(String.fromCharCode(...uint8Array));
 }
 
+export function setupIdentityPorts(app) {
+    app.ports.generateDID.subscribe(() => {
+        generateDID();
+    });
+    app.ports.authenticate.subscribe(({ did, privKey }) => {
+        authenticate(did, privKey).then(isValid => {
+            app.ports.authenticationResult.send(isValid);
+        });
+    });
+}
+
 // Generate a DID and private key pair
 async function generateDID() {
     try {
@@ -23,13 +34,6 @@ async function generateDID() {
     }
 }
 
-export { generateDID };
-
-// Listen for Elm's request to generate a DID
-app.ports.generateDID.subscribe(() => {
-    generateDID();
-});
-
 async function authenticate(did, privKey) {
     try {
 
@@ -46,11 +50,3 @@ async function authenticate(did, privKey) {
         return false;
     }
 }
-
-export { authenticate };
-
-app.ports.authenticate.subscribe(({ did, privKey }) => {
-    authenticate(did, privKey).then(isValid => {
-        app.ports.authenticationResult.send(isValid);
-    });
-});

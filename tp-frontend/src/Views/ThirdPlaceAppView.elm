@@ -18,7 +18,7 @@ view model =
             "ThirdPlace - Login"
     , body =
         if model.authenticated then
-            [ RoomView.view { users = [], conversations = [], messages = [] } ]
+            [ RoomView.view { users = [], conversations = [], messages = [], selectedConvo = Nothing } ]
 
         else
             [ LoginView.view model ]

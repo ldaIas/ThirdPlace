@@ -1,23 +1,19 @@
 module Views.Room.RoomView exposing (view)
 
-import Views.Room.Conversations.ConversationsView exposing (ConversationModel, view)
 import Html exposing (Html, div, h2, text)
 import Html.Attributes exposing (class)
+import Views.Room.Conversations.ConversationsView as ConversationsView exposing (view)
+import Views.Room.RoomModel exposing (Model, ConversationModel)
+import Views.Room.ChatPanel.ChatPanelView as ChatPanelView
+import Views.Room.RoomModel as RoomModel
 
 
-type alias ChatRoomModel =
-    { users : List String
-    , conversations : List ConversationModel
-    , messages : List String
-    }
-
-
-view : ChatRoomModel -> Html msg
+view : Model -> Html msg
 view model =
     div [ class "main-container" ]
         [ peopleHere model.users
         , conversations model.conversations
-        , chatPanel model.messages
+        , chatPanel model
         ]
 
 
@@ -35,13 +31,12 @@ userAvatar name =
 conversations : List ConversationModel -> Html msg
 conversations convos =
     div [ class "container", class "conversations" ]
-        [ Views.Room.Conversations.ConversationsView.view convos ]
+        [ ConversationsView.view convos ]
 
 
-chatPanel : List String -> Html msg
-chatPanel messages =
-    div [ class "container", class "chat-panel" ]
-        (h2 [] [ text "Conversation" ] :: List.map chatMessage messages)
+chatPanel : RoomModel.Model -> Html msg
+chatPanel model =
+    ChatPanelView.view model
 
 
 chatMessage : String -> Html msg

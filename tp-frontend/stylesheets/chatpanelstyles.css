@@ -1,0 +1,4 @@
+.chat-panel {
+    flex: 2;
+    flex-direction: column;
+}

@@ -12,3 +12,7 @@ mainContainer =
 conversations : String
 conversations =
     "conversations"  
+
+container : String
+container = 
+    "container"

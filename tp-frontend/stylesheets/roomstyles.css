@@ -51,11 +51,6 @@
     flex: 3;
 }
 
-.chat-panel {
-    flex: 2;
-    flex-direction: column;
-}
-
 .message {
     background-color: #dfe6ee;
     padding: 10px;

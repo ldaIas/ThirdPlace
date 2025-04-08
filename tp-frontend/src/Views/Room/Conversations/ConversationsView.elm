@@ -1,23 +1,10 @@
-module Views.Room.Conversations.ConversationsView exposing (ConversationModel, view)
+module Views.Room.Conversations.ConversationsView exposing (view)
 
 import Views.Room.Conversations.ConversationStyles exposing (..)
 import Html exposing (Html, div, h2, img, p, strong, text)
 import Html.Attributes exposing (class, id, src)
 import ThirdPlaceModel exposing (Model, Msg)
-
-
-
-{-
-   -| The model for each individual conversation in the list of conversations.
--}
-
-
-type alias ConversationModel =
-    { intro : String
-    , messages : List String
-    , participants : List String
-    , author : String
-    }
+import Views.Room.RoomModel exposing (ConversationModel)
 
 
 view : List ConversationModel -> Html msg

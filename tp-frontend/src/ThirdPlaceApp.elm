@@ -5,7 +5,6 @@ import Browser.Navigation as Navigation
 import JSPorts.Identity.IdentityHandler as IdentityHandler
 import JSPorts.Identity.IdentityPorts as IdentityPorts
 import JSPorts.Sporran.SporranHandler as SporranHandler
-import JSPorts.Sporran.SporranPorts as SporranPorts
 import JSPorts.WebRTC.WebRTCHandler as WebRTCHandler
 import ThirdPlaceModel exposing (Model, Msg(..))
 import Url exposing (Url)

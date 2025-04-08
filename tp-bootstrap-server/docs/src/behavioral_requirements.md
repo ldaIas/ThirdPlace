@@ -16,7 +16,6 @@ This section will contain `Big Picture` items that we will organize in MoSCoW fo
 - Have a way for peers connecting on decentralized network to find backend
 - Ability for users to easily spin up their own nodes
 
-
 ### Should Have
 - Implementation in Rust
 - WebRTC connection between peers
@@ -28,12 +27,9 @@ This section will contain `Big Picture` items that we will organize in MoSCoW fo
 - Turn server
 - Signaling Server
 
-
 ### Wont Have
 - Centralized server that contains user data beyond connectivity info
 - Usage of HTTPS 
-
-
 
 
 

@@ -11,6 +11,7 @@ import ThirdPlaceModel exposing (Model, Msg(..))
 import Url exposing (Url)
 import Views.Login.LoginView as LoginView exposing (view)
 import Views.Room.RoomView as RoomView exposing (view)
+import Views.ThirdPlaceAppView
 
 
 init : flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
@@ -111,19 +112,7 @@ update msg model =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title =
-        if model.authenticated then
-            "ThirdPlace - Chat"
-
-        else
-            "ThirdPlace - Login"
-    , body =
-        if model.authenticated then
-            [ RoomView.view { users = [], conversations = [], messages = [] } ]
-
-        else
-            [ LoginView.view model ]
-    }
+    Views.ThirdPlaceAppView.view model
 
 
 main : Program () Model Msg

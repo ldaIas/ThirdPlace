@@ -14,6 +14,7 @@ export function setupSporranPorts(app) {
 
   app.ports.requestLogin.subscribe(async () => {
     console.log('requesting login in js')
+    app.ports.onLoginAttempted.send(null);
 
     await connect("wss://spiritnet.kilt.io"); // mainnet kilt chain connection
 

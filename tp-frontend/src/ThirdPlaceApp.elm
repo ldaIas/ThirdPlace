@@ -71,8 +71,15 @@ update msg model =
             let
                 ( updatedSporranModel, cmd ) =
                     SporranHandler.update sporranMsg model.sporranHandler
+
+                -- If the sporran model has a user did, we are authenticated
+                authenticated: Bool
+                authenticated = 
+                    case updatedSporranModel.userDid of
+                        Just _ -> True
+                        Nothing -> False
             in
-            ( { model | sporranHandler = updatedSporranModel }, Cmd.map SporranMsg cmd )
+            ( { model | sporranHandler = updatedSporranModel, authenticated = authenticated }, Cmd.map SporranMsg cmd )
 
         WebRTCMsg webRtcMsg ->
             let

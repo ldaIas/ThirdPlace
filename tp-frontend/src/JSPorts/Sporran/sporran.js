@@ -1,7 +1,5 @@
-import * as did from '@kiltprotocol/did';
-console.log(did);
 import { web3Enable, web3Accounts, web3FromSource } from '@polkadot/extension-dapp';
-import { connect } from '@kiltprotocol/core';
+import { connect, disconnect } from '@kiltprotocol/core';
 
 export function setupSporranPorts(app) {
   app.ports.detectSporran.subscribe(async () => {
@@ -20,17 +18,20 @@ export function setupSporranPorts(app) {
     await connect("wss://spiritnet.kilt.io"); // mainnet kilt chain connection
 
     const accounts = await web3Accounts();
+    console.log("accounts", accounts);
     if (accounts.length === 0) {
       console.warn("No accounts in Sporran");
       return;
     }
 
-    const account = accounts[0]; // Use first for now
-    const didDoc = await getSelectedDid();
-    if (didDoc) {
-      app.ports.onLoginSuccess.send(didDoc.uri);
+    const account = accounts[0];
+    console.log("account", account);
+    if (account) {
+      app.ports.onLoginSuccess.send("account " + JSON.stringify(account));
     } else {
       console.warn("No DID found for account");
     }
+
+    await disconnect()
   });
 }

@@ -21,7 +21,7 @@ view model =
         , div [ class accountPane ]
             [ h1 [] [ text "🏢💁\u{200D}♀️💬" ]
             , div [ class fieldsContainer ]
-                [ 
+                [ displaySporranDetection model.sporranHandler
                 ]
             ]
         ]

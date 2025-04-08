@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 # Core dependencies
 libp2p = { version = "0.55.0", features = ["tcp", "noise", "yamux", "websocket", "ping", "identify"] }
-tokio = { version = "1.29", features = ["full"] }
+tokio = { version = "1.44.2", features = ["full"] }
 futures = "0.3.28"
 async-std = { version = "1.12.0", features = ["attributes"] }
 env_logger = "0.11.8"

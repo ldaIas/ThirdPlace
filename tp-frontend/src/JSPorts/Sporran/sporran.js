@@ -5,6 +5,7 @@ import { connect } from '@kiltprotocol/core';
 
 export function setupSporranPorts(app) {
   app.ports.detectSporran.subscribe(async () => {
+    console.log('searching for sporran in js')
     const extensions = await web3Enable("ThirdPlace");
     if (extensions.length === 0) {
       app.ports.onSporranDetected.send(false);
@@ -14,7 +15,9 @@ export function setupSporranPorts(app) {
   });
 
   app.ports.requestLogin.subscribe(async () => {
-    await connect(); // connect to a KILT node (default dev chain is fine for now)
+    console.log('requesting login in js')
+
+    await connect("wss://spiritnet.kilt.io"); // mainnet kilt chain connection
 
     const accounts = await web3Accounts();
     if (accounts.length === 0) {

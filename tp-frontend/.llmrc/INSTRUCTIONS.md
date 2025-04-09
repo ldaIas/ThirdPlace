@@ -26,4 +26,4 @@ rather than from some host machine. Thus there is also no domain name. End users
 The webpage is an SPA elm app, so we just need to serve a single index.html file that has the necessary javascript resources.
 The elm compiles to a js file (currently tpapp.js). We take this, the stylesheets, other resources, and the javascript files from JSPorts,
 and put them in a folder named "deploy." This directory is then served to IPFS.
-Currently this is a manual process and the file is uploaded via the IPFS desktop client.
+Currently this is a manual process and the file is uploaded via the IPFS desktop client, but the idea is to have this automated eventually.

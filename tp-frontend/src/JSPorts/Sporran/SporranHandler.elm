@@ -10,6 +10,7 @@ type alias Model =
 
 type Msg =
     OnSporranDetected Bool
+    | CheckForSporran
     | RequestLogin
     | AttemptingLogin () -- Unused function param as apparently the port needs to get some kind of input from js
     | LoginSuccess String
@@ -17,7 +18,7 @@ type Msg =
 init : ( Model, Cmd Msg )
 init =
     ( { sporranDetected = Nothing, userDid = Nothing, attemptingLogin = False }
-    , SporranPorts.detectSporran ()
+    , SporranPorts.detectSporran () -- Automatically try to detect sporran at start
     )
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -25,6 +26,9 @@ update msg model =
     case msg of
         OnSporranDetected detected ->
             ( { model | sporranDetected = Just detected }, Cmd.none )
+
+        CheckForSporran ->
+            ( {model | sporranDetected = Nothing}, SporranPorts.detectSporran ())
 
         RequestLogin ->
             ( model, SporranPorts.requestLogin () )

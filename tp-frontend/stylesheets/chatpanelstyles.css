@@ -7,15 +7,16 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    max-width: 600px;
+    width: 100%;
     margin: 0 auto;
     border: 1px solid #ccc;
     font-family: sans-serif;
+
 }
 
 .chat-header {
     padding: 1rem;
-    background: #f9f9f9;
+    background: var(--thirdplace-bg-color);
     border-bottom: 1px solid #ddd;
 }
 
@@ -50,7 +51,7 @@
 }
 
 .from-self {
-    background-color: #d1f0ff;
+    background-color: var(--thirdplace-bg-color);
     align-self: flex-end;
 }
 
@@ -79,7 +80,7 @@ textarea {
     font-size: 1rem;
 }
 
-button {
+.send-button {
     align-self: flex-end;
     padding: 0.5rem 1rem;
     font-size: 1rem;

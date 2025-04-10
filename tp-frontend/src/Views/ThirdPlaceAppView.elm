@@ -8,7 +8,7 @@ import Views.Login.LoginView as LoginView
 {-
     -| Delegates the dom rendering based on whether the user has been authenticated (go to rooms) or not (go to login)
 -}
-view : Model -> Browser.Document Msg
+view : Model -> Browser.Document ThirdPlaceModel.Msg
 view model =
     { title =
         if model.authenticated then

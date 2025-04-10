@@ -80,7 +80,7 @@ textarea {
     font-size: 1rem;
 }
 
-button {
+.send-button {
     align-self: flex-end;
     padding: 0.5rem 1rem;
     font-size: 1rem;

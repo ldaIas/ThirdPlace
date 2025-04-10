@@ -22,3 +22,7 @@ accountPane =
 logoBody : String
 logoBody =
     "logo-body"
+
+loginViewButton : String
+loginViewButton = 
+    "login-view-button"

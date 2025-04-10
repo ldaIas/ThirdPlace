@@ -1,11 +1,12 @@
 module Views.Login.LoginView exposing (view)
 
 import Html exposing (Html, a, br, button, div, h1, p, text)
-import Html.Attributes exposing (class, href)
+import Html.Attributes exposing (class, href, target)
 import Html.Events exposing (onClick)
 import JSPorts.Sporran.SporranHandler as SporranHandler exposing (Msg(..))
 import ThirdPlaceModel exposing (Model, Msg(..))
 import Views.Login.LoginStyles exposing (accountPane, fieldsContainer, loginView, logoBody)
+import Views.Login.LoginStyles exposing (loginViewButton)
 
 
 view : Model -> Html ThirdPlaceModel.Msg
@@ -31,9 +32,13 @@ displaySporranDetection model =
 
                 Just False ->
                     [ p [] [ text "Sporran wallet needed for identity. " ]
-                    , a [ href "https://www.sporran.org/" ] [ text "Get it here" ]
+                    , a
+                        [ href "https://www.sporran.org/"
+                        , target "_blank" -- Open in new tab
+                        ]
+                        [ text "Get it here" ]
                     , br [] []
-                    , button [ onClick (SporranMsg CheckForSporran) ] [ text "Check again" ]
+                    , button [ class loginViewButton, onClick (SporranMsg CheckForSporran) ] [ text "Check again" ]
                     ]
 
                 Just True ->
@@ -43,7 +48,7 @@ displaySporranDetection model =
 
                         Nothing ->
                             if not model.attemptingLogin then
-                                [ button [ onClick (SporranMsg SporranHandler.RequestLogin) ] [ text "Login with Sporran ID" ] ]
+                                [ button [ class loginViewButton, onClick (SporranMsg SporranHandler.RequestLogin) ] [ text "Login with Sporran ID" ] ]
 
                             else
                                 [ p [] [ text "Contacting the spiritnet chain to log in..." ] ]

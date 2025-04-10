@@ -8,8 +8,8 @@ import JSPorts.Sporran.SporranHandler as SporranHandler
 import JSPorts.WebRTC.WebRTCHandler as WebRTCHandler
 import ThirdPlaceModel exposing (Model, Msg(..))
 import Url exposing (Url)
-import Views.Login.LoginView as LoginView exposing (view)
-import Views.Room.RoomView as RoomView exposing (view)
+import Views.Login.LoginView exposing (view)
+import Views.Room.RoomView exposing (view)
 import Views.ThirdPlaceAppView
 
 

@@ -55,6 +55,18 @@
 
 .fields-container {
     display: flex;
+    flex-direction: column;
+    gap: 1vh;
+    align-items: center;
     width: 90%;
     justify-content: center;
+}
+
+.login-view-button {
+    background-color: #007bff;
+    padding: 5px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }

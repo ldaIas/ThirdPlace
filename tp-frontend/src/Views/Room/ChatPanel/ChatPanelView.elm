@@ -31,7 +31,7 @@ view _ =
                     [ placeholder "Type your message..."
                     ]
                     []
-                , button [] [ text "Send" ]
+                , button [class "send-button"] [ text "Send" ]
                 ]
             ]
         ]

@@ -6,13 +6,14 @@ import Views.Room.Conversations.ConversationsView as ConversationsView exposing 
 import Views.Room.RoomModel exposing (Model, ConversationModel)
 import Views.Room.ChatPanel.ChatPanelView as ChatPanelView
 import Views.Room.RoomModel as RoomModel
+import ThirdPlaceModel
 
 
-view : Model -> Html msg
+view : Model -> Html ThirdPlaceModel.Msg
 view model =
     div [ class "main-container" ]
         [ peopleHere model.users
-        , conversations model.conversations
+        , conversations model
         , chatPanel model
         ]
 
@@ -28,17 +29,12 @@ userAvatar name =
     div [ class "user-avatar" ] [ text name ]
 
 
-conversations : List ConversationModel -> Html msg
-conversations convos =
+conversations : RoomModel.Model -> Html ThirdPlaceModel.Msg
+conversations model =
     div [ class "container", class "conversations" ]
-        [ ConversationsView.view convos ]
+        [ ConversationsView.view model ]
 
 
 chatPanel : RoomModel.Model -> Html msg
 chatPanel model =
     ChatPanelView.view model
-
-
-chatMessage : String -> Html msg
-chatMessage msg =
-    div [ class "message" ] [ text msg ]

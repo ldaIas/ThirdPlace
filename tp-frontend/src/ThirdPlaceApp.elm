@@ -11,6 +11,8 @@ import Url exposing (Url)
 import Views.Login.LoginView exposing (view)
 import Views.Room.RoomView exposing (view)
 import Views.ThirdPlaceAppView
+import Views.Room.RoomHandler as RoomHandler
+import Views.Room.RoomModel as RoomModel
 
 
 init : flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
@@ -23,6 +25,10 @@ init _ url key =
         sporranInit : ( SporranHandler.Model, Cmd SporranHandler.Msg )
         sporranInit =
             SporranHandler.init
+
+        roomInit : (RoomModel.Model, Cmd RoomModel.Msg)
+        roomInit =
+            RoomHandler.init
 
         webRtcHandlerInit : ( WebRTCHandler.Model, Cmd WebRTCHandler.Msg )
         webRtcHandlerInit =
@@ -38,15 +44,20 @@ init _ url key =
         ( sporranModel, sporranCmd ) =
             sporranInit
 
+        ( roomModel, roomCmd) =
+            roomInit
+
         loginModel : Model
         loginModel =
-            { pageKey = key, pageUrl = url, userDid = didModel, authenticated = False, webRtcHandler = webRtcHandler, sporranHandler = sporranModel }
+            { pageKey = key, pageUrl = url, userDid = didModel, authenticated = False, webRtcHandler = webRtcHandler, sporranHandler = sporranModel
+            , roomHandler = roomModel }
     in
     ( loginModel
     , Cmd.batch
         [ Cmd.map IdentityMsg didCmd
         , Cmd.map SporranMsg sporranCmd
         , Cmd.map WebRTCMsg webRtcCmd
+        , Cmd.map RoomMsg roomCmd
         ]
     )
 
@@ -80,6 +91,14 @@ update msg model =
                         Nothing -> False
             in
             ( { model | sporranHandler = updatedSporranModel, authenticated = authenticated }, Cmd.map SporranMsg cmd )
+
+        RoomMsg roomMsg ->
+            let
+                ( updatedRoomModel, cmd ) =
+                    RoomHandler.update roomMsg model.roomHandler
+            in
+            ( { model | roomHandler = updatedRoomModel }, Cmd.map RoomMsg cmd )
+
 
         WebRTCMsg webRtcMsg ->
             let

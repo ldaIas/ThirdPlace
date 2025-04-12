@@ -1,14 +1,22 @@
 module Views.Room.Conversations.ConversationsView exposing (view)
 
-import Views.Room.Conversations.ConversationStyles exposing (..)
 import Html exposing (Html, div, h2, img, p, strong, text)
 import Html.Attributes exposing (class, id, src)
 import ThirdPlaceModel exposing (Model, Msg)
-import Views.Room.RoomModel exposing (ConversationModel)
+import Views.Room.Conversations.ConversationStyles exposing (..)
+import Views.Room.RoomModel as RoomModel exposing (ConversationModel, Msg(..))
+import Html.Events exposing (onClick)
+import ThirdPlaceModel exposing (Msg(..))
 
 
-view : List ConversationModel -> Html msg
-view _ =
+
+{-
+   The view model for the conversation pane that holsd the conversations going on
+-}
+
+
+view : RoomModel.Model -> Html ThirdPlaceModel.Msg
+view model =
     div [ class Views.Room.Conversations.ConversationStyles.convWindow ]
         [ div [ class Views.Room.Conversations.ConversationStyles.convHeader ]
             [ p [ id Views.Room.Conversations.ConversationStyles.convLobbyIdText, class Views.Room.Conversations.ConversationStyles.convHeaderText ] [ text "Lobby ID: 12345" ]
@@ -17,26 +25,18 @@ view _ =
             ]
         , div [] [ h2 [] [ text "Conversations" ] ]
         , div [ class Views.Room.Conversations.ConversationStyles.convBody ]
-            [ conversationBlock
-            , conversationBlock
-            , conversationBlock
-            , conversationBlock
-            , conversationBlock
-            , conversationBlock
-            , conversationBlock
-            , conversationBlock
-            ]
+            (List.map (\convo -> conversationBlock convo) model.conversations)
         ]
 
 
-conversationBlock : Html msg
-conversationBlock =
-    div [ class Views.Room.Conversations.ConversationStyles.conversationBlock ]
-        [ strong [] [ text "Alicia started a conversation:" ]
-        , div [ class Views.Room.Conversations.ConversationStyles.conversationText ] [ text "Hey everyone, first time here. What are y'all up to today?" ]
+conversationBlock : ConversationModel -> Html ThirdPlaceModel.Msg
+conversationBlock convoModel =
+    div [ class Views.Room.Conversations.ConversationStyles.conversationBlock, onClick (RoomMsg (ConvoClicked convoModel)) ]
+        [ strong [] [ text (convoModel.author ++ " started a conversation:") ]
+        , div [ class Views.Room.Conversations.ConversationStyles.conversationText ] [ text convoModel.intro ]
         , div [ class Views.Room.Conversations.ConversationStyles.convPeopleHere ]
-            ([ text "People here: " ]
-                ++ [ img [ src "sfsef.png" ] [] ]
-                ++ [ div [ class Views.Room.Conversations.ConversationStyles.convMorePeople ] [ text "+3" ] ]
-            )
+            [ text "People here: "
+            , img [ src "sfsef.png" ] []
+            , div [ class Views.Room.Conversations.ConversationStyles.convMorePeople ] [ text (String.fromInt (List.length convoModel.participants)) ]
+            ]
         ]

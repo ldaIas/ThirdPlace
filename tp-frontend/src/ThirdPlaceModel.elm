@@ -5,6 +5,7 @@ import JSPorts.Identity.IdentityHandler as Identity
 import JSPorts.WebRTC.WebRTCHandler as WebRTCHandler
 import JSPorts.Sporran.SporranHandler as SporranHandler
 import Url exposing (Url)
+import Views.Room.RoomModel as RoomModel
 
 {-
 -| The model for the whole of the application. It contains the page key, url, and user DID.
@@ -17,6 +18,7 @@ type alias Model =
     , authenticated : Bool
     , webRtcHandler : WebRTCHandler.Model
     , sporranHandler : SporranHandler.Model
+    , roomHandler : RoomModel.Model
     }
 
 
@@ -25,6 +27,7 @@ type Msg
     | AttemptLogin
     | IdentityMsg Identity.Msg
     | SporranMsg SporranHandler.Msg
+    | RoomMsg RoomModel.Msg
     | WebRTCMsg WebRTCHandler.Msg
     | UrlChanged Url
     | NoOp

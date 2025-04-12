@@ -7,31 +7,50 @@ import Views.Room.ChatPanel.ChatPanelStyles as ChatPanelStyles
 import Views.Room.RoomModel as RoomModel
 import Views.Room.RoomStyles as RoomStyles
 
-
+{-
+    Display the chat panel when a conversation is selected.
+    If no convo is selected then displays the closed panel
+-}
 view : RoomModel.Model -> Html msg
-view _ =
+view model =
     div [ class RoomStyles.container, class ChatPanelStyles.chatPanel ]
-        [ div [ class "chat-container" ]
-            [ div [ class "chat-header" ]
-                [ div [ class "chat-topic" ] [ text "Topic: Future of Decentralized Social" ]
-                , div [ class "chat-author" ] [ text "Started by: codingcat" ]
-                ]
-            , div [ class "chat-messages" ]
-                [ div [ class "message from-other" ]
-                    [ div [ class "sender" ] [ text "user42" ]
-                    , div [ class "content" ] [ text "I really think peer-to-peer is the way forward." ]
+        -- If there is a convo selected display the chat panel otherwise display nothing
+        (case model.selectedConvo of
+            Nothing ->
+                []
+
+            Just selectedConvoModel ->
+                [ div [ class "chat-container" ]
+                    [ div [ class "chat-header" ]
+                        [ div [ class "chat-topic" ] [ text selectedConvoModel.intro ]
+                        , div [ class "chat-author" ] [ text selectedConvoModel.author ]
+                        ]
+                    , div [ class "chat-messages" ]
+                        (List.map
+                            (\msg ->
+                                let
+                                    selfOrOtherMsgClass : String
+                                    selfOrOtherMsgClass =
+                                        if msg.sender == "current_user" then
+                                            "message-from-self"
+
+                                        else
+                                            "message-from-other"
+                                in
+                                div [ class selfOrOtherMsgClass ]
+                                    [ div [ class "sender" ] [ text msg.sender ]
+                                    , div [ class "content" ] [ text msg.content ]
+                                    ]
+                            )
+                            selectedConvoModel.messages
+                        )
+                    , div [ class "chat-input" ]
+                        [ textarea
+                            [ placeholder "Type your message..."
+                            ]
+                            []
+                        , button [ class "send-button" ] [ text "Send" ]
+                        ]
                     ]
-                , div [ class "message from-self" ]
-                    [ div [ class "sender" ] [ text "me" ]
-                    , div [ class "content" ] [ text "Exactly. LibP2P has been solid so far." ]
-                    ]
                 ]
-            , div [ class "chat-input" ]
-                [ textarea
-                    [ placeholder "Type your message..."
-                    ]
-                    []
-                , button [class "send-button"] [ text "Send" ]
-                ]
-            ]
-        ]
+        )

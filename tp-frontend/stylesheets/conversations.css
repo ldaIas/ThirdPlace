@@ -59,6 +59,15 @@
     border: 2px solid black;
 }
 
+.conversation-block:hover {
+    cursor: pointer;
+    border: 4px solid black;
+}
+
+ .conversation-block:hover::after {
+    background: rgba(255, 255, 255, 0.2); /* Light overlay */
+} 
+
 .conversation-block strong {
     color: #333;
     font-size: 14px;

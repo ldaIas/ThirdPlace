@@ -1,9 +1,12 @@
-module Views.Room.RoomModel exposing (Model, ConversationModel, ChatMessage, Msg(..))
+module Views.Room.RoomModel exposing (Model, ConversationModel, ChatMessage, Msg(..), UsrChatMsg(..))
 
+{-
+    The model for a "room" consisting of several conversations, with each conversation consisting of messages
+-}
 type alias Model =
     { users : List String
     , conversations : List ConversationModel
-    , selectedConvo : Maybe ConversationModel
+    , selectedConvo : ConversationModel
     }
 
 {-
@@ -16,6 +19,7 @@ type alias ConversationModel =
     , messages : List ChatMessage
     , participants : List String
     , author : String
+    , draftMessage : String
     }
 
 type alias ChatMessage = 
@@ -23,5 +27,17 @@ type alias ChatMessage =
     , content : String
     }
 
+{-
+    Msg definition for room events, such as clicking on a conversation or sending a message
+-}
 type Msg = 
     ConvoClicked ConversationModel
+    | ChatPanelMsg UsrChatMsg
+
+
+{-
+    Msg definition for the user chatting
+-}
+type UsrChatMsg = 
+    DraftMessage String
+    | SendMessage

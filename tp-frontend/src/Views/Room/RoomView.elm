@@ -35,6 +35,6 @@ conversations model =
         [ ConversationsView.view model ]
 
 
-chatPanel : RoomModel.Model -> Html msg
+chatPanel : RoomModel.Model -> Html ThirdPlaceModel.Msg
 chatPanel model =
     ChatPanelView.view model

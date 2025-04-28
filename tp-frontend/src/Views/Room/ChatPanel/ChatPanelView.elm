@@ -1,25 +1,27 @@
 module Views.Room.ChatPanel.ChatPanelView exposing (..)
 
 import Html exposing (Html, button, div, h2, text, textarea)
-import Html.Attributes exposing (class, placeholder)
-import Html.Events exposing (onInput)
+import Html.Attributes exposing (class, disabled, placeholder, value)
+import Html.Events exposing (onClick, onInput)
+import ThirdPlaceModel
 import Views.Room.ChatPanel.ChatPanelStyles as ChatPanelStyles
-import Views.Room.RoomModel as RoomModel
+import Views.Room.RoomModel as RoomModel exposing (Msg(..), UsrChatMsg(..))
 import Views.Room.RoomStyles as RoomStyles
 
+
+
 {-
-    Display the chat panel when a conversation is selected.
-    If no convo is selected then displays the closed panel
+   Display the chat panel when a conversation is selected.
+   If no convo is selected then displays the closed panel
 -}
-view : RoomModel.Model -> Html msg
+
+
+view : RoomModel.Model -> Html ThirdPlaceModel.Msg
 view model =
     div [ class RoomStyles.container, class ChatPanelStyles.chatPanel ]
         -- If there is a convo selected display the chat panel otherwise display nothing
         (case model.selectedConvo of
-            Nothing ->
-                []
-
-            Just selectedConvoModel ->
+            selectedConvoModel ->
                 [ div [ class "chat-container" ]
                     [ div [ class "chat-header" ]
                         [ div [ class "chat-topic" ] [ text selectedConvoModel.intro ]
@@ -47,9 +49,20 @@ view model =
                     , div [ class "chat-input" ]
                         [ textarea
                             [ placeholder "Type your message..."
+                            , onInput (ThirdPlaceModel.RoomMsg << ChatPanelMsg << DraftMessage)
                             ]
                             []
-                        , button [ class "send-button" ] [ text "Send" ]
+                        , button
+                            ([ class "send-button", onClick (ThirdPlaceModel.RoomMsg (ChatPanelMsg SendMessage)) ]
+                                -- Disable the send button if in a system message (author is ThirdPlace)
+                                ++ (if selectedConvoModel.author == "ThirdPlace" then
+                                        [ disabled True ]
+
+                                    else
+                                        []
+                                   )
+                            )
+                            [ text "Send" ]
                         ]
                     ]
                 ]

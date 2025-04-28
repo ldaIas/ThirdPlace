@@ -7,6 +7,7 @@
 
 .conv-window {
     height: 100%;
+    width: 70%;
     overflow: hidden;
 }
 
@@ -62,21 +63,9 @@
 .conversation-block:hover {
     cursor: pointer;
     border: 4px solid black;
+    margin-bottom: 6px; /* subract the border size (4px) from the margin-bottom without hover so that hovering over blocks doesnt push other blocks around */
+    filter: brightness(115%);
 }
-
-.conversation-block::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(255, 255, 255, 0); /* No light initially */
-    transition: background 0.3s ease;
-    pointer-events: none;
-
-}
-
- .conversation-block:hover::after {
-    background: rgba(255, 255, 255, 0.6); /* Light overlay */
-} 
 
 .conversation-block strong {
     color: #333;

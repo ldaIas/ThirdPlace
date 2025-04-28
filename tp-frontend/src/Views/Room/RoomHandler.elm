@@ -1,22 +1,37 @@
 module Views.Room.RoomHandler exposing (..)
-import Views.Room.RoomModel as RoomModel exposing (ConversationModel, ChatMessage)
-import Views.Room.RoomModel exposing (Msg(..))
 
-init : (RoomModel.Model, Cmd RoomModel.Msg)
-init = 
-    ( {users = ["current_user", "meower1", "meower2"], conversations = populateDummyConvos, selectedConvo = Nothing}, Cmd.none)
+import Views.Room.RoomModel as RoomModel exposing (ChatMessage, ConversationModel, Msg(..))
+import Views.Room.ChatPanel.ChatPanelHandler as ChatPanelHandler
 
--- Remove once we integrate with actual p2p communication
+
+init : ( RoomModel.Model, Cmd RoomModel.Msg )
+init =
+    ( { users = [ "current_user", "meower1", "meower2" ], conversations = populateDummyConvos, selectedConvo = initConvo }, Cmd.none )
+
+
+initConvo : ConversationModel
+initConvo =
+    { intro = "Select a conversation to see what others are talking about!"
+    , messages = [ { sender = "ThirdPlace", content = "When you select a conversation you'll be able to chat." } ]
+    , participants = []
+    , author = "ThirdPlace"
+    , draftMessage = ""
+    }
+
+
+
+-- Remove below \/ once we integrate with actual p2p communication
 
 
 populateDummyConvos : List ConversationModel
 populateDummyConvos =
     let
+        dummyModel : ConversationModel
         dummyModel =
-            { intro = "Meowserrssss", messages = populateDummyMsgs, participants = [ "meower1", "meower2", "current_user" ], author = "meower1" }
+            { intro = "Meowserrssss", messages = populateDummyMsgs, participants = [ "meower1", "meower2", "current_user" ], author = "meower1", draftMessage = "" }
 
         dummyModel2 =
-            { intro = "rawr xd", messages = populateDummyMsgs2, participants = [ "meower1", "meower2", "current_user" ], author = "meower2" }
+            { intro = "rawr xd", messages = populateDummyMsgs2, participants = [ "meower1", "meower2", "current_user" ], author = "meower2", draftMessage = "" }
     in
     [ dummyModel, dummyModel2, dummyModel, dummyModel ]
 
@@ -24,6 +39,7 @@ populateDummyConvos =
 populateDummyMsgs : List ChatMessage
 populateDummyMsgs =
     let
+        dummyMsg : ChatMessage
         dummyMsg =
             { sender = "meower1", content = "im spamming :33333333" }
 
@@ -44,8 +60,16 @@ populateDummyMsgs2 =
     in
     [ dummyMsg, dummyMsg2, dummyMsg, dummyMsg2 ]
 
-update : RoomModel.Msg -> RoomModel.Model -> (RoomModel.Model, Cmd RoomModel.Msg)
+
+update : RoomModel.Msg -> RoomModel.Model -> ( RoomModel.Model, Cmd RoomModel.Msg )
 update msg model =
     case msg of
         ConvoClicked convo ->
-            ( {model | selectedConvo = Just convo}, Cmd.none)
+            ( { model | selectedConvo = convo }, Cmd.none )
+
+        ChatPanelMsg chatMsg ->
+            let
+                ( updatedRoomModel, cmd ) =
+                    ChatPanelHandler.update chatMsg model
+            in
+            (updatedRoomModel, Cmd.map ChatPanelMsg cmd)

@@ -7,6 +7,7 @@ import Views.Room.Conversations.ConversationStyles exposing (..)
 import Views.Room.RoomModel as RoomModel exposing (ConversationModel, Msg(..))
 import Html.Events exposing (onClick)
 import ThirdPlaceModel exposing (Msg(..))
+import Views.Room.Conversations.ConversationStyles as ConversationStyles
 
 
 
@@ -17,26 +18,26 @@ import ThirdPlaceModel exposing (Msg(..))
 
 view : RoomModel.Model -> Html ThirdPlaceModel.Msg
 view model =
-    div [ class Views.Room.Conversations.ConversationStyles.convWindow ]
-        [ div [ class Views.Room.Conversations.ConversationStyles.convHeader ]
-            [ p [ id Views.Room.Conversations.ConversationStyles.convLobbyIdText, class Views.Room.Conversations.ConversationStyles.convHeaderText ] [ text "Lobby ID: 12345" ]
-            , div [ class Views.Room.Conversations.ConversationStyles.convHeaderSpacer ] []
-            , p [ id Views.Room.Conversations.ConversationStyles.convLobbySizeText, class Views.Room.Conversations.ConversationStyles.convHeaderText ] [ text "Lobby Size: 5/100" ]
+    div [ class ConversationStyles.convWindow ]
+        [ div [ class ConversationStyles.convHeader ]
+            [ p [ id ConversationStyles.convLobbyIdText, class ConversationStyles.convHeaderText ] [ text "Lobby ID: 12345" ]
+            , div [ class ConversationStyles.convHeaderSpacer ] []
+            , p [ id ConversationStyles.convLobbySizeText, class ConversationStyles.convHeaderText ] [ text "Lobby Size: 5/100" ]
             ]
         , div [] [ h2 [] [ text "Conversations" ] ]
-        , div [ class Views.Room.Conversations.ConversationStyles.convBody ]
+        , div [ class convBody ]
             (List.map (\convo -> conversationBlock convo) model.conversations)
         ]
 
 
 conversationBlock : ConversationModel -> Html ThirdPlaceModel.Msg
 conversationBlock convoModel =
-    div [ class Views.Room.Conversations.ConversationStyles.conversationBlock, onClick (RoomMsg (ConvoClicked convoModel)) ]
+    div [ class ConversationStyles.conversationBlock, onClick (RoomMsg (ConvoClicked convoModel)) ]
         [ strong [] [ text (convoModel.author ++ " started a conversation:") ]
-        , div [ class Views.Room.Conversations.ConversationStyles.conversationText ] [ text convoModel.intro ]
-        , div [ class Views.Room.Conversations.ConversationStyles.convPeopleHere ]
+        , div [ class ConversationStyles.conversationText ] [ text convoModel.intro ]
+        , div [ class ConversationStyles.convPeopleHere ]
             [ text "People here: "
             , img [ src "sfsef.png" ] []
-            , div [ class Views.Room.Conversations.ConversationStyles.convMorePeople ] [ text (String.fromInt (List.length convoModel.participants)) ]
+            , div [ class ConversationStyles.convMorePeople ] [ text (String.fromInt (List.length convoModel.participants)) ]
             ]
         ]

@@ -12,7 +12,7 @@ import Views.Room.Conversations.ConversationStyles as ConversationStyles
 
 
 {-
-   The view model for the conversation pane that holsd the conversations going on
+   The view model for the conversation pane that holds the conversations going on
 -}
 
 

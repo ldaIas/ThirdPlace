@@ -49,6 +49,7 @@ view model =
                     , div [ class "chat-input" ]
                         [ textarea
                             [ placeholder "Type your message..."
+                            , value selectedConvoModel.draftMessage
                             , onInput (ThirdPlaceModel.RoomMsg << ChatPanelMsg << DraftMessage)
                             ]
                             []

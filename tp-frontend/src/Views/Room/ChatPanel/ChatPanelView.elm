@@ -25,7 +25,7 @@ view model =
         -- If there is a convo selected display the chat panel otherwise display nothing
         (case model.selectedConvo of
             selectedConvoModel ->
-                [ div [ classList [ ( "chat-container", True ), ( "chat-expanded", not model.panelExpansion ) ] ]
+                [ div [ classList [ ( "chat-container", True ) ] ]
                     [ div [ class "chat-header" ]
                         -- The title of the convo and author
                         [ if model.panelExpansion then

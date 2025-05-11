@@ -7,6 +7,10 @@ import ThirdPlaceModel
 import Views.Room.ChatPanel.ChatPanelStyles as ChatPanelStyles
 import Views.Room.RoomModel as RoomModel exposing (Msg(..), UsrChatMsg(..))
 import Views.Room.RoomStyles as RoomStyles
+import Websockets.Command exposing (Command(..))
+import ThirdPlaceModel exposing (Msg(..))
+import Json.Decode as Decode
+import Html.Events exposing (preventDefaultOn)
 
 
 
@@ -51,6 +55,7 @@ view model =
                             [ placeholder "Type your message..."
                             , value selectedConvoModel.draftMessage
                             , onInput (ThirdPlaceModel.RoomMsg << ChatPanelMsg << DraftMessage)
+                            , onEnter (ChatPanelMsg SendMessage)
                             ]
                             []
                         , button
@@ -68,3 +73,25 @@ view model =
                     ]
                 ]
         )
+
+{-
+    When the Enter key is pressed, send the message passed in
+-}
+onEnter : RoomModel.Msg -> Html.Attribute ThirdPlaceModel.Msg
+onEnter msg =
+     let
+        convertedTPMsg : ThirdPlaceModel.Msg
+        convertedTPMsg =
+            RoomMsg msg
+
+        enterDecoder =
+            Decode.field "key" Decode.string
+                |> Decode.map
+                    (\key ->
+                        if key == "Enter" then
+                            ( convertedTPMsg, True )
+                        else
+                            ( NoOp, False )
+                    )
+    in
+    preventDefaultOn "keydown" enterDecoder

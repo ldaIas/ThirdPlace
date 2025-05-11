@@ -47,4 +47,16 @@ convPeopleHere =
 
 convMorePeople : String
 convMorePeople =
-    "conv-more-people"    
+    "conv-more-people"
+
+newConvoBar : String
+newConvoBar =
+    "new-convo-bar"
+
+newConvoInput : String
+newConvoInput = 
+    "new-convo-input"
+
+newConvoIcon : String
+newConvoIcon =
+    "new-convo-icon"

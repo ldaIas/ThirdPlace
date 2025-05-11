@@ -2,11 +2,17 @@ module Views.Room.RoomHandler exposing (..)
 
 import Views.Room.RoomModel as RoomModel exposing (ChatMessage, ConversationModel, Msg(..))
 import Views.Room.ChatPanel.ChatPanelHandler as ChatPanelHandler
+import Views.Room.Conversations.ConversationsHandler as ConversationsHandler
 
 
 init : ( RoomModel.Model, Cmd RoomModel.Msg )
 init =
-    ( { users = [ "current_user", "meower1", "meower2" ], conversations = populateDummyConvos, selectedConvo = initConvo }, Cmd.none )
+    ( { users = [ "current_user", "meower1", "meower2" ]
+    , conversations = populateDummyConvos
+    , selectedConvo = initConvo
+    , currentUser = "idalas"
+    , newConvoDraft = "" },
+     Cmd.none )
 
 
 initConvo : ConversationModel
@@ -72,4 +78,12 @@ update msg model =
                 ( updatedRoomModel, cmd ) =
                     ChatPanelHandler.update chatMsg model
             in
-            (updatedRoomModel, Cmd.map ChatPanelMsg cmd)
+            ( updatedRoomModel, Cmd.map ChatPanelMsg cmd )
+
+        ConvoPanelMsg convoMsg ->
+            let
+                (updatedRoomModel, cmd) = 
+                    ConversationsHandler.update convoMsg model
+            in
+            ( updatedRoomModel, cmd )
+

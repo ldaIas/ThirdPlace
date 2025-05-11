@@ -142,3 +142,8 @@
   background: radial-gradient(circle, rgba(0, 0, 0, 0.13), transparent);
   text-shadow: 0 0 1px black;
 }
+
+.convo-collapsed {
+    flex: 4;
+    transition: flex 0.4s ease;
+}

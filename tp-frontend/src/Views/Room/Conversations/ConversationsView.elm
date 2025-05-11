@@ -8,6 +8,7 @@ import ThirdPlaceModel exposing (Model, Msg(..))
 import Utils.RoomUtils as RoomUtils
 import Views.Room.Conversations.ConversationStyles as ConversationStyles exposing (..)
 import Views.Room.RoomModel as RoomModel exposing (ConversationModel, ConvosMsg(..), Msg(..))
+import Html.Attributes exposing (classList)
 
 
 
@@ -18,7 +19,7 @@ import Views.Room.RoomModel as RoomModel exposing (ConversationModel, ConvosMsg(
 
 view : RoomModel.Model -> Html ThirdPlaceModel.Msg
 view model =
-    div [ class ConversationStyles.convWindow ]
+    div [ classList [(ConversationStyles.convWindow, True), ("convo-collapsed", (not model.panelExpansion)) ] ]
         [ div [ class ConversationStyles.convHeader ]
             [ p [ id ConversationStyles.convLobbyIdText, class ConversationStyles.convHeaderText ] [ text "Lobby ID: 12345" ]
             , div [ class ConversationStyles.convHeaderSpacer ] []

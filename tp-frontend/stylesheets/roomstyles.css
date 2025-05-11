@@ -77,3 +77,24 @@
         flex-direction: row;
     }
 }
+
+/* Expanding the different windows based on selection
+ */
+.main-container.chat-expanded .people-here {
+    flex: 1;
+    transition: flex 0.4s ease;
+}
+
+.main-container.chat-expanded .conversations {
+    flex: 2;
+    transition: flex 0.4s ease;
+}
+
+.main-container.chat-expanded .chat-panel {
+    flex: 5;
+    transition: flex 0.4s ease;
+}
+
+.chat-panel {
+    transition: flex 0.4s ease;
+}

@@ -1,17 +1,15 @@
 module Views.Room.ChatPanel.ChatPanelView exposing (..)
 
 import Html exposing (Html, button, div, h2, text, textarea)
-import Html.Attributes exposing (class, disabled, placeholder, value)
-import Html.Events exposing (onClick, onInput)
-import ThirdPlaceModel
+import Html.Attributes exposing (class, classList, disabled, placeholder, value)
+import Html.Events exposing (onClick, onInput, preventDefaultOn)
+import Json.Decode as Decode
+import ThirdPlaceModel exposing (Msg(..))
+import Utils.RoomUtils as RoomUtils
 import Views.Room.ChatPanel.ChatPanelStyles as ChatPanelStyles
 import Views.Room.RoomModel as RoomModel exposing (Msg(..), UsrChatMsg(..))
 import Views.Room.RoomStyles as RoomStyles
 import Websockets.Command exposing (Command(..))
-import ThirdPlaceModel exposing (Msg(..))
-import Json.Decode as Decode
-import Html.Events exposing (preventDefaultOn)
-import Utils.RoomUtils as RoomUtils
 
 
 
@@ -27,12 +25,19 @@ view model =
         -- If there is a convo selected display the chat panel otherwise display nothing
         (case model.selectedConvo of
             selectedConvoModel ->
-                [ div [ class "chat-container" ]
+                [ div [ classList [ ( "chat-container", True ), ( "chat-expanded", not model.panelExpansion ) ] ]
                     [ div [ class "chat-header" ]
-                        [ div [ class "chat-topic" ] [ text selectedConvoModel.intro ]
+                        -- The title of the convo and author
+                        [ if model.panelExpansion then
+                            div [] [ button [ onClick (RoomMsg (TogglePanels False)) ] [ text "<" ] ]
+
+                          else
+                            div [] [ button [ onClick (RoomMsg (TogglePanels True)) ] [ text ">" ] ]
+                        , div [ class "chat-topic" ] [ text selectedConvoModel.intro ]
                         , div [ class "chat-author" ] [ text selectedConvoModel.author ]
                         ]
                     , div [ class "chat-messages" ]
+                        -- The body of chat messages
                         (List.map
                             (\msg ->
                                 let
@@ -52,6 +57,7 @@ view model =
                             selectedConvoModel.messages
                         )
                     , div [ class "chat-input" ]
+                        -- The input block for sending a message
                         [ textarea
                             [ placeholder "Type your message..."
                             , value selectedConvoModel.draftMessage

@@ -1,18 +1,21 @@
 module Views.Room.RoomHandler exposing (..)
 
-import Views.Room.RoomModel as RoomModel exposing (ChatMessage, ConversationModel, Msg(..))
 import Views.Room.ChatPanel.ChatPanelHandler as ChatPanelHandler
 import Views.Room.Conversations.ConversationsHandler as ConversationsHandler
+import Views.Room.RoomModel as RoomModel exposing (ChatMessage, ConversationModel, Msg(..))
 
 
 init : ( RoomModel.Model, Cmd RoomModel.Msg )
 init =
     ( { users = [ "current_user", "meower1", "meower2" ]
-    , conversations = populateDummyConvos
-    , selectedConvo = initConvo
-    , currentUser = "idalas"
-    , newConvoDraft = "" },
-     Cmd.none )
+      , conversations = populateDummyConvos
+      , selectedConvo = initConvo
+      , currentUser = "idalas"
+      , newConvoDraft = ""
+      , panelExpansion = True
+      }
+    , Cmd.none
+    )
 
 
 initConvo : ConversationModel
@@ -82,8 +85,10 @@ update msg model =
 
         ConvoPanelMsg convoMsg ->
             let
-                (updatedRoomModel, cmd) = 
+                ( updatedRoomModel, cmd ) =
                     ConversationsHandler.update convoMsg model
             in
             ( updatedRoomModel, cmd )
 
+        TogglePanels expandConvoPanel ->
+            ( { model | panelExpansion = expandConvoPanel }, Cmd.none )

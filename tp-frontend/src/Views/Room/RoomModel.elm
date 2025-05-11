@@ -9,6 +9,7 @@ type alias Model =
     , selectedConvo : ConversationModel
     , newConvoDraft : String
     , currentUser : String
+    , panelExpansion : Bool -- True for expanding the list of convos panel, false for expanding the chats panel
     }
 
 {-
@@ -36,6 +37,7 @@ type Msg =
     ConvoClicked ConversationModel
     | ChatPanelMsg UsrChatMsg
     | ConvoPanelMsg ConvosMsg
+    | TogglePanels Bool -- Msg for collapsing/expanding the chat and convo panels. True for expanded convos, false for expanded chats
 
 
 {-

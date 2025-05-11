@@ -1,17 +1,16 @@
 module Views.Room.RoomView exposing (view)
 
 import Html exposing (Html, div, h2, text)
-import Html.Attributes exposing (class)
-import Views.Room.Conversations.ConversationsView as ConversationsView exposing (view)
-import Views.Room.RoomModel exposing (Model, ConversationModel)
-import Views.Room.ChatPanel.ChatPanelView as ChatPanelView
-import Views.Room.RoomModel as RoomModel
+import Html.Attributes exposing (class, classList)
 import ThirdPlaceModel
+import Views.Room.ChatPanel.ChatPanelView as ChatPanelView
+import Views.Room.Conversations.ConversationsView as ConversationsView exposing (view)
+import Views.Room.RoomModel as RoomModel exposing (ConversationModel, Model)
 
 
 view : Model -> Html ThirdPlaceModel.Msg
 view model =
-    div [ class "main-container" ]
+    div [ classList [ ( "main-container", True ), ( "chat-expanded", not model.panelExpansion ) ] ]
         [ peopleHere model.users
         , conversations model
         , chatPanel model

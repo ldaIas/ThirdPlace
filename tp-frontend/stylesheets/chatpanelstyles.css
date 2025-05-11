@@ -1,6 +1,8 @@
 .chat-panel {
     flex: 2;
     flex-direction: column;
+    border-radius: inherit;
+    overflow: hidden;
 }
 
 .chat-container {
@@ -89,4 +91,9 @@ textarea {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+}
+
+.chat-expanded {
+    flex: 2;
+    transition: flex 0.4s ease;
 }

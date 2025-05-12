@@ -8,7 +8,8 @@
     "@libp2p/webrtc": "^5.2.9",
     "@polkadot/extension-dapp": "^0.58.7",
     "eslint": "9.24.0",
-    "libp2p": "^2.8.2"
+    "libp2p": "^2.8.2",
+    "ngeohash": "^0.6.3"
   },
   "devDependencies": {
     "vite": "^6.2.5"

@@ -30,6 +30,7 @@
     border-radius: 5px;
     border: .2em solid rgb(41, 41, 41);
     padding: .4em;
+    font-size: smaller;
 }
 
 #conv-lobby-id-text {

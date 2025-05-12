@@ -4,7 +4,8 @@ module Views.Room.RoomModel exposing (Model, ConversationModel, ChatMessage, Msg
     The model for a "room" consisting of several conversations, with each conversation consisting of messages
 -}
 type alias Model =
-    { users : List String
+    { roomId : String -- The geohash roomId
+    , users : List String
     , conversations : List ConversationModel
     , selectedConvo : ConversationModel
     , newConvoDraft : String

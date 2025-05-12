@@ -1,0 +1,35 @@
+module JSPorts.Geohash.GeohashHandler exposing (..)
+
+import JSPorts.Geohash.GeohashPorts exposing (receiveRoomId)
+
+
+type alias Model =
+    { roomId : String -- "unknown" is used for unresolved room ids
+    }
+
+
+type Msg
+    = GotRoomId String -- When we recieve the geohashed id from js
+
+
+init : ( Model, Cmd Msg )
+init =
+    ( Model "unknown", Cmd.none )
+
+
+update : Model -> Msg -> ( Model, Cmd Msg )
+update model msg =
+    case msg of
+        GotRoomId roomId ->
+            ( { model | roomId = roomId }, Cmd.none )
+
+
+
+{-
+   The subscriptions here does not need a model; we are merely requesting a value from JS
+-}
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    receiveRoomId GotRoomId

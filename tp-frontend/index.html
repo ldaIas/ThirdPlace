@@ -12,15 +12,18 @@
   <script src="tpapp.js"></script>
   <script type="module" src="src/JSPorts/Identity/libp2p-identity.js"></script>
   <script type="module" src="src/JSPorts/Sporran/sporran.js"></script>
+  <script type="module" src="src/JSPorts/Geohash/geohash-room.js"></script>
 </head>
 
 <body>
   <script type="module">
     import {setupSporranPorts} from './src/JSPorts/Sporran/sporran.js';
     import {setupIdentityPorts } from './src/JSPorts/Identity/libp2p-identity.js'
+    import {setupRoomPorts} from './src/JSPorts/Geohash/geohash-room.js'
     var app = Elm.ThirdPlaceApp.init({node: document.getElementById('app')});
     setupSporranPorts(app);
     setupIdentityPorts(app);
+    setupRoomPorts(app)
   </script>
 </body>
 

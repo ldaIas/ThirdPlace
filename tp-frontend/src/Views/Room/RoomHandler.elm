@@ -3,11 +3,16 @@ module Views.Room.RoomHandler exposing (..)
 import Views.Room.ChatPanel.ChatPanelHandler as ChatPanelHandler
 import Views.Room.Conversations.ConversationsHandler as ConversationsHandler
 import Views.Room.RoomModel as RoomModel exposing (ChatMessage, ConversationModel, Msg(..))
+import JSPorts.Geohash.GeohashHandler as GeohashHandler
 
 
 init : ( RoomModel.Model, Cmd RoomModel.Msg )
 init =
-    ( { users = [ "current_user", "meower1", "meower2" ]
+    let
+        (initRoomId, geohashCmd) = GeohashHandler.init
+    in
+    ( { roomId = initRoomId.roomId
+      , users = [ "current_user", "meower1", "meower2" ]
       , conversations = populateDummyConvos
       , selectedConvo = initConvo
       , currentUser = "idalas"

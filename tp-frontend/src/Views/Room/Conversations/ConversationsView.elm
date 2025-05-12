@@ -1,14 +1,13 @@
 module Views.Room.Conversations.ConversationsView exposing (view)
 
 import Html exposing (Html, div, h2, img, input, p, span, strong, text)
-import Html.Attributes exposing (class, id, placeholder, src, value)
+import Html.Attributes exposing (class, classList, id, placeholder, src, value)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as Decode
 import ThirdPlaceModel exposing (Model, Msg(..))
 import Utils.RoomUtils as RoomUtils
 import Views.Room.Conversations.ConversationStyles as ConversationStyles exposing (..)
 import Views.Room.RoomModel as RoomModel exposing (ConversationModel, ConvosMsg(..), Msg(..))
-import Html.Attributes exposing (classList)
 
 
 
@@ -19,9 +18,9 @@ import Html.Attributes exposing (classList)
 
 view : RoomModel.Model -> Html ThirdPlaceModel.Msg
 view model =
-    div [ classList [(ConversationStyles.convWindow, True), ("convo-collapsed", (not model.panelExpansion)) ] ]
+    div [ classList [ ( ConversationStyles.convWindow, True ), ( "convo-collapsed", not model.panelExpansion ) ] ]
         [ div [ class ConversationStyles.convHeader ]
-            [ p [ id ConversationStyles.convLobbyIdText, class ConversationStyles.convHeaderText ] [ text "Lobby ID: 12345" ]
+            [ p [ id ConversationStyles.convLobbyIdText, class ConversationStyles.convHeaderText ] [ text ("Lobby ID: " ++ model.roomId) ]
             , div [ class ConversationStyles.convHeaderSpacer ] []
             , p [ id ConversationStyles.convLobbySizeText, class ConversationStyles.convHeaderText ] [ text "Lobby Size: 5/100" ]
             ]

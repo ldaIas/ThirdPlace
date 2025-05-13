@@ -1,4 +1,7 @@
-module Views.Room.RoomModel exposing (Model, ConversationModel, ChatMessage, Msg(..), UsrChatMsg(..), ConvosMsg(..))
+module Views.Room.RoomModel exposing (Model, ConversationModel, ChatMessage, Msg(..), UsrChatMsg(..), ConvosMsg(..), PubsubMsg(..))
+
+import Json.Decode exposing (Value)
+
 
 {-
     The model for a "room" consisting of several conversations, with each conversation consisting of messages
@@ -24,11 +27,14 @@ type alias ConversationModel =
     , participants : List String
     , author : String
     , draftMessage : String
+    , convoId : String
     }
 
 type alias ChatMessage = 
     { sender : String
     , content : String
+    , convoId : String
+    , timestamp : Int
     }
 
 {-
@@ -39,6 +45,7 @@ type Msg =
     | ChatPanelMsg UsrChatMsg
     | ConvoPanelMsg ConvosMsg
     | TogglePanels Bool -- Msg for collapsing/expanding the chat and convo panels. True for expanded convos, false for expanded chats
+    | RoomPubSubMsg PubsubMsg
 
 
 {-
@@ -50,4 +57,12 @@ type UsrChatMsg =
 
 type ConvosMsg 
     = UpdateNewConvoDraft String
+
+{-
+    Used for publishing and subscribing to messages and conversations
+-}
+type PubsubMsg
+    = SendChatMessage ChatMessage
+    | ReceiveChatMessage Value -- comes in as json shaped as RoomModel.ChatMessage
     | SubmitNewConversation
+    | ReceiveConversation Value -- comes in as a ConversationModel

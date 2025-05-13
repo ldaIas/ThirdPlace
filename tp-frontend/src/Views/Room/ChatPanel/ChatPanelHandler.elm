@@ -27,7 +27,7 @@ update chatPanelMsg roomModel =
             let
                 messageToSend : ChatMessage
                 messageToSend =
-                    ChatMessage "Me" oldConvModel.draftMessage
+                    ChatMessage "Me" oldConvModel.draftMessage oldConvModel.convoId 0 -- Timestamp gets added in JS
 
                 currentConvsList : List RoomModel.ChatMessage
                 currentConvsList =

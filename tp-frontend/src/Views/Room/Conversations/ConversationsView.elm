@@ -8,6 +8,7 @@ import ThirdPlaceModel exposing (Model, Msg(..))
 import Utils.RoomUtils as RoomUtils
 import Views.Room.Conversations.ConversationStyles as ConversationStyles exposing (..)
 import Views.Room.RoomModel as RoomModel exposing (ConversationModel, ConvosMsg(..), Msg(..))
+import Views.Room.RoomModel exposing (PubsubMsg(..))
 
 
 
@@ -52,8 +53,8 @@ newConversationInput draft =
             , placeholder "Start a new conversation..."
             , value draft
             , onInput (RoomMsg << ConvoPanelMsg << UpdateNewConvoDraft)
-            , RoomUtils.setupOnEnter (RoomMsg (ConvoPanelMsg SubmitNewConversation))
+            , RoomUtils.setupOnEnter (RoomMsg (RoomPubSubMsg SubmitNewConversation))
             ]
             []
-        , span [ class ConversationStyles.newConvoIcon, onClick (RoomMsg (ConvoPanelMsg SubmitNewConversation)) ] [ text "✏️" ]
+        , span [ class ConversationStyles.newConvoIcon, onClick (RoomMsg (RoomPubSubMsg SubmitNewConversation)) ] [ text "✏️" ]
         ]

@@ -9,11 +9,11 @@
     "@libp2p/kad-dht": "^14.2.15",
     "@libp2p/mplex": "^11.0.35",
     "@libp2p/peer-id": "^5.1.0",
-    "@libp2p/webrtc": "^5.2.9",
+    "@libp2p/webrtc": "5.2.12",
     "@libp2p/websockets": "^9.2.10",
-    "@polkadot/extension-dapp": "^0.58.7",
-    "eslint": "9.24.0",
-    "libp2p": "^2.8.2",
+    "@polkadot/extension-dapp": "0.58.9",
+    "eslint": "9.26.0",
+    "libp2p": "2.8.5",
     "ngeohash": "^0.6.3"
   },
   "devDependencies": {

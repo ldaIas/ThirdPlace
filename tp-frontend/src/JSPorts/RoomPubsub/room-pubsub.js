@@ -17,8 +17,8 @@ export async function setupRoomPubSubPorts(app) {
             transports: [webSockets()],
             connectionEncryption: [noise()],
             streamMuxers: [yamux()],
-            pubsub: gossipsub(),
             services: {
+                pubsub: gossipsub(),
                 identify: identify(),
             }
         });
@@ -28,9 +28,14 @@ export async function setupRoomPubSubPorts(app) {
         });
 
         await node.start();
-        console.log(`Node started. Subcribing to ${topic}`);
+        console.log(`Node started. Subscribing to ${topic}`);
+        console.log('node', node)
 
-        await node.pubsub.subscribe(topic, (msg) => {
+        const gossipService = gossipsub;
+        console.log("gossipsub() returns:", gossipService);
+        console.log("pubsub", node.pubsub)
+        console.log("Services available:", Object.keys(node.services));
+        await node.services.pubsub.subscribe(topic, (msg) => {
             const messageJson = new TextDecoder().decode(msg.data);
             console.log("Received message:", messageJson);
             try {
@@ -52,9 +57,9 @@ export async function setupRoomPubSubPorts(app) {
             const messageWithTimestamp = {
                 ...message,
                 timestamp: Date.now()
-            } 
+            }
             const jsonMsg = JSON.stringify(messageWithTimestamp)
-            await node.pubsub.publish(topic, new TextEncoder().encode(jsonMsg));
+            await node.services.pubsub.publish(topic, new TextEncoder().encode(jsonMsg));
         } else {
             console.warn("PubSub not initialized yet");
         }

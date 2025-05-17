@@ -4,7 +4,9 @@ This directory contains the files necessary to run the ThirdPlace relay server.
 It is meant to be deployed to a compute service that accepts docker images.
 We are starting off with [Akash](https://akash.network/).
 
-## Build & Run local
+## Running
+
+### Build & Run local
 
 ```sh
 $ docker build -t tp-relay .
@@ -17,9 +19,14 @@ Or you can use the `build_and_run.sh` file to do both of these
 $ sh build_and_run.sh
 ```
 
-## Build & Deploy
+### Build & Deploy
 
 ```sh
 $ docker tag tp-relay yourdockerhub/tp-relay
 $ docker push yourdockerhub/tp-relay
 ```
+
+## Future
+
+The idea for this directory is to be deployed on Akash.
+The deployment is described by `deploy.yaml`.

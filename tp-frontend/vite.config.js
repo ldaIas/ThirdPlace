@@ -8,5 +8,8 @@ export default defineConfig({
     },
     resolve: {
         dedupe: ['@kiltprotocol/core', '@kiltprotocol/did']
+    },
+    server: {
+        host: true
     }
 })

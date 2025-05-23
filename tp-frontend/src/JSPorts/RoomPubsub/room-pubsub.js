@@ -6,10 +6,15 @@ import { noise } from '@chainsafe/libp2p-noise';
 import { yamux } from '@chainsafe/libp2p-yamux';
 import { gossipsub } from '@chainsafe/libp2p-gossipsub';
 import { identify } from '@libp2p/identify';
+import { circuitRelayTransport } from 'libp2p/circuit-relay';
+import { peerIdFromString } from '@libp2p/peer-id';
 
 let node;
 let topic;
 const webrtcStar = webRTCStar()
+
+// Currently retrieved manually when startin the relay server
+const RELAY_MULTIADDR = "/ip4/127.0.0.1/tcp/9090/ws/p2p/12D3KooWCEKn8AnuMfWADH17zsAj2PnuWAaFHDwgY4Z9i3MXjUaX   ";
 
 export async function setupRoomPubSubPorts(app) {
 
@@ -19,7 +24,7 @@ export async function setupRoomPubSubPorts(app) {
 
         try {
             node = await createLibp2p({
-                transports: [webSockets(), webrtcStar.transport],
+                transports: [webSockets(), webrtcStar.transport, circuitRelayTransport()],
                 connectionEncrypters: [noise()],
                 streamMuxers: [yamux()],
                 peerDiscovery: [webrtcStar.discovery, pubsubPeerDiscovery({interval: 100, topics: [topic]})],
@@ -49,9 +54,11 @@ export async function setupRoomPubSubPorts(app) {
                 }
             });
 
+            await node.dial(RELAY_MULTIADDR);
+
             console.log(`Node started. Subscribing to ${topic}`);
-            console.log(`node multiaddr`, node.getMultiaddrs())
-            console.log('node', node)
+            console.log(`node multiaddr`, node.getMultiaddrs());
+            console.log('node', node);
 
         } catch (err) {
             console.error("Failed to create node:", err);

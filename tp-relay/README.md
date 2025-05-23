@@ -31,7 +31,7 @@ $ docker push yourdockerhub/tp-relay
 #### IPFS (This should be taken care of for you by the Docker scripts)
 
 This step only applies if you are playing around with publishing the contents to IPFS.
-The writing of the folder and publishing to IPFS is done by the `publish_addr.sh` script.
+The writing of the folder and publishing to IPFS is done by the `publish_relay.sh` script.
 This part basically outlines the steps that script takes.
 
 The client peers rely on having the relay server's IP published to the known IPFS address.
@@ -88,6 +88,12 @@ $ ipfs cat /ipns/[IPNS domain]/relay-addr.txt
 
 > [contents of relay-addr.txt]
 ```
+
+### What is the "tp-ipfs/" directory?
+
+This directory is used to setup the docker image used by akash.
+It contains the IPFS information used for the ThirdPlace IPFS account.
+This is how we can publish to IPFS/IPNS on Akash, and also how we mount your IPFS account on the image for dev use.
 
 ## Future
 

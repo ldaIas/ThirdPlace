@@ -13,7 +13,7 @@ let node;
 let topic;
 const webrtcStar = webRTCStar()
 
-// Currently retrieved manually when startin the relay server
+// Currently retrieved manually when starting the relay server
 const RELAY_MULTIADDR = "/ip4/127.0.0.1/tcp/9090/ws/p2p/12D3KooWCEKn8AnuMfWADH17zsAj2PnuWAaFHDwgY4Z9i3MXjUaX   ";
 
 export async function setupRoomPubSubPorts(app) {
@@ -35,6 +35,9 @@ export async function setupRoomPubSubPorts(app) {
                 services: {
                     pubsub: gossipsub(),
                     identify: identify(),
+                },
+                addresses: {
+                    listen: ["/webrtc"]
                 }
             });
 
@@ -54,7 +57,13 @@ export async function setupRoomPubSubPorts(app) {
                 }
             });
 
-            await node.dial(RELAY_MULTIADDR);
+            // Try to connect to the relay
+            try {
+                await node.dial(RELAY_MULTIADDR);
+                console.log("Connected to relay:", RELAY_MULTIADDR);
+            } catch (err) {
+                console.error("Failed to connect to relay:", err);
+            }
 
             console.log(`Node started. Subscribing to ${topic}`);
             console.log(`node multiaddr`, node.getMultiaddrs());
@@ -77,7 +86,7 @@ export async function setupRoomPubSubPorts(app) {
                     app.ports.receiveMessage.send(message);
                 }
             } catch (err) {
-                console.error("Invalid message received:", messageJson)
+                console.error("Invalid message received:", messageJson, err)
             }
         })
     })

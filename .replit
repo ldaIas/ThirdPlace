@@ -1,0 +1,38 @@
+modules = ["web", "nodejs-20"]
+
+[nix]
+channel = "stable-24_05"
+
+[workflows]
+runButton = "Serve Frontend"
+
+[[workflows.workflow]]
+name = "Serve Frontend"
+mode = "sequential"
+author = 43124720
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd tp-frontend && sh serve.sh"
+
+[[workflows.workflow]]
+name = "Build Frontend"
+mode = "sequential"
+author = 43124720
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd tp-frontend && sh build.sh"
+
+[[workflows.workflow]]
+name = "Install Dependencies Frontend"
+mode = "sequential"
+author = 43124720
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd tp-frontend && npm install"
+
+[[ports]]
+localPort = 5173
+externalPort = 80

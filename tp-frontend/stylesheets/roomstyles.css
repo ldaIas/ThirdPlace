@@ -1,0 +1,100 @@
+.main-container {
+    height: 100vh;
+    width: 98vw;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    justify-content: center;
+    display: flex;
+    gap: 10px;
+}
+
+/* The generic container for each panel*/
+.container {
+    display: flex;
+    height: 90%;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+}
+
+.container h2 {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 1.5em;
+    border-bottom: black solid 2px;
+    height: fit-content;
+}
+
+.people-here {
+    flex: 1;
+    flex-direction: column;
+}
+
+.user-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    background-color: lightgray;
+    border-radius: 50%;
+}
+
+/* Only the conversation panel layout css. 
+ * For all conversation css see conversations.css 
+ */
+.conversations {
+    flex: 3;
+}
+
+.message {
+    background-color: #dfe6ee;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 5px 0;
+}
+
+/* Default: Column layout (for portrait screens) 
+ * Aspect ratio of less than 1 means the height is greater than the width.
+ * User is probably on a mobile device in portrait mode.
+ */
+@media (max-aspect-ratio: 1/1) {
+    .main-container {
+        flex-direction: column;
+    }
+}
+
+/* Row layout (for landscape screens) 
+ * Aspect ratio of 1 or greater means the width is greater than or equal to the height.
+ * User is probably on a mobile device in landscape mode or a desktop monitor.
+ */
+@media (min-aspect-ratio: 1/1) {
+    .main-container {
+        flex-direction: row;
+    }
+}
+
+/* Expanding the different windows based on selection
+ */
+.main-container.chat-expanded .people-here {
+    flex: 1;
+    transition: flex 0.4s ease;
+}
+
+.main-container.chat-expanded .conversations {
+    flex: 2;
+    transition: flex 0.4s ease;
+}
+
+.main-container.chat-expanded .chat-panel {
+    flex: 5;
+    transition: flex 0.4s ease;
+}
+
+.chat-panel {
+    transition: flex 0.4s ease;
+}

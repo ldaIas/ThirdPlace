@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  relay:
+    build: .
+    volumes:
+      - ./tp-ipfs:/ipfs
+      - .:/app
+    environment:
+      - IPFS_PATH=/ipfs
+    ports:
+      - "9090:9090"
+      - "5001:5001"
+    command: bash -c "ipfs daemon & sleep 3 && node relay.js"

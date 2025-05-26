@@ -1,9 +1,0 @@
-{
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "java.format.settings.url": ".vscode/java-formatter.xml",
-    "[java]": {
-        "editor.insertSpaces": true
-    },
-    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable",
-    "java.jdt.ls.java.home": "${JAVA_HOME}" // replace with the path to your java 21 installation
-}

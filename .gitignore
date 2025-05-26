@@ -2,10 +2,21 @@ elm-stuff/
 
 .gradle/
 .idea/
+launch.json
 settings.json
 build/
 
-bin/
+node_modules/
 
-room.js
-login.js
+# Elm/frontend files
+bin/
+deploy/
+tpapp.js
+
+# Relay files
+tp-ipfs/
+tp-relay-ipfs/
+
+# Rust files
+target/
+Cargo.lock

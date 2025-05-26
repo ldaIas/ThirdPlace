@@ -1,0 +1,72 @@
+.login-view {
+    width: 100vw;
+    height: 100vh;
+    background-image: url('../thirdplacebg.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.logo-body {
+    font-size: 6em;
+    font-weight: bold;
+    background: linear-gradient(to right, #0f0e0c, #934110);
+    font-family: 'Arial Rounded MT Bold', 'Verdana', sans-serif;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 2px 2px rgba(0, 0, 0, 0.31), 0px 0px 20px rgba(255, 174, 96, 0.8);
+}
+
+/* Shadowing for the logo */
+.logo-body::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    /* Adjust size to fit the text */
+    height: 60%;
+    /* Adjust height to fit the text */
+    background: radial-gradient(ellipse, rgba(251, 205, 178, 0.68) 50%, rgba(255, 255, 255, 0) 100%);
+    z-index: -1;
+    /* Places it behind the text */
+    border-radius: 50%;
+    /* Ensures the oval shape */
+}
+
+.account-pane {
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    width: fit-content;
+    background-color: var(--thirdplace-bg-color);
+    border-radius: 20% 20% 30% 5px;
+    border: 5px double #c16400;
+    align-items: center;
+    padding: 25px;
+}
+
+.fields-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1vh;
+    align-items: center;
+    width: 90%;
+    justify-content: center;
+}
+
+.login-view-button {
+    background-color: #007bff;
+    padding: 5px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}

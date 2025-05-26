@@ -11,9 +11,27 @@ import Views.Room.RoomModel as RoomModel exposing (ConversationModel, Model)
 view : Model -> Html ThirdPlaceModel.Msg
 view model =
     div [ classList [ ( "main-container", True ), ( "chat-expanded", not model.panelExpansion ) ] ]
-        [ peopleHere model.users
+        [ userProfile model
+        , peopleHere model.users
         , conversations model
         , chatPanel model
+        ]
+
+
+userProfile : RoomModel.Model -> Html ThirdPlaceModel.Msg
+userProfile model =
+    div [ class "container", class "user-profile" ]
+        [ h2 [] [ text "Profile" ]
+        , div [ class "profile-content" ]
+            [ div [ class "profile-avatar" ] [ text "U" ]
+            , div [ class "profile-info" ]
+                [ div [ class "profile-name" ] [ text "current_user" ]
+                , div [ class "room-info" ]
+                    [ div [ class "room-hash" ] [ text "Room: #abc123" ]
+                    , div [ class "room-count" ] [ text ("Users: " ++ String.fromInt (List.length model.users)) ]
+                    ]
+                ]
+            ]
         ]
 
 

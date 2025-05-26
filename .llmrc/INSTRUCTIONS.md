@@ -13,7 +13,7 @@ and anyone can host a service.
 
 - Elm for the webpage model
 - JS to integrate with LibP2P for WebRTC P2P uses
-- Rust to host a LibP2P WebRTC "bootstrap" server - hosted by anyone and used to connect peers
+- Node.js to host a LibP2P WebRTC "bootstrap" server. Hosted by an Akash node. See more in /tp-relay/README.md
 
 ## Special Instructions
 

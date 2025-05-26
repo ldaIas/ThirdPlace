@@ -50,8 +50,11 @@ This part basically outlines the steps that script takes.
 
 The client peers rely on having the relay server's IP published to the known IPFS address.
 For local development, it is recommended to install the IPFS [desktop client](https://docs.ipfs.tech/install/ipfs-desktop/), but not necessary.
-You do need to install the IPFS CLI ([Kubo](https://docs.ipfs.tech/install/command-line/)).
+__You do need to install the IPFS CLI ([Kubo](https://docs.ipfs.tech/install/command-line/)).__
 
+
+<details>
+  <summary>Click to expand</summary>
 For the first time, you need to create a key:
 
 ```sh
@@ -102,6 +105,8 @@ $ ipfs cat /ipns/[IPNS domain]/relay-addr.txt
 
 > [contents of relay-addr.txt]
 ```
+</details>
+
 
 ### What is the "tp-ipfs/" directory?
 

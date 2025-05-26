@@ -50,7 +50,7 @@ for (const addr of node.getMultiaddrs()) {
   }
 }
 
-// Call the publish-addr.sh script to publish this addr to ipfs
+// Call the publish-relay.sh script to publish this addr to ipfs
 exec('./publish-relay.sh', (error, stdout, stderr) => {
   if (error) {
     console.error(`❌ Error running publish script: ${error.message}`);

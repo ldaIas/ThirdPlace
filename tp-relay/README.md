@@ -8,6 +8,20 @@ We are starting off with [Akash](https://akash.network/).
 
 ### Build & Run local
 
+All scripts for running are found in the `/dev_scripts/` directory.
+They require setting the environment variable `$TP_RELAY_ROOT` which should contain
+the complete (or relative from `~`) path to this root directory.
+For example, `c:\users\documents\mycode\ThirdPlace\tp-relay\` or `~/mycode/ThirdPlace/tp-relay/`.
+
+If you get the error that it could not find the relay file after checking you have the environment variable set,
+restart your editor or terminal shell. You can check if it is set and identified correctly with:
+
+```sh
+$ echo "$TP_RELAY_ROOT"
+
+> "C:\Users\user\Documents\ThirdPlace\tp-relay"
+```
+
 ```sh
 $ docker build -t tp-relay .
 $ docker run -p 9090:9090 tp-relay

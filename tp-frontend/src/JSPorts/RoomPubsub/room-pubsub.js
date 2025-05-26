@@ -14,7 +14,7 @@ let topic;
 const webrtcStar = webRTCStar()
 
 // Currently retrieved manually when starting the relay server
-const RELAY_MULTIADDR = "/ip4/127.0.0.1/tcp/9090/ws/p2p/12D3KooWCEKn8AnuMfWADH17zsAj2PnuWAaFHDwgY4Z9i3MXjUaX   ";
+const RELAY_MULTIADDR = "/ip4/127.0.0.1/tcp/9090/ws/p2p/12D3KooWCEKn8AnuMfWADH17zsAj2PnuWAaFHDwgY4Z9i3MXjUaX";
 
 export async function setupRoomPubSubPorts(app) {
 

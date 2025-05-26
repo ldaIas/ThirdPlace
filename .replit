@@ -2,6 +2,7 @@ modules = ["web", "nodejs-20"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["kubo"]
 
 [workflows]
 runButton = "Serve Frontend"
@@ -33,6 +34,24 @@ author = 43124720
 task = "shell.exec"
 args = "cd tp-frontend && npm install"
 
+[[workflows.workflow]]
+name = "Install Dependencies Relay"
+mode = "sequential"
+author = 43124720
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd tp-relay && npm install"
+
+[[workflows.workflow]]
+name = "Build & Run Relay"
+mode = "sequential"
+author = 43124720
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd tp-relay/dev_scripts && sh build_and_run.sh"
+
 [[ports]]
 localPort = 5173
-externalPort = 80
+externalPort = 5173

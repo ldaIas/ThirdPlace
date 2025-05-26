@@ -94,6 +94,7 @@ JavaScript integration is handled through Elm ports in the `JSPorts/` directory:
 
 ## Deployment
 
+_This is a manual process right now, but we hope to make this automatic._
 The application is designed for decentralized deployment via IPFS:
 
 1. Build the application:

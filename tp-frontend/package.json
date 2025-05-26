@@ -6,7 +6,7 @@
     "@kiltprotocol/core": "^0.35.2",
     "@kiltprotocol/did": "^0.35.2",
     "@libp2p/bootstrap": "^11.0.35",
-    "@libp2p/circuit-relay-v2": "^3.2.11",
+    "@libp2p/circuit-relay-v2": "3.2.14",
     "@libp2p/identify": "^3.0.29",
     "@libp2p/kad-dht": "^14.2.15",
     "@libp2p/mplex": "^11.0.35",

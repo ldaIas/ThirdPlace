@@ -6,7 +6,7 @@ import { noise } from '@chainsafe/libp2p-noise';
 import { yamux } from '@chainsafe/libp2p-yamux';
 import { gossipsub } from '@chainsafe/libp2p-gossipsub';
 import { identify } from '@libp2p/identify';
-import { circuitRelayTransport } from 'libp2p/circuit-relay';
+import { circuitRelayTransport } from '@libp2p/circuit-relay-v2';
 import { peerIdFromString } from '@libp2p/peer-id';
 
 let node;

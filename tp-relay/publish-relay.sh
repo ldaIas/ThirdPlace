@@ -4,54 +4,55 @@
 
 set -e
 
-# Resolve base directory (assume this is also in tp-relay/dev_scripts)
+# Resolve base directory
 TP_ROOT="$(pwd)"
 IPFS_DIR="$TP_ROOT/${IPFS_PATH_NAME:-tp-ipfs}"
 export IPFS_PATH="$IPFS_DIR"
 
-LOCALCONF="$IPFS_DIR/localconf.env"
-if [ ! -f "$LOCALCONF" ]; then
-  echo "❌ Missing localconf.env in $IPFS_DIR"
-  echo "Run init_ipfs.sh first"
-  exit 1
+echo "Exported IPFS path: $IPFS_PATH"
+
+# init if needed
+if [ ! -d "$IPFS_PATH/plugins" ]; then
+  mkdir -p "$IPFS_PATH/plugins"
 fi
 
+LOCALCONF="localconf.env"
 
 if [ ! -f "$LOCALCONF" ]; then
   echo "❌ Missing local config at $LOCALCONF"
-  echo "Please create it with: IPFS_IDENTITY_KEY_NAME=your-key-name"
+  echo "Please create it with the key: IPFS_IDENTITY_KEY_NAME=your-key-name"
+  echo "This can be done with the dev script init_ipfs.sh"
   exit 1
 fi
 
 source "$LOCALCONF"
+
+echo "✅ Loaded local config from $LOCALCONF:"
+head -n 10 "$LOCALCONF"
+echo "%n"
 
 # Default fallback values
 KEY_NAME="${IPFS_IDENTITY_KEY_NAME:-thirdplace-relay-key}"
 
 
 # File structure
-RELAY_DIR="$TP_ROOT/tp-relay"
-IPFS_SUBDIR="$RELAY_DIR/ipfs"
-RELAY_FILE="$RELAY_DIR/relay-addr.txt"
+RELAY_DIR="$TP_ROOT/tp-relay-ipfs"
 META_FILE="meta.json"
 
-mkdir -p "$IPFS_SUBDIR"
-
-# Copy latest relay address
-cp "$RELAY_FILE" "$IPFS_SUBDIR/relay-addr.txt"
+mkdir -p "$RELAY_DIR"
 
 # Add timestamp metadata
-cat <<EOF > "$IPFS_SUBDIR/$META_FILE"
+cat <<EOF > "$RELAY_DIR/$META_FILE"
 {
   "updated": "$(date -Iseconds)"
 }
 EOF
 
 # Add and pin the folder
-CID=$(ipfs add -r -Q "$IPFS_SUBDIR")
+CID=$(ipfs add -r -Q "$RELAY_DIR")
 ipfs pin add "$CID"
 
-echo "✅ Published $IPFS_SUBDIR to IPFS with CID: $CID"
+echo "✅ Published $RELAY_DIR to IPFS with CID: $CID"
 
 # Publish to IPNS via configured key
 if ! ipfs key list | grep -q "$KEY_NAME"; then

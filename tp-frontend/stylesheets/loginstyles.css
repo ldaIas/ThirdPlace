@@ -46,9 +46,9 @@
     flex-direction: column;
     height: fit-content;
     width: fit-content;
-    background-color: var(--thirdplace-bg-color);
+    background-color: var(--thirdplace-primary);
     border-radius: 20% 20% 30% 5px;
-    border: 5px double #c16400;
+    border: 5px double var(--thirdplace-accent);
     align-items: center;
     padding: 25px;
 }

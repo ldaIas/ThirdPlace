@@ -40,7 +40,6 @@ let written = false
 
 for (const addr of node.getMultiaddrs()) {
   const fullAddr = `${addr.toString()}/p2p/${nodePeerId}`
-  console.log(`Node addr: ${fullAddr}`)
 
   // Write the first non-localhost address to file
   if (!written && !fullAddr.includes('127.0.0.1')) {
@@ -51,13 +50,16 @@ for (const addr of node.getMultiaddrs()) {
 }
 
 // Call the publish-relay.sh script to publish this addr to ipfs
-exec('./publish-relay.sh', (error, stdout, stderr) => {
-  if (error) {
-    console.error(`❌ Error running publish script: ${error.message}`);
-    return;
-  }
+exec('bash ./publish-relay.sh', (error, stdout, stderr) => {
+
+  console.log(`📡 Relay publish script output:\n${stdout}`);
+
   if (stderr) {
     console.error(`⚠️ Script stderr: ${stderr}`);
   }
-  console.log(`📡 Relay publish script output:\n${stdout}`);
+
+  if (error) {
+    console.error(`❌ Error running publish script: ${error.name}: ${error.message}`);
+    return;
+  }
 });

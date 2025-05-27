@@ -30,7 +30,7 @@ $ docker run -p 9090:9090 tp-relay
 Or you can use the `build_and_run.sh` file to do both of these
 
 ```sh
-$ sh build_and_run.sh
+$ bash build_and_run.sh
 ```
 
 ### Build & Deploy

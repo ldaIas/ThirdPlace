@@ -1,13 +1,13 @@
 FROM node:20
 
+ENV IPFS_PATH=/app/tp-ipfs
+
 # Install IPFS
 RUN curl -O https://dist.ipfs.tech/kubo/v0.25.0/kubo_v0.25.0_linux-amd64.tar.gz && \
     tar -xvzf kubo_v0.25.0_linux-amd64.tar.gz && \
     cd kubo && \
     bash install.sh && \
     ipfs --version
-
-ENV IPFS_PATH=/ipfs
 
 WORKDIR /app
 
@@ -21,6 +21,7 @@ RUN npm install
 # If we do this without installing first, we will end up with packages compiled for whatever OS the user is running instead of debian
 COPY . .
 
-EXPOSE 9090
+# 9090 for relay server; 5001 for ipfs rpc api
+EXPOSE 9090 5001
 
-CMD bash -c "ipfs daemon & sleep 3 && node relay.js"
+CMD bash -c "ipfs init && ipfs daemon & sleep 3 && chmod +x publish-relay.sh && node relay.js"

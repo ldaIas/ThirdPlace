@@ -1,20 +1,20 @@
 import { createLibp2p } from 'libp2p';
+import { webRTC } from '@libp2p/webrtc'
 import { webSockets } from '@libp2p/websockets';
-import { webRTCStar } from '@libp2p/webrtc-star';
-import { pubsubPeerDiscovery } from '@libp2p/pubsub-peer-discovery'
 import { noise } from '@chainsafe/libp2p-noise';
 import { yamux } from '@chainsafe/libp2p-yamux';
 import { gossipsub } from '@chainsafe/libp2p-gossipsub';
-import { identify } from '@libp2p/identify';
+import { identify, identifyPush } from '@libp2p/identify';
 import { circuitRelayTransport } from '@libp2p/circuit-relay-v2';
-import { peerIdFromString } from '@libp2p/peer-id';
+import * as filters from '@libp2p/websockets/filters'
+import { ping } from '@libp2p/ping'
+import { multiaddr } from '@multiformats/multiaddr'
 
 let node;
 let topic;
-const webrtcStar = webRTCStar()
 
 // Currently retrieved manually when starting the relay server
-const RELAY_MULTIADDR = "/ip4/127.0.0.1/tcp/9090/ws/p2p/12D3KooWCEKn8AnuMfWADH17zsAj2PnuWAaFHDwgY4Z9i3MXjUaX";
+const RELAY_MULTIADDR = multiaddr("/ip4/127.0.0.1/tcp/9090/ws/p2p/12D3KooWKnTok2TigFutGyYTF6E9utiTkzv1Dx8Vjx3tYsQwm84z");
 
 export async function setupRoomPubSubPorts(app) {
 
@@ -24,10 +24,15 @@ export async function setupRoomPubSubPorts(app) {
 
         try {
             node = await createLibp2p({
-                transports: [webSockets(), webrtcStar.transport, circuitRelayTransport()],
-                connectionEncrypters: [noise()],
+                transports: [
+                    webSockets({
+                        filter: filters.all
+                    }),
+                    webRTC(),
+                    circuitRelayTransport()
+                ],
+                connectionEncryption: [noise()],
                 streamMuxers: [yamux()],
-                peerDiscovery: [webrtcStar.discovery, pubsubPeerDiscovery({interval: 100, topics: [topic]})],
                 connectionGater: {
                     // Allow private addresses for local testing
                     denyDialMultiaddr: () => false
@@ -35,9 +40,14 @@ export async function setupRoomPubSubPorts(app) {
                 services: {
                     pubsub: gossipsub(),
                     identify: identify(),
+                    identifyPush: identifyPush(),
+                    ping: ping()
                 },
                 addresses: {
-                    listen: ["/webrtc"]
+                    listen: [
+                        '/p2p-circuit',
+                        '/webrtc'
+                    ]
                 }
             });
 
@@ -46,11 +56,11 @@ export async function setupRoomPubSubPorts(app) {
             });
 
             node.addEventListener('peer:discovery', async (event) => {
-                const peer = event.detail;
+                const peer = event.detail.id;
                 console.log("Discovered peer:", peer.toString());
 
                 try {
-                    await node.dial(peer);
+                    await node.dial(multiaddr(peer));
                     console.log("✅ Connected to discovered peer:", peer.toString());
                 } catch (err) {
                     console.warn("❗Failed to connect to peer:", err);

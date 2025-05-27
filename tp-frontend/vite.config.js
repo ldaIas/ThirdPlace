@@ -10,6 +10,12 @@ export default defineConfig({
         dedupe: ['@kiltprotocol/core', '@kiltprotocol/did']
     },
     server: {
-        host: true
+        host: true,
+
+        hmr: {
+            protocol: 'ws',
+            host: 'localhost',
+            port: 5173,
+        }
     }
 })

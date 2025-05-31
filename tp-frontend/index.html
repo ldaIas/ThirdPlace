@@ -17,17 +17,13 @@
 </head>
 
 <body>
-  <script type="module">
-    import {setupSporranPorts} from './src/JSPorts/Sporran/sporran.js';
-    import {setupIdentityPorts } from './src/JSPorts/Identity/libp2p-identity.js'
-    import {setupRoomPorts} from './src/JSPorts/Geohash/geohash-room.js'
-    import {setupRoomPubSubPorts} from './src/JSPorts/RoomPubsub/room-pubsub.js'
-    var app = Elm.ThirdPlaceApp.init({node: document.getElementById('app')});
-    setupSporranPorts(app);
-    setupIdentityPorts(app);
-    setupRoomPorts(app);
-    setupRoomPubSubPorts(app);
-  </script>
+  <div id="app"></div>
+
+  <!-- 1) Elm runtime (creates global `Elm` namespace) -->
+  <script src="tpapp.js"></script>
+
+  <!-- 2) TS entrypoint as an ES module -->
+  <script type="module" src="dist/index.js"></script>
 </body>
 
 </html>

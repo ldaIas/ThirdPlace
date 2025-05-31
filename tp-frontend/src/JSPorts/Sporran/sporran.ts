@@ -1,25 +1,7 @@
 import { web3Enable, web3Accounts, web3FromSource } from '@polkadot/extension-dapp';
 import { connect, disconnect } from '@kiltprotocol/core';
 
-export interface App {
-  ports: {
-    detectSporran: {
-      subscribe: (callback: () => Promise<void>) => void;
-    };
-    onSporranDetected: {
-      send: (detected: boolean) => void;
-    };
-    requestLogin: {
-      subscribe: (callback: () => Promise<void>) => void;
-    };
-    onLoginAttempted: {
-      send: (data: null) => void;
-    };
-    onLoginSuccess: {
-      send: (message: string) => void;
-    };
-  };
-}
+import type { App } from '../types/apptypes'
 
 export function setupSporranPorts(app: App): void {
   app.ports.detectSporran.subscribe(async () => {

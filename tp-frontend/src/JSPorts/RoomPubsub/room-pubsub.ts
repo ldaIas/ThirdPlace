@@ -10,6 +10,8 @@ import * as filters from '@libp2p/websockets/filters';
 import { ping, Ping } from '@libp2p/ping';
 import { multiaddr } from '@multiformats/multiaddr';
 
+import type { App } from '../types/apptypes' 
+
 // This is all because libp2p-gossipsub doesn't expose PubSub
 // 1. First ReturnType gives you the factory function type. (components: GossipSubComponents) => PubSub<GossipSubEvents>
 //    Second ReturnType on that factory gives the actual instance. PubSub<GossipSubEvents
@@ -34,23 +36,6 @@ let topic: string;
 
 // Currently retrieved manually when starting the relay server
 const RELAY_MULTIADDR = multiaddr("/ip4/127.0.0.1/tcp/9090/ws/p2p/12D3KooWKnTok2TigFutGyYTF6E9utiTkzv1Dx8Vjx3tYsQwm84z");
-
-export interface App {
-    ports: {
-        joinRoom: {
-            subscribe: (callback: (roomId: string) => Promise<void>) => void;
-        };
-        sendMessage: {
-            subscribe: (callback: (message: any) => Promise<void>) => void;
-        };
-        receiveConversation: {
-            send: (message: any) => void;
-        };
-        receiveMessage: {
-            send: (message: any) => void;
-        };
-    };
-}
 
 export async function setupRoomPubSubPorts(app: App): Promise<void> {
 

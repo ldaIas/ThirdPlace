@@ -1,15 +1,6 @@
 import Geohash from 'ngeohash';
 
-export interface App {
-    ports: {
-        requestRoomId: {
-            subscribe: (callback: () => void) => void;
-        };
-        receiveRoomId: {
-            send: (geohash: string) => void;
-        };
-    };
-}
+import type { App } from "../types/apptypes"
 
 export function setupRoomPorts(app: App): void {
     if (!app.ports || !app.ports.requestRoomId || !app.ports.receiveRoomId) {

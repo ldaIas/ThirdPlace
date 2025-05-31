@@ -1,0 +1,1 @@
+export function setupSporranPorts(app: App): void

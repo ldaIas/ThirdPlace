@@ -1,7 +1,7 @@
 import { web3Enable, web3Accounts, web3FromSource } from '@polkadot/extension-dapp';
 import { connect, disconnect } from '@kiltprotocol/core';
 
-interface App {
+export interface App {
   ports: {
     detectSporran: {
       subscribe: (callback: () => Promise<void>) => void;
@@ -21,7 +21,7 @@ interface App {
   };
 }
 
-export function setupSporranPorts(app: App) {
+export function setupSporranPorts(app: App): void {
   app.ports.detectSporran.subscribe(async () => {
     const extensions = await web3Enable("ThirdPlace");
     if (extensions.length === 0) {

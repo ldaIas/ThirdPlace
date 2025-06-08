@@ -10,11 +10,11 @@ import * as filters from '@libp2p/websockets/filters';
 import { ping, Ping } from '@libp2p/ping';
 import { multiaddr } from '@multiformats/multiaddr';
 
-import type { App } from '../types/apptypes' 
+import type { App } from '../../types/apptypes'
 
 // This is all because libp2p-gossipsub doesn't expose PubSub
-// 1. First ReturnType gives you the factory function type. (components: GossipSubComponents) => PubSub<GossipSubEvents>
-//    Second ReturnType on that factory gives the actual instance. PubSub<GossipSubEvents
+//    First ReturnType gives you the factory function type: (components: GossipSubComponents) => PubSub<GossipSubEvents>
+//    Second ReturnType on that factory gives the actual instance: PubSub<GossipSubEvents>
 type GossipSubService = ReturnType<ReturnType<typeof gossipsub>>
 
 /**

@@ -1,3 +1,7 @@
+
+/**
+ * App type interface for the Application object used by Elm
+ */
 export interface App {
     ports: {
 

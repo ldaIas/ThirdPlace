@@ -4,8 +4,8 @@ import Html exposing (Html, div, h2, text)
 import Html.Attributes exposing (class, classList)
 import ThirdPlaceModel
 import Views.Room.ChatPanel.ChatPanelView as ChatPanelView
-import Views.Room.Conversations.ConversationsView as ConversationsView exposing (view)
-import Views.Room.RoomModel as RoomModel exposing (ConversationModel, Model)
+import Views.Room.Conversations.ConversationsView as ConversationsView
+import Views.Room.RoomModel as RoomModel exposing (Model)
 
 
 view : Model -> Html ThirdPlaceModel.Msg

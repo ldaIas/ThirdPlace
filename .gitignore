@@ -10,6 +10,8 @@ build/
 
 node_modules/
 
+dist/
+
 # Elm/frontend files
 bin/
 deploy/

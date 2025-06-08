@@ -1,8 +1,6 @@
 module ThirdPlaceModel exposing (Model, Msg(..))
 
 import Browser.Navigation exposing (Key)
-import JSPorts.Identity.IdentityHandler as Identity
-import JSPorts.WebRTC.WebRTCHandler as WebRTCHandler
 import JSPorts.Sporran.SporranHandler as SporranHandler
 import Url exposing (Url)
 import Views.Room.RoomModel as RoomModel
@@ -16,10 +14,8 @@ type alias Model =
     { -- general state
       pageKey : Key
     , pageUrl : Url
-    , userDid : Identity.Model
     , authenticated : Bool
     -- port models
-    , webRtcHandler : WebRTCHandler.Model
     , sporranHandler : SporranHandler.Model
     , geohashHandler : GeohashHandler.Model
     -- view models
@@ -27,13 +23,9 @@ type alias Model =
     }
 
 
-type Msg
-    = CreateAccount
-    | AttemptLogin
+type Msg =
     -- Port Msgs
-    | IdentityMsg Identity.Msg
-    | SporranMsg SporranHandler.Msg
-    | WebRTCMsg WebRTCHandler.Msg
+    SporranMsg SporranHandler.Msg
     | GeohashMsg GeohashHandler.Msg
     -- View Msgs
     | RoomMsg RoomModel.Msg

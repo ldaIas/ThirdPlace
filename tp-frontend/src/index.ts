@@ -1,7 +1,6 @@
-import {setupSporranPorts} from './JSPorts/Sporran/sporran.js';
-import {setupIdentityPorts } from './JSPorts/Identity/libp2p-identity.js'
-import {setupRoomPorts} from './JSPorts/Geohash/geohash-room.js'
-import {setupRoomPubSubPorts} from './JSPorts/RoomPubsub/room-pubsub.js'
+import {setupSporranPorts} from './JSPorts/Sporran/sporran';
+import {setupRoomPorts} from './JSPorts/Geohash/geohash-room'
+import {setupRoomPubSubPorts} from './JSPorts/RoomPubsub/room-pubsub'
 
 declare namespace Elm {
   interface App<Flags, Ports> {
@@ -15,6 +14,5 @@ declare namespace Elm {
 
 const app = Elm.ThirdPlaceApp.init({node: document.getElementById('app')!});
 setupSporranPorts(app);
-setupIdentityPorts(app);
 setupRoomPorts(app);
 setupRoomPubSubPorts(app);

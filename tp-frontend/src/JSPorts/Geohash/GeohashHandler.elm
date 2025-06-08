@@ -13,9 +13,9 @@ type Msg
     = GotRoomId String -- When we recieve the geohashed id from js
 
 
-init : ( Model, Cmd Msg )
+init : Model 
 init =
-    ( Model "unknown", Cmd.none )
+    Model "unknown" 
 
 
 update : Model -> Msg -> ( Model, Cmd Msg )

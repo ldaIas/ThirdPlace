@@ -57,14 +57,14 @@ tp-frontend/
    npm install
    ```
 
-2. Build the Elm application:
+2. Build the application:
    ```bash
-   sh build.sh
+   npm run build
    ```
 
 3. Start the development server:
    ```bash
-   sh serve.sh
+   npm run dev
    ```
 
 The application will be available at `http://localhost:5173/`
@@ -99,7 +99,7 @@ The application is designed for decentralized deployment via IPFS:
 
 1. Build the application:
    ```bash
-   sh build.sh
+   $ npm run build
    ```
 
 2. Collect all assets (HTML, CSS, JS, compiled Elm) into a deployment folder
@@ -119,10 +119,8 @@ Users access the application via IPFS URLs or HTTP gateways rather than traditio
 
 ## Development Commands
 
-- `npm run dev` – Start development server
-- `npm run build` – Build for production
-- `sh build.sh` – Compile Elm to JavaScript
-- `sh serve.sh` – Start development server (via npm)
+- `npm run dev` – Start development server (port 5173)
+- `npm run build` – Build all necessary artifacts: Elm, TypeScript, then bundle with vite
 
 ## License
 

@@ -3,7 +3,7 @@ module Views.ThirdPlaceAppView exposing (view)
 import Browser
 import ThirdPlaceModel exposing (Model, Msg(..))
 import Views.Login.LoginView as LoginView
-import Views.Room.RoomModel exposing (ChatMessage, ConversationModel)
+import Views.Room.RoomModel
 import Views.Room.RoomView as RoomView
 
 

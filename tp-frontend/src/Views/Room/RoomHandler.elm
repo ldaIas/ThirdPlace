@@ -10,7 +10,7 @@ import JSPorts.RoomPubsub.RoomPubsubHandler as RoomPubsubHandler
 init : ( RoomModel.Model, Cmd RoomModel.Msg )
 init =
     let
-        (initRoomId, geohashCmd) = GeohashHandler.init
+        initRoomId = GeohashHandler.init
     in
     ( { roomId = initRoomId.roomId
       , users = [ "current_user", "meower1", "meower2" ]

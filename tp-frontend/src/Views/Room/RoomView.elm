@@ -11,12 +11,15 @@ import Views.Room.RoomModel as RoomModel exposing (Model)
 view : Model -> Html ThirdPlaceModel.Msg
 view model =
     div [ classList [ ( "main-container", True ), ( "chat-expanded", not model.panelExpansion ) ] ]
-        [ userProfile model
-        , peopleHere model.users
+        [ profileAndPeopleSection model
         , conversations model
         , chatPanel model
         ]
 
+profileAndPeopleSection : RoomModel.Model -> Html ThirdPlaceModel.Msg
+profileAndPeopleSection model = 
+    div [ class "profile-and-people"]
+        [ userProfile model, peopleHere model.users]
 
 userProfile : RoomModel.Model -> Html ThirdPlaceModel.Msg
 userProfile model =

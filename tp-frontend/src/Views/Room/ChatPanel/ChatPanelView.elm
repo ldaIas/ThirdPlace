@@ -1,9 +1,8 @@
 module Views.Room.ChatPanel.ChatPanelView exposing (..)
 
-import Html exposing (Html, button, div, h2, text, textarea)
+import Html exposing (Html, button, div, text, textarea)
 import Html.Attributes exposing (class, classList, disabled, placeholder, value)
-import Html.Events exposing (onClick, onInput, preventDefaultOn)
-import Json.Decode as Decode
+import Html.Events exposing (onClick, onInput)
 import ThirdPlaceModel exposing (Msg(..))
 import Utils.RoomUtils as RoomUtils
 import Views.Room.ChatPanel.ChatPanelStyles as ChatPanelStyles
@@ -43,7 +42,7 @@ view model =
                                 let
                                     selfOrOtherMsgClass : String
                                     selfOrOtherMsgClass =
-                                        if msg.sender == "current_user" then
+                                        if msg.sender == "Me" then
                                             "message-from-self"
 
                                         else

@@ -44,6 +44,21 @@
     flex: 1;
     min-width: 200px;
     max-width: 250px;
+    margin-bottom: 2px;
+}
+
+/* People Here Panel */
+.people-here {
+    flex: 1;
+    min-width: 200px;
+    max-width: 250px;
+    margin-top: 2px;
+}
+
+.profile-and-people {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .profile-content {
@@ -95,13 +110,6 @@
 
 .room-hash {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-}
-
-/* People Here Panel */
-.people-here {
-    flex: 1;
-    min-width: 200px;
-    max-width: 250px;
 }
 
 .user-list {

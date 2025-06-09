@@ -21,7 +21,10 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "elm make src/ThirdPlaceApp.elm --output=tpapp.js && tsc && vite build",
+    "ebuild": "elm make src/ThirdPlaceApp.elm --output=tpapp.js",
+    "tbuild": "tsc",
+    "vbuild": "vite build",
+    "fbuild": "npm run ebuild && npm run tbuild && npm run vbuild",
     "local": "npm run build && npm run dev"
   }
 }

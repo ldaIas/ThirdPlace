@@ -73,11 +73,14 @@ export async function setupRoomPubSubPorts(app: App): Promise<void> {
                 }
             });
 
+            console.log("node peerId: ", node.peerId);
+
             node.addEventListener('peer:connect', (event: any) => {
                 console.log("connection established to ", event.detail.remotePeer.toString());
             });
 
             node.addEventListener('peer:discovery', async (event: any) => {
+                console.log('peer:discovery event:', JSON.stringify(event.detail))
                 const peer = event.detail.id;
                 console.log("Discovered peer:", peer.toString());
 

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "===⚡build_and_run.sh⚡==="
+
 set -euo pipefail
 
 CONTAINER_NAME="tp-relay-container"

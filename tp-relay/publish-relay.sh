@@ -2,19 +2,21 @@
 # NOT A DEV SCRIPT, DON'T MOVE
 # This script builds up the /tp-relay-ipfs/ directory, which is where the info is stored for the relay server information
 
+echo "===⚡publish_relay.sh⚡==="
+
 set -e
 
 # Resolve base directory
 TP_ROOT="$(pwd)"
 IPFS_DIR="$TP_ROOT/${IPFS_PATH_NAME:-tp-ipfs}"
-export IPFS_PATH="$IPFS_DIR"
+#export IPFS_PATH="$IPFS_DIR"
 
-echo "Exported IPFS path: $IPFS_PATH"
+#echo "Exported IPFS path: $IPFS_PATH"
 
 # init if needed
-if [ ! -d "$IPFS_PATH/plugins" ]; then
-  mkdir -p "$IPFS_PATH/plugins"
-fi
+#if [ ! -d "$IPFS_PATH/plugins" ]; then
+#  mkdir -p "$IPFS_PATH/plugins"
+#fi
 
 LOCALCONF="localconf.env"
 
@@ -41,12 +43,16 @@ META_FILE="meta.json"
 
 mkdir -p "$RELAY_DIR"
 
+echo "Adding metadata..."
 # Add timestamp metadata
 cat <<EOF > "$RELAY_DIR/$META_FILE"
 {
   "updated": "$(date -Iseconds)"
 }
 EOF
+echo "✅ Added metadata to $RELAY_DIR/$META_FILE"
+
+echo "Adding to IPFS..."
 
 # Add and pin the folder
 CID=$(ipfs add -r -Q "$RELAY_DIR")
@@ -60,6 +66,6 @@ if ! ipfs key list | grep -q "$KEY_NAME"; then
   exit 1
 fi
 
-IPNS_RESULT=$(ipfs name publish --key="$KEY_NAME" "/ipfs/$CID")
+IPNS_RESULT=$(ipfs name publish --key="$KEY_NAME" "$CID")
 echo "🌍 Published to IPNS:"
 echo "$IPNS_RESULT"

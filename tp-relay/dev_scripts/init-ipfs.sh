@@ -1,6 +1,8 @@
 #!/bin/bash
 # This script initializes the /tp-relay/tp-ipfs/ directory which is used to publish relay server address to IPFS
 
+echo "===⚡init-ipfs.sh⚡==="
+
 set -e
 
 # Get directory of this script

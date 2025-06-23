@@ -5,9 +5,8 @@ import { yamux } from '@chainsafe/libp2p-yamux'
 import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { circuitRelayServer } from '@libp2p/circuit-relay-v2'
 import { identify } from '@libp2p/identify'
-
-import fs from 'fs'
-import { exec } from 'child_process';
+import { createHelia } from 'helia'
+import { strings } from '@helia/strings'
 
 console.log("===⚡relay.js⚡===")
 
@@ -38,39 +37,19 @@ console.log(`🔨 Relay node created. ID: ${nodePeerId}`)
 console.log(`🔌 Relay node listening on:\n${node.getMultiaddrs().map(addr => addr.toString()).join('\n')}`)
 
 // Write the node's multiaddr to a local file so we can publish to ipfs
+let fullAddrForIPFS = null
 for (const addr of node.getMultiaddrs()) {
   const fullAddr = `${addr.toString()}/p2p/${nodePeerId}`
 
   // Write the first non-localhost address to file
   if (!fullAddr.includes('127.0.0.1')) {
-    fs.writeFileSync('tp-relay-ipfs/relay-addr.txt', fullAddr)
-    break;
+    fullAddrForIPFS = fullAddr
+    break
   }
 }
 
-// Print the contents of the file
-const fileContents = fs.readFileSync('tp-relay-ipfs/relay-addr.txt', 'utf8')
-console.log(`📄 Relay node's multiaddr written to file:\n${fileContents}`)
+console.log(`📝 Writing multiaddr to Helia/IPFS: ${fullAddrForIPFS}`)
 
-// Call the publish-relay.sh script to publish this addr to ipfs
-console.log(`📡 Calling publish-relay.sh script...`);
-let fail = false
-exec('bash ./publish-relay.sh', (error, stdout, stderr) => {
-
-  console.log(`📡 Relay publish script output:\n"""\n${stdout}\n"""`);
-
-  if (stderr) {
-    console.error(`⚠️ Script stderr: ${stderr}`);
-  }
-
-  if (error) {
-    console.error(`❌ Error running publish script: ${error.name}: ${error.message}`);
-    fail = true;
-    return;
-  }
-});
-
-if (fail) {
-  console.error(`❌ Failed to publish relay address to ipfs. Exiting...`);
-  process.exit(1);
-}
+const helia = await createHelia({datastore: '/data/helia'})
+const s = strings(helia)
+const cid = await s.add(fullAddrForIPFS)

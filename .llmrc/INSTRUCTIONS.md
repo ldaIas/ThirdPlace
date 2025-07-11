@@ -17,7 +17,6 @@ and anyone can host a service.
 
 ## Special Instructions
 
-- Save user and project preferences to MEMORIES.md
 - Be conscious of response sizes; try to be efficient and concise
-- Each sub-project (frontend, server) has their own .llmrc/ (large language model resource) directory to reference for
+- Each sub-project (frontend, relay) has their own .llmrc/ (large language model resource) directory to reference for
     specific instructions for that project.

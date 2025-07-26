@@ -1,4 +1,4 @@
-FROM node:20
+FROM node:22.17.1-bullseye
 
 ENV IPFS_PATH=/app/tp-ipfs
 
@@ -25,4 +25,4 @@ COPY . .
 # 9090 for relay server; 5001 for ipfs rpc api
 EXPOSE 9090 5001 4001
 
-CMD bash -c "ipfs init && ipfs daemon && ipfs swarm peers & sleep 3 && chmod +x publish-relay.sh && node relay.js"
+CMD bash -c "chmod +x publish-relay.sh && node relay.js"

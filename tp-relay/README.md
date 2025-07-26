@@ -22,27 +22,23 @@ $ echo "$TP_RELAY_ROOT"
 > "C:\Users\user\Documents\ThirdPlace\tp-relay"
 ```
 
-```sh
-$ docker build -t tp-relay .
-$ docker run -p 9090:9090 tp-relay
-```
-
-Or you can use the `build_and_run.sh` file to do both of these
-
-```sh
-$ bash build_and_run.sh
-```
-
 ### Build & Deploy
 
 #### Docker
 
 ```sh
-$ docker tag tp-relay yourdockerhub/tp-relay
-$ docker push yourdockerhub/tp-relay
+$ bash build_and_run.sh
 ```
 
-#### IPFS (This should be taken care of for you by the Docker scripts)
+#### Local Node Server
+
+Node.js 22 or later is required.
+
+```sh
+$ node relay.js
+```
+
+#### IPFS
 
 This step only applies if you are playing around with publishing the contents to IPFS.
 The writing of the folder and publishing to IPFS is done by the `publish_relay.sh` script.
@@ -108,13 +104,13 @@ $ ipfs cat /ipns/[IPNS domain]/relay-addr.txt
 </details>
 
 
-### What is the "tp-ipfs/" directory?
+### What is the ".tp-data/" directory?
 
-This directory is used to setup the docker image used by akash.
-It contains the IPFS information used for the ThirdPlace IPFS account.
-This is how we can publish to IPFS/IPNS on Akash, and also how we mount your IPFS account on the image for dev use.
+This directory is created by the relay.js script. It contains blockstore information for the Helia node.
+It is put in persistent memory so that on subsequent reboots, the relay node uses the same IPFS address.
 
 ## Future
 
 The idea for this directory is to be deployed on Akash.
 The deployment is described by `deploy.yaml`.
+Use akash persistent storage to persist relay node identity

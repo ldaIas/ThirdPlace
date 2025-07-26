@@ -20,3 +20,4 @@ tpapp.js
 # Relay files
 tp-ipfs/
 tp-relay-ipfs/
+.tp-data/

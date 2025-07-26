@@ -35,5 +35,5 @@ chmod +x ./publish-relay.sh
 
 # Build and run the container
 echo "✅ Docker is running. Building image..."
-docker build -t tp-relay-image . &&
+docker build --no-cache -t tp-relay-image . &&
 docker run --name "$CONTAINER_NAME" --rm -p 9090:9090 tp-relay-image

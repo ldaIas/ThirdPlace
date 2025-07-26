@@ -2,19 +2,28 @@
     "type": "module",
     "dependencies": {
         "@chainsafe/libp2p-gossipsub": "14.1.1",
-        "@chainsafe/libp2p-noise": "16.1.3",
-        "@chainsafe/libp2p-yamux": "7.0.1",
+        "@chainsafe/libp2p-noise": "16.1.4",
+        "@chainsafe/libp2p-yamux": "7.0.4",
         "@helia/http": "^2.1.2",
         "@helia/ipns": "^8.2.3",
         "@helia/strings": "^4.0.6",
         "@helia/unixfs": "^5.0.3",
-        "@libp2p/circuit-relay-v2": "3.2.16",
-        "@libp2p/identify": "3.0.34",
-        "@libp2p/websockets": "9.2.15",
+        "@libp2p/circuit-relay-v2": "3.2.23",
+        "@libp2p/identify": "3.0.38",
+        "@libp2p/websockets": "9.2.18",
+        "datastore-level": "^11.0.3",
         "helia": "^5.4.2",
-        "libp2p": "2.8.10"
+        "libp2p": "2.9.0",
+        "multiformats": "^13.3.7"
     },
     "scripts": {
-        "dev": "sh ./dev_scripts/build_and_run.sh"
+        "dev": "sh ./dev_scripts/build_and_run.sh",
+        "build": "tsc",
+        "local": "npm run build && node dist/relay.js"
+    },
+    "devDependencies": {
+        "@types/node": "^24.0.15",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.8.3"
     }
 }

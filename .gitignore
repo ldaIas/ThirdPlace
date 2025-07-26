@@ -2,11 +2,12 @@ attached_assets/
 
 elm-stuff/
 
-.gradle/
 .idea/
 launch.json
 settings.json
 build/
+
+.amazonq/
 
 node_modules/
 dist/

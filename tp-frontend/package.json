@@ -5,6 +5,6 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "elm make ./src/UI/Main.elm --output=main.js && vite build"
   }
 }

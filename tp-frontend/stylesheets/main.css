@@ -1,0 +1,71 @@
+/* CSS Variables for theming */
+:root {
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --button-bg: #007bff;
+  --button-hover: #0056b3;
+  --button-text: #ffffff;
+  --status-color: #666666;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --button-bg: #0d6efd;
+    --button-hover: #0b5ed7;
+    --button-text: #ffffff;
+    --status-color: #aaaaaa;
+  }
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  text-align: center;
+  padding: 2rem;
+}
+
+.status {
+  font-size: 1.1rem;
+  color: var(--status-color);
+  margin-bottom: 2rem;
+}
+
+.publish-btn {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  padding: 12px 24px;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.publish-btn:hover {
+  background-color: var(--button-hover);
+}
+
+.publish-btn:active {
+  transform: translateY(1px);
+}

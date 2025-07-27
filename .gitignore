@@ -15,7 +15,7 @@ dist/
 # Elm/frontend files
 bin/
 deploy/
-tpapp.js
+main.js
 
 # Relay files
 tp-ipfs/

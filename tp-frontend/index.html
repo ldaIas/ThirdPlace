@@ -1,33 +1,14 @@
-<!DOCTYPE HTML>
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>ThirdPlace Login</title>
-  <link rel="stylesheet" href="stylesheets/thirdplace.css">
-  <link rel="stylesheet" href="stylesheets/loginstyles.css">
-  <link rel="stylesheet" href="stylesheets/roomstyles.css">
-  <link rel="stylesheet" href="stylesheets/conversationstyles.css">
-  <link rel="stylesheet" href="stylesheets/chatpanelstyles.css">
-  <script src="tpapp.js"></script>
-  <script type="module" src="src/JSPorts/Identity/libp2p-identity.js"></script>
-  <script type="module" src="src/JSPorts/Sporran/sporran.js"></script>
-  <script type="module" src="src/JSPorts/Geohash/geohash-room.js"></script>
-  <script type="module" src="src/JSPorts/RoomPubsub/room-pubsub.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThirdPlace</title>
+    <link rel="stylesheet" href="stylesheets/main.css">
 </head>
-
 <body>
-  <script type="module">
-    import {setupSporranPorts} from './src/JSPorts/Sporran/sporran.js';
-    import {setupIdentityPorts } from './src/JSPorts/Identity/libp2p-identity.js'
-    import {setupRoomPorts} from './src/JSPorts/Geohash/geohash-room.js'
-    import {setupRoomPubSubPorts} from './src/JSPorts/RoomPubsub/room-pubsub.js'
-    var app = Elm.ThirdPlaceApp.init({node: document.getElementById('app')});
-    setupSporranPorts(app);
-    setupIdentityPorts(app);
-    setupRoomPorts(app);
-    setupRoomPubSubPorts(app);
-  </script>
+    <div id="app"></div>
+    <script src="main.js"></script>
+    <script type="module" src="tpapp.js"></script>
 </body>
-
 </html>

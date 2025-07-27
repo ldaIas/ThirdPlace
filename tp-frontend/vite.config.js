@@ -11,5 +11,8 @@ export default defineConfig({
     },
     server: {
         host: true
+    },
+    esbuild: {
+        target: 'es2020'
     }
 })

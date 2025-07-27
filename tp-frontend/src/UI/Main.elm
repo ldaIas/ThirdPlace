@@ -1,4 +1,4 @@
-module UI.Main exposing (main)
+port module UI.Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
@@ -32,6 +32,8 @@ type alias Model =
     { key : Nav.Key
     , url : Url.Url
     , ipfsStatus : String
+    , publishedCid : Maybe String
+    , retrievedContent : Maybe String
     }
 
 
@@ -44,6 +46,8 @@ init flags url key =
     ( { key = key
       , url = url
       , ipfsStatus = "Connecting..."
+      , publishedCid = Nothing
+      , retrievedContent = Nothing
       }
     , Cmd.none
     )
@@ -52,10 +56,31 @@ init flags url key =
 -- UPDATE
 
 
+-- PORTS
+
+
+port ipfsStatusChanged : (String -> msg) -> Sub msg
+
+
+port publishTestContent : () -> Cmd msg
+
+
+port contentPublished : (String -> msg) -> Sub msg
+
+
+port contentRetrieved : (String -> msg) -> Sub msg
+
+
+-- MESSAGES
+
+
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | PublishTestContent
+    | IpfsStatusChanged String
+    | ContentPublished String
+    | ContentRetrieved String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -75,7 +100,16 @@ update msg model =
             )
 
         PublishTestContent ->
-            ( model, Cmd.none )
+            ( model, publishTestContent () )
+
+        IpfsStatusChanged status ->
+            ( { model | ipfsStatus = status }, Cmd.none )
+
+        ContentPublished cid ->
+            ( { model | publishedCid = Just cid }, Cmd.none )
+
+        ContentRetrieved content ->
+            ( { model | retrievedContent = Just content }, Cmd.none )
 
 
 -- SUBSCRIPTIONS
@@ -83,7 +117,11 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch
+        [ ipfsStatusChanged IpfsStatusChanged
+        , contentPublished ContentPublished
+        , contentRetrieved ContentRetrieved
+        ]
 
 
 -- VIEW
@@ -102,6 +140,24 @@ view model =
                     , onClick PublishTestContent
                     ]
                     [ text "Publish Test Content" ]
+                , case model.publishedCid of
+                    Nothing ->
+                        text ""
+                    
+                    Just cid ->
+                        div [ class "result" ]
+                            [ div [ class "cid" ]
+                                [ text ("Published CID: " ++ cid) ]
+                            ]
+                , case model.retrievedContent of
+                    Nothing ->
+                        text ""
+                    
+                    Just content ->
+                        div [ class "result" ]
+                            [ div [ class "content" ]
+                                [ text ("Retrieved: " ++ content) ]
+                            ]
                 ]
             ]
         ]

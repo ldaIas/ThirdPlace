@@ -31,6 +31,7 @@ function initializeApp() {
                 
                 // Automatically retrieve the content to verify
                 setTimeout(async () => {
+                    console.log("Attempting to retrieve content...")
                     const content = await ipfsService.retrieveContent(cid);
                     if (content && app.ports.contentRetrieved) {
                         app.ports.contentRetrieved.send(JSON.stringify(content));

@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "helia": "5.5.0",
-    "@helia/json": "4.0.7"
+    "@helia/json": "4.0.7",
+    "multiformats": "^13.0.0"
   },
   "devDependencies": {
     "vite": "7.0.6",

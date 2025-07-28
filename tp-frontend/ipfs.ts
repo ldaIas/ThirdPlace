@@ -1,5 +1,6 @@
 import { createHelia, HeliaLibp2p as Helia } from 'helia';
 import { json, type JSON } from '@helia/json';
+import { CID } from 'multiformats/cid';
 
 interface IPFSManager {
   helia: Helia | null;
@@ -107,7 +108,8 @@ class IPFSService {
 
     try {
       const j = json(this.manager.helia);
-      const content = await j.get({ toString: () => cidString } as any);
+      const cid = CID.parse(cidString);
+      const content = await j.get(cid);
       console.log('Retrieved content:', content);
       return content;
     } catch (error) {

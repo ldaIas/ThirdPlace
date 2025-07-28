@@ -1,4 +1,5 @@
 import { ipfsService } from './ipfs.ts';
+import { orbitDBService } from './orbitdb.ts';
 
 // Wait for Elm to be available and initialize the application
 function initializeApp() {
@@ -22,6 +23,13 @@ function initializeApp() {
         }
     });
     
+    // Set up OrbitDB status callback
+    orbitDBService.onStatusChange((status) => {
+        if (app.ports && app.ports.orbitDBStatusChanged) {
+            app.ports.orbitDBStatusChanged.send(status);
+        }
+    });
+    
     // Set up publish test content handler
     if (app.ports && app.ports.publishTestContent) {
         app.ports.publishTestContent.subscribe(async () => {
@@ -41,9 +49,47 @@ function initializeApp() {
         });
     }
     
+    // Set up OrbitDB test handlers
+    if (app.ports && app.ports.createTestDatabase) {
+        app.ports.createTestDatabase.subscribe(async () => {
+            const address = await orbitDBService.createTestDatabase();
+            if (address && app.ports.databaseCreated) {
+                app.ports.databaseCreated.send(address);
+            }
+        });
+    }
+    
+    if (app.ports && app.ports.addTestData) {
+        app.ports.addTestData.subscribe(async () => {
+            const hash = await orbitDBService.addTestData();
+            if (hash && app.ports.dataAdded) {
+                app.ports.dataAdded.send(hash);
+            }
+        });
+    }
+    
+    if (app.ports && app.ports.retrieveAllData) {
+        app.ports.retrieveAllData.subscribe(async () => {
+            const data = await orbitDBService.getAllTestData();
+            if (data && app.ports.allDataRetrieved) {
+                app.ports.allDataRetrieved.send(JSON.stringify(data));
+            }
+        });
+    }
+    
     // Initialize IPFS
     ipfsService.initialize().then(() => {
         console.log('IPFS service initialized');
+        
+        // Initialize OrbitDB after IPFS is ready
+        const helia = ipfsService.getHelia();
+        if (helia) {
+            orbitDBService.initialize(helia).then(() => {
+                console.log('OrbitDB service initialized');
+            }).catch((error) => {
+                console.error('Failed to initialize OrbitDB service:', error);
+            });
+        }
     }).catch((error) => {
         console.error('Failed to initialize IPFS service:', error);
     });

@@ -1,6 +1,15 @@
-import { createHelia, HeliaLibp2p as Helia } from 'helia';
+import { createHelia, type Helia } from 'helia';
 import { json, type JSON } from '@helia/json';
 import { CID } from 'multiformats/cid';
+import { createLibp2p } from 'libp2p';
+import { gossipsub } from '@chainsafe/libp2p-gossipsub';
+import { noise } from '@chainsafe/libp2p-noise';
+import { yamux } from '@chainsafe/libp2p-yamux';
+import { bootstrap } from '@libp2p/bootstrap';
+import { webSockets } from '@libp2p/websockets';
+import { webRTC } from '@libp2p/webrtc';
+import { identify } from '@libp2p/identify';
+import { circuitRelayTransport } from '@libp2p/circuit-relay-v2';
 
 interface IPFSManager {
   helia: Helia | null;
@@ -19,7 +28,31 @@ class IPFSService {
 
   async initialize(): Promise<void> {
     try {
-      this.manager.helia = await createHelia();
+      const libp2p = await createLibp2p({
+        transports: [
+          webSockets(),
+          webRTC(),
+          circuitRelayTransport()
+        ],
+        connectionEncrypters: [noise()],
+        streamMuxers: [yamux()],
+        peerDiscovery: [
+          bootstrap({
+            list: [
+              '/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN',
+              '/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa'
+            ]
+          })
+        ],
+        services: {
+          identify: identify(),
+          pubsub: gossipsub({
+            allowPublishToZeroTopicPeers: true
+          })
+        }
+      });
+
+      this.manager.helia = await createHelia({ libp2p });
       this.manager.status = 'Connected to IPFS';
       
       // Set up peer count monitoring
@@ -75,6 +108,10 @@ class IPFSService {
 
   getStatus(): string {
     return this.manager.status;
+  }
+
+  getHelia(): Helia | null {
+    return this.manager.helia;
   }
 
   async publishTestContent(): Promise<string | null> {

@@ -1,4 +1,4 @@
-import { createHelia, HeliaLibp2p as Helia } from 'helia';
+import { createHelia, type Helia } from 'helia';
 import { json, type JSON } from '@helia/json';
 import { CID } from 'multiformats/cid';
 
@@ -17,7 +17,7 @@ class IPFSService {
 
   private statusCallback: ((status: string, peerCount: number) => void) | null = null;
 
-  async initialize(): Promise<void> {
+  async initialize(): Promise<Helia> {
     try {
       this.manager.helia = await createHelia();
       this.manager.status = 'Connected to IPFS';
@@ -26,10 +26,12 @@ class IPFSService {
       this.setupPeerMonitoring();
       
       this.updateStatus();
+      return this.manager.helia;
     } catch (error) {
       console.error('Failed to initialize Helia:', error);
       this.manager.status = 'Connection failed';
       this.updateStatus();
+      throw error;
     }
   }
 

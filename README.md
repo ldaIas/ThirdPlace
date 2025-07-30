@@ -4,7 +4,7 @@ A decentralized social coordination app that helps people find others to join th
 
 ## The Problem
 
-Singles and small groups often want to engage in social activities (bars, coffee shops, hiking, events) but avoid going alone. Existing solutions like Meetup focus on large recurring groups, while dating apps create artificial high-pressure interactions. Many people end up staying home instead of enjoying activities they'd love to do.
+Singles and small groups often want to engage in social activities (bars, coffee shops, hiking, events) but avoid going alone. Existing solutions like Meetup focus on large recurring groups, while dating apps create artificial high-pressure interactions. Many people end up staying home instead of enjoying activities they'd love to do. We need a solution made by the people and for the people, not for the money or shareholders.
 
 ## The Solution
 
@@ -23,6 +23,7 @@ ThirdPlace enables ad-hoc social coordination where users can:
 - **Ephemeral posts**: Activities expire after their event time to keep content fresh
 - **Gender balancing**: Optional balanced group formation for more natural social dynamics
 - **Direct messaging**: Coordinate details before meeting up
+- **Decentralized and Open Source**: Roadmap not planned by what makes the most money, but what users actually want
 
 ## Technical Architecture
 

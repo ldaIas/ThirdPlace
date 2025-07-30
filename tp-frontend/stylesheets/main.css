@@ -102,12 +102,13 @@ body {
 
 .section {
   margin-bottom: 2rem;
-  padding: 1rem;
+  padding: 1.5rem;
   border: 1px solid rgba(0, 123, 255, 0.2);
   border-radius: 8px;
+  background-color: rgba(0, 123, 255, 0.05);
 }
 
-.address, .hash, .data, .posts-data {
+.address, .hash, .data {
   font-family: 'Courier New', monospace;
   font-size: 0.9rem;
   word-break: break-all;

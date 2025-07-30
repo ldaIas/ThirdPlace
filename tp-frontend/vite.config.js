@@ -12,16 +12,22 @@ export default defineConfig({
         outDir: 'dist',
         sourcemap: false
     },
+    define: {
+        global: 'globalThis',
+    },
     resolve: {
-        dedupe: ['@kiltprotocol/core', '@kiltprotocol/did']
+        dedupe: ['@kiltprotocol/core', '@kiltprotocol/did'],
+        alias: {
+            events: 'events',
+        },
+    },
+    optimizeDeps: {
+        include: ['events']
     },
     server: {
         host: true
     },
     esbuild: {
         target: 'es2020'
-    },
-    define: {
-        global: 'globalThis'
     }
 })

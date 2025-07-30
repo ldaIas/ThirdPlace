@@ -102,9 +102,14 @@ function initializeApp() {
     ipfsService.initialize().then(async (helia) => {
         console.log('IPFS service initialized');
         
-        // Initialize OrbitDB with the Helia instance
-        await orbitDBService.initialize(helia);
-        console.log('OrbitDB service initialized');
+        // Initialize OrbitDB after IPFS is ready
+        if (helia) {
+            orbitDBService.initialize(helia).then(() => {
+                console.log('OrbitDB service initialized');
+            }).catch((error) => {
+                console.error('Failed to initialize OrbitDB service:', error);
+            });
+        }
     }).catch((error) => {
         console.error('Failed to initialize services:', error);
     });

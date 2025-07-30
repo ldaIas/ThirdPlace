@@ -11,6 +11,7 @@ class OrbitDBService {
   private manager: OrbitDBManager = {
     orbitdb: null,
     databases: new Map(),
+    
     status: 'Not initialized'
   };
 
@@ -55,7 +56,10 @@ class OrbitDBService {
 
     try {
       const dbName = 'thirdplace-test';
-      const db = await this.manager.orbitdb.open(dbName, { type: 'documents' });
+      const db = await this.manager.orbitdb.open(dbName, { 
+        type: 'documents',
+        sync: false // Disable sync to avoid pubsub issues
+      });
       this.manager.databases.set(dbName, db);
       
       console.log('Test database created:', db.address);
@@ -103,6 +107,89 @@ class OrbitDBService {
       return allData;
     } catch (error) {
       console.error('Failed to retrieve test data:', error);
+      return null;
+    }
+  }
+
+  async createActivityPostsDatabase(): Promise<string | null> {
+    if (!this.manager.orbitdb) {
+      console.error('OrbitDB not initialized');
+      return null;
+    }
+
+    try {
+      const dbName = 'thirdplace-posts';
+      const db = await this.manager.orbitdb.open(dbName, { 
+        type: 'documents',
+        sync: false // Disable sync to avoid pubsub issues
+      });
+      this.manager.databases.set(dbName, db);
+      
+      console.log('Activity posts database created:', db.address);
+      return db.address;
+    } catch (error) {
+      console.error('Failed to create activity posts database:', error);
+      return null;
+    }
+  }
+
+  async submitActivityPost(postData: any): Promise<string | null> {
+    // Ensure posts database exists
+    let db = this.manager.databases.get('thirdplace-posts');
+    if (!db) {
+      const address = await this.createActivityPostsDatabase();
+      if (!address) {
+        return null;
+      }
+      db = this.manager.databases.get('thirdplace-posts');
+    }
+
+    if (!db) {
+      console.error('Activity posts database not available');
+      return null;
+    }
+
+    try {
+      // Generate a unique ID and add metadata
+      const activityPost = {
+        _id: Date.now().toString(),
+        id: Date.now().toString(),
+        ...postData,
+        author: 'user_' + Math.random().toString(36).substr(2, 9), // Temporary user ID
+        createdAt: new Date().toISOString(),
+        endDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+        proposedTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
+        status: 'active',
+        genderBalance: 'any',
+        // Mock coordinates for San Francisco
+        latitude: 37.7749 + (Math.random() - 0.5) * 0.01,
+        longitude: -122.4194 + (Math.random() - 0.5) * 0.01,
+        geohash: '9q8yy' // Mock geohash for SF area
+      };
+
+      const hash = await db.put(activityPost);
+      console.log('Activity post submitted with hash:', hash);
+      console.log('Post data:', activityPost);
+      return hash;
+    } catch (error) {
+      console.error('Failed to submit activity post:', error);
+      return null;
+    }
+  }
+
+  async getAllActivityPosts(): Promise<any[] | null> {
+    const db = this.manager.databases.get('thirdplace-posts');
+    if (!db) {
+      console.error('Activity posts database not found');
+      return null;
+    }
+
+    try {
+      const allPosts = await db.all();
+      console.log('Retrieved all activity posts:', allPosts);
+      return allPosts;
+    } catch (error) {
+      console.error('Failed to retrieve activity posts:', error);
       return null;
     }
   }

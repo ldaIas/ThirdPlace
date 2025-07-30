@@ -2,9 +2,10 @@ port module UI.Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
-import Html exposing (Html, button, div, text)
-import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
+import Html exposing (Html, button, div, text, input, textarea, select, option, label, h2)
+import Html.Attributes exposing (class, value, placeholder, type_, checked, disabled)
+import Html.Events exposing (onClick, onInput, onCheck)
+import String
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Url
@@ -38,6 +39,14 @@ type alias Model =
     , databaseAddress : Maybe String
     , dataHash : Maybe String
     , allData : Maybe String
+    , posts : Maybe String
+    -- Post creation form fields
+    , postTitle : String
+    , postDescription : String
+    , postLocation : String
+    , postGroupSize : String
+    , postCategory : String
+    , postIsDate : Bool
     }
 
 
@@ -56,6 +65,14 @@ init flags url key =
       , databaseAddress = Nothing
       , dataHash = Nothing
       , allData = Nothing
+      , posts = Nothing
+      -- Initialize form fields
+      , postTitle = ""
+      , postDescription = ""
+      , postLocation = ""
+      , postGroupSize = "2"
+      , postCategory = "coffee"
+      , postIsDate = False
       }
     , Cmd.none
     )
@@ -100,6 +117,15 @@ port retrieveAllData : () -> Cmd msg
 port allDataRetrieved : (String -> msg) -> Sub msg
 
 
+port submitPost : Encode.Value -> Cmd msg
+
+
+port viewPosts : () -> Cmd msg
+
+
+port postsRetrieved : (String -> msg) -> Sub msg
+
+
 -- MESSAGES
 
 
@@ -117,6 +143,16 @@ type Msg
     | DataAdded String
     | RetrieveAllData
     | AllDataRetrieved String
+    -- Post creation form messages
+    | UpdatePostTitle String
+    | UpdatePostDescription String
+    | UpdatePostLocation String
+    | UpdatePostGroupSize String
+    | UpdatePostCategory String
+    | TogglePostIsDate
+    | SubmitPost
+    | ViewPosts
+    | PostsRetrieved String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -168,6 +204,47 @@ update msg model =
         AllDataRetrieved data ->
             ( { model | allData = Just data }, Cmd.none )
 
+        UpdatePostTitle title ->
+            ( { model | postTitle = title }, Cmd.none )
+
+        UpdatePostDescription description ->
+            ( { model | postDescription = description }, Cmd.none )
+
+        UpdatePostLocation location ->
+            ( { model | postLocation = location }, Cmd.none )
+
+        UpdatePostGroupSize size ->
+            ( { model | postGroupSize = size }, Cmd.none )
+
+        UpdatePostCategory category ->
+            ( { model | postCategory = category }, Cmd.none )
+
+        TogglePostIsDate ->
+            ( { model | postIsDate = not model.postIsDate }, Cmd.none )
+
+        SubmitPost ->
+            if String.trim model.postTitle == "" || String.trim model.postLocation == "" then
+                -- Don't submit if required fields are empty
+                ( model, Cmd.none )
+            else
+                let
+                    postData = Encode.object
+                        [ ( "title", Encode.string (String.trim model.postTitle) )
+                        , ( "description", Encode.string (String.trim model.postDescription) )
+                        , ( "location", Encode.string (String.trim model.postLocation) )
+                        , ( "groupSize", Encode.int (String.toInt model.postGroupSize |> Maybe.withDefault 2) )
+                        , ( "category", Encode.string model.postCategory )
+                        , ( "isDateActivity", Encode.bool model.postIsDate )
+                        ]
+                in
+                ( { model | postTitle = "", postDescription = "", postLocation = "", postGroupSize = "2" }, submitPost postData )
+
+        ViewPosts ->
+            ( model, viewPosts () )
+
+        PostsRetrieved posts ->
+            ( { model | posts = Just posts }, Cmd.none )
+
 
 -- SUBSCRIPTIONS
 
@@ -182,6 +259,7 @@ subscriptions model =
         , databaseCreated DatabaseCreated
         , dataAdded DataAdded
         , allDataRetrieved AllDataRetrieved
+        , postsRetrieved PostsRetrieved
         ]
 
 
@@ -271,7 +349,106 @@ view model =
                                     [ text ("All Data: " ++ data) ]
                                 ]
                     ]
+                , postCreationForm model
+                , postsDisplaySection model
                 ]
             ]
         ]
     }
+
+
+postCreationForm : Model -> Html Msg
+postCreationForm model =
+    div [ class "post-form-section" ]
+        [ h2 [] [ text "Create Activity Post" ]
+        , div [ class "form-group" ]
+            [ label [] [ text "Title" ]
+            , input
+                [ type_ "text"
+                , value model.postTitle
+                , placeholder "e.g., Coffee at Blue Bottle"
+                , onInput UpdatePostTitle
+                ]
+                []
+            ]
+        , div [ class "form-group" ]
+            [ label [] [ text "Description (optional)" ]
+            , textarea
+                [ value model.postDescription
+                , placeholder "Additional details about the activity..."
+                , onInput UpdatePostDescription
+                ]
+                []
+            ]
+        , div [ class "form-group" ]
+            [ label [] [ text "Location" ]
+            , input
+                [ type_ "text"
+                , value model.postLocation
+                , placeholder "e.g., Blue Bottle Coffee, 123 Main St"
+                , onInput UpdatePostLocation
+                ]
+                []
+            ]
+        , div [ class "form-group" ]
+            [ label [] [ text "Group Size" ]
+            , input
+                [ type_ "number"
+                , value model.postGroupSize
+                , onInput UpdatePostGroupSize
+                ]
+                []
+            ]
+        , div [ class "form-group" ]
+            [ label [] [ text "Category" ]
+            , select [ onInput UpdatePostCategory ]
+                [ option [ value "coffee" ] [ text "Coffee" ]
+                , option [ value "food" ] [ text "Food" ]
+                , option [ value "drinks" ] [ text "Drinks" ]
+                , option [ value "outdoor" ] [ text "Outdoor" ]
+                , option [ value "fitness" ] [ text "Fitness" ]
+                , option [ value "culture" ] [ text "Culture" ]
+                , option [ value "work" ] [ text "Work" ]
+                , option [ value "events" ] [ text "Events" ]
+                , option [ value "other" ] [ text "Other" ]
+                ]
+            ]
+        , div [ class "form-group" ]
+            [ label []
+                [ input
+                    [ type_ "checkbox"
+                    , checked model.postIsDate
+                    , onCheck (\_ -> TogglePostIsDate)
+                    ]
+                    []
+                , text " This is a romantic date (not platonic)"
+                ]
+            ]
+        , button
+            [ class "submit-btn"
+            , onClick SubmitPost
+            , disabled (String.trim model.postTitle == "" || String.trim model.postLocation == "")
+            ]
+            [ text "Create Post" ]
+        ]
+
+
+postsDisplaySection : Model -> Html Msg
+postsDisplaySection model =
+    div [ class "posts-section" ]
+        [ h2 [] [ text "Activity Posts" ]
+        , button
+            [ class "publish-btn"
+            , onClick ViewPosts
+            ]
+            [ text "View Posts" ]
+        , case model.posts of
+            Nothing ->
+                text ""
+            
+            Just posts ->
+                div [ class "result" ]
+                    [ div [ class "posts-data" ]
+                        [ text posts ]
+                    ]
+        ]

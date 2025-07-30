@@ -1,6 +1,12 @@
 import { defineConfig } from 'vite';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
+    plugins: [
+        nodePolyfills({
+            include: ['events']
+        })
+    ],
     root: './', // wherever index.html is
     build: {
         outDir: 'dist',

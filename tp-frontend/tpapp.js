@@ -49,7 +49,7 @@ function initializeApp() {
         });
     }
     
-    // Set up OrbitDB test handlers
+    // Set up OrbitDB handlers
     if (app.ports && app.ports.createTestDatabase) {
         app.ports.createTestDatabase.subscribe(async () => {
             const address = await orbitDBService.createTestDatabase();
@@ -77,12 +77,32 @@ function initializeApp() {
         });
     }
     
+    if (app.ports && app.ports.submitPost) {
+        app.ports.submitPost.subscribe(async (postData) => {
+            console.log('Submitting post:', postData);
+            const hash = await orbitDBService.submitActivityPost(postData);
+            if (hash) {
+                console.log('Post submitted successfully with hash:', hash);
+            } else {
+                console.error('Failed to submit post');
+            }
+        });
+    }
+    
+    if (app.ports && app.ports.viewPosts) {
+        app.ports.viewPosts.subscribe(async () => {
+            const posts = await orbitDBService.getAllActivityPosts();
+            if (posts && app.ports.postsRetrieved) {
+                app.ports.postsRetrieved.send(JSON.stringify(posts, null, 2));
+            }
+        });
+    }
+    
     // Initialize IPFS
-    ipfsService.initialize().then(() => {
+    ipfsService.initialize().then(async (helia) => {
         console.log('IPFS service initialized');
         
         // Initialize OrbitDB after IPFS is ready
-        const helia = ipfsService.getHelia();
         if (helia) {
             orbitDBService.initialize(helia).then(() => {
                 console.log('OrbitDB service initialized');
@@ -91,7 +111,7 @@ function initializeApp() {
             });
         }
     }).catch((error) => {
-        console.error('Failed to initialize IPFS service:', error);
+        console.error('Failed to initialize services:', error);
     });
 }
 

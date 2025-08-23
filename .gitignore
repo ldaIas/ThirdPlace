@@ -6,6 +6,7 @@ elm-stuff/
 launch.json
 settings.json
 build/
+.gradle/
 
 .amazonq/
 

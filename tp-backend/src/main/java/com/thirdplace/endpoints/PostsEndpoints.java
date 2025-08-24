@@ -2,7 +2,6 @@ package com.thirdplace.endpoints;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.time.Instant;
@@ -20,12 +19,16 @@ public class PostsEndpoints {
             implements AppResponse {
     }
 
+    public record GetAllPostsResponse(List<Post> posts)
+            implements AppResponse {
+    }
+
     @GET
     @Path("api/Posts:create")
     public Response createPost() {
         Post samplePost = new Post(UUID.randomUUID().toString(), "Sample Post",
                 "Sample Author", "some description", Instant.now(), Instant.now(), 2,
-                List.of("tag1", "tag2"), "some location", "some geohash", 0.0, 0.0, Instant.now(),
+                new String[] {"tag1", "tag2"}, "some location", 0.0, 0.0, Instant.now(),
                 false, "active", "any", "any");
 
         return EndpointsBase.processRequest(() -> {
@@ -35,11 +38,11 @@ public class PostsEndpoints {
     }
 
     @GET
-    @Path("api/Posts:get")
-    public Response getPost() {
+    @Path("api/Posts:getAll")
+    public Response getAllPosts() {
         return EndpointsBase.processRequest(() -> {
             List<Post> posts = PostsTableManager.getInstance().findAll();
-            return new CreatePostResponse(posts.get(0));
+            return new GetAllPostsResponse(posts);
         });
     }
 }

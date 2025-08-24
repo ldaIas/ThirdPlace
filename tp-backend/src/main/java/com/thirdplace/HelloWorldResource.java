@@ -10,7 +10,6 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.thirdplace.schemas.Post;
-import java.util.List;
 
 @Path("")
 public class HelloWorldResource {
@@ -32,7 +31,7 @@ public class HelloWorldResource {
     public Response getSamplePost() {
         return Response.ok(new Post(UUID.randomUUID().toString(), "Sample Post",
                 "Sample Author", "some description", Instant.now(), Instant.now(), 2,
-                List.of("tag1", "tag2"), "some location", "some geohash", 0.0, 0.0, Instant.now(),
+                new String[] {"tag1", "tag2"}, "some location", 0.0, 0.0, Instant.now(),
                 false, "active", "any", "any"))
                 .type(MediaType.APPLICATION_JSON)
                 .build();

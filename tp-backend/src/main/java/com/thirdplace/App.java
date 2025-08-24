@@ -22,7 +22,7 @@ public class App {
         
         PostsTableManager postsManager = PostsTableManager.getInstance();
         postsManager.createTable();
-        System.out.println("Database tables initialized");
+        LOGGER.info("Database tables initialized");
         
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());

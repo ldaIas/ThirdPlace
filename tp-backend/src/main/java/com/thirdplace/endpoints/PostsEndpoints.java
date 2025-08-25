@@ -32,8 +32,7 @@ public class PostsEndpoints {
     @Path("api/Posts:getAll")
     public Response getAllPosts() {
         return EndpointsBase.processRequest(() -> {
-            List<Post> posts = PostsTableManager.getInstance().findAll();
-            return new GetAllPostsResponse(posts);
+            return PostsService.getAllPosts();
         });
     }
 }

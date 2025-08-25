@@ -9,7 +9,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 public class EndpointsBase {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(EndpointsBase.class);
 
     public static Response processRequest(final ErrorableSupplier<AppResponse> method) {
@@ -17,8 +17,9 @@ public class EndpointsBase {
             final AppResponse response = method.get();
 
             return Response.ok(response)
-                .type(MediaType.APPLICATION_JSON)
-                .build();
+                    .header("Access-Control-Allow-Origin", "*")
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
         } catch (Exception ex) {
 
             LOGGER.error("Error processing request", ex);
@@ -28,6 +29,6 @@ public class EndpointsBase {
                     .type(MediaType.APPLICATION_JSON)
                     .build();
         }
-        
+
     }
 }

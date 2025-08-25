@@ -93,7 +93,11 @@ update msg model =
                 Ok posts ->
                     ( { model | posts = posts, error = Nothing }, Cmd.none )
 
-                Err _ ->
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "Error" err
+                    in
                     ( { model | error = Just "Failed to load posts. Please check if the server is running." }, Cmd.none )
 
         ShowCreateForm ->
@@ -266,7 +270,7 @@ createPostFromForm newPost nextId =
 
 postsDecoder : Decode.Decoder (List Post)
 postsDecoder =
-    Decode.list postDecoder
+    Decode.field "posts" (Decode.list postDecoder)
 
 
 postDecoder : Decode.Decoder Post

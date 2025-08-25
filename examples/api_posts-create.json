@@ -1,0 +1,14 @@
+{
+  "title": "Coffee at Blue Bottle",
+  "author": "john_doe",
+  "description": "Looking for someone to grab coffee and chat about tech. Great spot with good wifi!",
+  "endDate": "2024-01-15T18:00:00Z",
+  "groupSize": 3,
+  "tags": ["coffee", "tech", "casual"],
+  "location": "Blue Bottle Coffee, 123 Main St",
+  "latitude": 37.7749,
+  "longitude": -122.4194,
+  "proposedTime": "2024-01-15T15:00:00Z",
+  "genderBalance": "mixed",
+  "category": "food_drink"
+}

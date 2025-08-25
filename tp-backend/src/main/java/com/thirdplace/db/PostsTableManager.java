@@ -3,7 +3,7 @@ package com.thirdplace.db;
 import java.sql.*;
 import java.util.*;
 
-import com.thirdplace.schemas.Post;
+import com.thirdplace.db.schemas.Post;
 
 public class PostsTableManager implements TableManager<Post> {
 

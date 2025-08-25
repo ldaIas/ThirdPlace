@@ -1,4 +1,4 @@
-package com.thirdplace.schemas;
+package com.thirdplace.db.schemas;
 
 import com.thirdplace.db.TableField;
 import com.thirdplace.db.TableFieldModifiers;

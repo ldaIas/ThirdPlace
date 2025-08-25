@@ -31,7 +31,6 @@ public class App {
         provider.setMapper(mapper);
         
         ResourceConfig config = new ResourceConfig();
-        config.register(HelloWorldResource.class);
         config.register(PostsEndpoints.class);
         config.register(provider);
         

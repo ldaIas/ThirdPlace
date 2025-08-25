@@ -3,7 +3,6 @@ package com.thirdplace.endpoints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.thirdplace.AppResponse;
 import com.thirdplace.utils.FunctionalUtils.ErrorableSupplier;
 
 import jakarta.ws.rs.core.MediaType;
@@ -23,7 +22,7 @@ public class EndpointsBase {
         } catch (Exception ex) {
 
             LOGGER.error("Error processing request", ex);
-            
+
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new ErrorResponse(ex))
                     .type(MediaType.APPLICATION_JSON)

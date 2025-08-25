@@ -1,39 +1,30 @@
 package com.thirdplace.endpoints;
 
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 
-import java.time.Instant;
-import java.util.UUID;
-
-import com.thirdplace.AppResponse;
 import com.thirdplace.db.PostsTableManager;
-import com.thirdplace.schemas.Post;
+import com.thirdplace.db.schemas.Post;
+import com.thirdplace.services.PostsService;
+import com.thirdplace.services.PostsService.CreatePostRequest;
+
 import java.util.List;
 
 @Path("")
 public class PostsEndpoints {
 
-    public record CreatePostResponse(Post createdPost)
-            implements AppResponse {
-    }
-
     public record GetAllPostsResponse(List<Post> posts)
             implements AppResponse {
     }
 
-    @GET
+    @POST
     @Path("api/Posts:create")
-    public Response createPost() {
-        Post samplePost = new Post(UUID.randomUUID().toString(), "Sample Post",
-                "Sample Author", "some description", Instant.now(), Instant.now(), 2,
-                new String[] {"tag1", "tag2"}, "some location", 0.0, 0.0, Instant.now(),
-                false, "active", "any", "any");
+    public Response createPost(final CreatePostRequest post) {
 
         return EndpointsBase.processRequest(() -> {
-            PostsTableManager.getInstance().insert(samplePost);
-            return new CreatePostResponse(samplePost);
+            return PostsService.createPost(post);
         });
     }
 

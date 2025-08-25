@@ -1,4 +1,4 @@
-package com.thirdplace;
+package com.thirdplace.endpoints;
 
 public interface AppResponse {
     

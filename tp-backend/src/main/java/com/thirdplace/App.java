@@ -19,6 +19,8 @@ public class App {
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
     
     public static void main(String[] args) throws Exception {
+        LOGGER.info("Starting server...");
+
         DatabaseManager.testConnection();
         
         PostsTableManager postsManager = PostsTableManager.getInstance();

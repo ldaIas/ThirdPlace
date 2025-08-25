@@ -181,7 +181,6 @@ public class AppDbInterpreter {
                                 });
             }
 
-            LOGGER.info("Args: " + Arrays.toString(constructorArgs));
             return (T) schemaClass.getDeclaredConstructors()[0].newInstance(constructorArgs);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException ex) {
 

@@ -17,7 +17,6 @@ public class EndpointsBase {
             final AppResponse response = method.get();
 
             return Response.ok(response)
-                    .header("Access-Control-Allow-Origin", "*")
                     .type(MediaType.APPLICATION_JSON)
                     .build();
         } catch (Exception ex) {

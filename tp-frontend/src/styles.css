@@ -47,6 +47,25 @@ body {
 
 .posts-header {
   margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.refresh-button {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #888;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.refresh-button:hover {
+  border-color: #555;
+  color: #fff;
 }
 
 .posts-title {

@@ -5,6 +5,7 @@ import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 import com.thirdplace.db.DatabaseManager;
 import com.thirdplace.db.PostsTableManager;
+import com.thirdplace.endpoints.CorsFilter;
 import com.thirdplace.endpoints.PostsEndpoints;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -33,6 +34,7 @@ public class App {
         ResourceConfig config = new ResourceConfig();
         config.register(PostsEndpoints.class);
         config.register(provider);
+        config.register(new CorsFilter());
         
         Server server = JettyHttpContainerFactory.createServer(URI.create("http://localhost:8080/"), config);
         

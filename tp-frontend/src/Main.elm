@@ -8,7 +8,6 @@ import Html.Events exposing (onClick, onInput, onSubmit, preventDefaultOn)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Task
 import Url
 
 
@@ -49,6 +48,8 @@ type alias NewPost =
 type Msg
     = NoOp
     | PostsLoaded (Result Http.Error (List Post))
+    | PostCreated (Result Http.Error ())
+    | RefreshPosts
     | ShowCreateForm
     | HideCreateForm
     | UpdateTitle String
@@ -96,9 +97,23 @@ update msg model =
                 Err err ->
                     let
                         _ =
-                            Debug.log "Error" err
+                            Debug.log "Error loading posts" err
                     in
                     ( { model | error = Just "Failed to load posts. Please check if the server is running." }, Cmd.none )
+        
+        PostCreated result ->
+            case result of
+                Ok _ ->
+                    ( { model | showCreateForm = False, newPost = emptyNewPost }, loadPosts )
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "Error creating post" err
+                    in
+                    ( { model | error = Just "Failed to create post. Please try again." }, Cmd.none )
+        
+        RefreshPosts ->
+            ( { model | error = Nothing }, loadPosts )
 
         ShowCreateForm ->
             ( { model | showCreateForm = True }, Cmd.none )
@@ -144,16 +159,8 @@ update msg model =
         SubmitPost ->
             if String.isEmpty (String.trim model.newPost.title) then
                 ( model, Cmd.none )
-
             else
-                let
-                    newPost =
-                        createPostFromForm model.newPost (List.length model.posts + 1)
-
-                    updatedPosts =
-                        newPost :: model.posts
-                in
-                ( { model | posts = updatedPosts, showCreateForm = False, newPost = emptyNewPost }, Cmd.none )
+                ( model, createPost model.newPost )
 
 
 view : Model -> Browser.Document Msg
@@ -168,6 +175,7 @@ view model =
             , div [ class "posts-container" ]
                 [ div [ class "posts-header" ]
                     [ h2 [ class "posts-title" ] [ text "Recent Activities" ]
+                    , button [ class "refresh-button", onClick RefreshPosts ] [ text "Refresh" ]
                     ]
                 , case model.error of
                     Just errorMsg ->
@@ -205,7 +213,7 @@ viewPost post =
         , div [ class "post-details" ]
             [ div [ class "post-detail" ]
                 [ span [ class "detail-label" ] [ text "When:" ]
-                , span [ class "detail-value" ] [ text (formatTime post.proposedTime) ]
+                , span [ class "detail-value" ] [ text post.proposedTime ]
                 ]
             , case post.location of
                 Just loc ->
@@ -233,40 +241,30 @@ viewTag : String -> Html Msg
 viewTag tag =
     span [ class "tag" ] [ text tag ]
 
+createPost : NewPost -> Cmd Msg
+createPost newPost =
+    Http.post
+        { url = "http://localhost:8080/api/Posts:create"
+        , body = Http.jsonBody (encodeNewPost newPost)
+        , expect = Http.expectWhatever PostCreated
+        }
 
-formatTime : String -> String
-formatTime timeStr =
-    -- Simple formatting for now
-    "Today 2:00 PM"
-
-
-createPostFromForm : NewPost -> Int -> Post
-createPostFromForm newPost nextId =
-    { id = String.fromInt nextId
-    , title = newPost.title
-    , author = "current_user"
-    , description =
-        if String.isEmpty (String.trim newPost.description) then
-            Nothing
-
-        else
-            Just newPost.description
-    , createdAt = "2025-01-27T20:00:00Z"
-    , endDate = "2025-01-28T23:59:00Z"
-    , groupSize = String.toInt newPost.groupSize |> Maybe.withDefault 2
-    , tags = []
-    , location =
-        if String.isEmpty (String.trim newPost.location) then
-            Nothing
-
-        else
-            Just newPost.location
-    , proposedTime = "2025-01-28T15:00:00Z"
-    , isDateActivity = False
-    , status = "active"
-    , category = newPost.category
-    }
-
+encodeNewPost : NewPost -> Encode.Value
+encodeNewPost newPost =
+    Encode.object
+        [ ( "title", Encode.string newPost.title )
+        , ( "author", Encode.string "current_user" )
+        , ( "description", Encode.string newPost.description )
+        , ( "endDate", Encode.string "2025-01-28T23:59:00Z" )
+        , ( "groupSize", Encode.int (String.toInt newPost.groupSize |> Maybe.withDefault 2) )
+        , ( "tags", Encode.list Encode.string [] )
+        , ( "location", Encode.string newPost.location )
+        , ( "latitude", Encode.float 37.7749 )
+        , ( "longitude", Encode.float -122.4194 )
+        , ( "proposedTime", Encode.string "2025-01-28T15:00:00Z" )
+        , ( "genderBalance", Encode.string "any" )
+        , ( "category", Encode.string newPost.category )
+        ]
 
 postsDecoder : Decode.Decoder (List Post)
 postsDecoder =

@@ -1,7 +1,5 @@
 attached_assets/
 
-elm-stuff/
-
 .idea/
 launch.json
 settings.json
@@ -16,8 +14,5 @@ dist/
 # Elm/frontend files
 bin/
 deploy/
-main.js
-
-# Relay files
-tp-ipfs/
-tp-relay-ipfs/
+elm-stuff/
+app.js

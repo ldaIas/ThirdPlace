@@ -1,26 +1,16 @@
 {
-  "dependencies": {
-    "@chainsafe/libp2p-gossipsub": "^14.1.0",
-    "@chainsafe/libp2p-noise": "^16.0.0",
-    "@chainsafe/libp2p-yamux": "^7.0.1",
-    "@helia/json": "4.0.7",
-    "@libp2p/bootstrap": "^11.0.8",
-    "@libp2p/circuit-relay-v2": "3.2.23",
-    "@libp2p/identify": "^3.0.8",
-    "@libp2p/webrtc": "^5.0.17",
-    "@libp2p/websockets": "^9.0.8",
-    "@orbitdb/core": "3.0.2",
-    "events": "^3.3.0",
-    "helia": "^5.5.0",
-    "libp2p": "^2.2.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.0.0",
-    "vite": "7.0.6",
-    "vite-plugin-node-polyfills": "^0.24.0"
-  },
+  "name": "tp-frontend",
+  "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "elm make ./src/UI/Main.elm --output=main.js && vite build"
-  }
+    "build": "elm make src/Main.elm --output=app.js && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "7.1.3"
+  },
+  "author": "",
+  "license": "AGPL-3.0",
+  "description": "ThirdPlace frontend built with Elm"
 }

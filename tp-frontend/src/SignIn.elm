@@ -1,49 +1,53 @@
-module SignIn exposing (Model, Msg(..), init, update, view)
+port module SignIn exposing (Model, Msg(..), init, update, view)
 
-import Html exposing (Html, button, div, form, h1, input, p, text)
-import Html.Attributes exposing (class, placeholder, type_, value)
-import Html.Events exposing (onClick, onInput, onSubmit, preventDefaultOn)
+import Html exposing (Html, button, div, h1, p, text)
+import Html.Attributes exposing (class)
+import Html.Events exposing (onClick)
+import Http
 import Json.Decode as Decode
 
 
 type alias Model =
-    { username : String
-    , password : String
-    , error : Maybe String
+    { error : Maybe String
+    , isLoading : Bool
     }
 
 
 type Msg
-    = UpdateUsername String
-    | UpdatePassword String
-    | SubmitSignIn
+    = StartFrequencySignIn
+    | GotSignedRequest (Result Http.Error String)
     | SignInSuccess
+    | BypassSignIn
 
 
 init : Model
 init =
-    { username = ""
-    , password = ""
-    , error = Nothing
+    { error = Nothing
+    , isLoading = False
     }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        UpdateUsername username ->
-            ( { model | username = username }, Cmd.none )
+        StartFrequencySignIn ->
+            ( { model | isLoading = True, error = Nothing }, getSignedRequest )
 
-        UpdatePassword password ->
-            ( { model | password = password }, Cmd.none )
+        GotSignedRequest result ->
+            case result of
+                Ok signedRequest ->
+                    let
+                        frequencyUrl = "https://testnet.frequencyaccess.com/siwa/start?signedRequest=" ++ signedRequest
+                    in
+                    ( { model | isLoading = False }, redirectToFrequency frequencyUrl )
 
-        SubmitSignIn ->
-            if String.isEmpty (String.trim model.username) || String.isEmpty (String.trim model.password) then
-                ( { model | error = Just "Please enter both username and password" }, Cmd.none )
-            else
-                ( { model | error = Nothing }, Cmd.none )
+                Err _ ->
+                    ( { model | isLoading = False, error = Just "Failed to get signed request" }, Cmd.none )
 
         SignInSuccess ->
+            ( model, Cmd.none )
+
+        BypassSignIn ->
             ( model, Cmd.none )
 
 
@@ -53,34 +57,42 @@ view model =
         [ div [ class "signin-form" ]
             [ h1 [ class "signin-title" ] [ text "Welcome to ThirdPlace" ]
             , p [ class "signin-subtitle" ] [ text "Sign in to find people for real-world activities" ]
-            , form [ onSubmit SubmitSignIn, preventDefaultOn "submit" (Decode.succeed ( SubmitSignIn, True )) ]
-                [ div [ class "form-group" ]
-                    [ input
-                        [ type_ "text"
-                        , placeholder "Username"
-                        , value model.username
-                        , onInput UpdateUsername
-                        , class "form-input"
-                        ]
-                        []
-                    ]
-                , div [ class "form-group" ]
-                    [ input
-                        [ type_ "password"
-                        , placeholder "Password"
-                        , value model.password
-                        , onInput UpdatePassword
-                        , class "form-input"
-                        ]
-                        []
-                    ]
-                , case model.error of
-                    Just errorMsg ->
-                        div [ class "error-message" ] [ text errorMsg ]
+            , case model.error of
+                Just errorMsg ->
+                    div [ class "error-message" ] [ text errorMsg ]
 
-                    Nothing ->
-                        text ""
-                , button [ type_ "submit", class "signin-button" ] [ text "Sign In" ]
-                ]
+                Nothing ->
+                    text ""
+            , button 
+                [ onClick StartFrequencySignIn
+                , class "signin-button"
+                ] 
+                [ text (if model.isLoading then "Connecting..." else "Sign In with Frequency") ]
+            , button 
+                [ onClick BypassSignIn
+                , class "bypass-button"
+                ] 
+                [ text "Bypass (Dev Only)" ]
             ]
         ]
+
+
+getSignedRequest : Cmd Msg
+getSignedRequest =
+    Http.get
+        { url = "http://localhost:8080/api/auth/signedRequest"
+        , expect = Http.expectJson GotSignedRequest signedRequestDecoder
+        }
+
+
+signedRequestDecoder : Decode.Decoder String
+signedRequestDecoder =
+    Decode.field "signedRequest" Decode.string
+
+
+port redirectToUrl : String -> Cmd msg
+
+
+redirectToFrequency : String -> Cmd Msg
+redirectToFrequency url =
+    redirectToUrl url

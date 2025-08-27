@@ -12,6 +12,13 @@
     <script>
         // Initialize your Elm application
         var app = Elm.Main.init(); 
+        
+        // Handle port for redirecting to Frequency
+        if (app.ports && app.ports.redirectToUrl) {
+            app.ports.redirectToUrl.subscribe(function(url) {
+                window.location.href = url;
+            });
+        }
     </script>
 </body>
 </html>

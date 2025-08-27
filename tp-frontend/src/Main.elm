@@ -29,10 +29,9 @@ init _ _ _ =
     ( { postsModel = Posts.init
       , signInModel = SignIn.init
       , isSignedIn = False
-      }, Cmd.none )
-
-
-
+      }
+    , Cmd.none
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -50,7 +49,7 @@ update msg model =
 
         SignInMsg signInMsg ->
             case signInMsg of
-                SignIn.SubmitSignIn ->
+                SignIn.BypassSignIn ->
                     let
                         ( updatedSignInModel, signInCmd ) =
                             SignIn.update signInMsg model.signInModel
@@ -84,10 +83,10 @@ view model =
                 , Html.map PostsMsg (Posts.view model.postsModel)
                 ]
             ]
+
         else
             [ Html.map SignInMsg (SignIn.view model.signInModel) ]
     }
-
 
 
 main : Program () Model Msg

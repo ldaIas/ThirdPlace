@@ -29,9 +29,7 @@ ThirdPlace enables ad-hoc social coordination where users can:
 ThirdPlace is built as a decentralized application using:
 
 - **Frontend**: Elm for reliable UI with JavaScript for effects
-- **Data Storage**: IPFS for distributed content storage
-- **Database**: OrbitDB for stateful data management (posts, RSVPs, messages)
-- **Persistence**: Pinning services ensure content availability
+- **Backend**: Java (JAX-RS/Jersey) + PostgreSQL
 - **Infrastructure**: Decentralized backend on Akash Network
 
 ### Why Decentralized?
@@ -44,9 +42,6 @@ ThirdPlace is built as a decentralized application using:
 ## Development Status
 
 🚧 **Currently in development** - Building MVP with core activity coordination features.
-
-### Current Phase: IPFS Foundation
-Setting up basic distributed content storage and retrieval capabilities.
 
 ## Getting Started
 

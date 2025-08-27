@@ -7,6 +7,7 @@ import com.thirdplace.db.DatabaseManager;
 import com.thirdplace.db.PostsTableManager;
 import com.thirdplace.endpoints.CorsFilter;
 import com.thirdplace.endpoints.PostsEndpoints;
+import com.thirdplace.endpoints.AuthEndpoints;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonProvider;
@@ -35,6 +36,7 @@ public class App {
         
         ResourceConfig config = new ResourceConfig();
         config.register(PostsEndpoints.class);
+        config.register(AuthEndpoints.class);
         config.register(provider);
         config.register(new CorsFilter());
         

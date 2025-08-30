@@ -88,28 +88,26 @@ public class RSVPsTableManager implements TableManager<RSVP> {
 
     @Override
     public boolean update(RSVP rsvp) throws SQLException {
-        String sql = "UPDATE rsvps SET userid = ?, postid = ?, status = ? WHERE id = ?";
-
+        List<WhereFilter> whereClause = List.of(
+            new WhereFilter(RSVP.RSVPFieldReference.ID, WhereFilter.FilterOperator.EQUALS, rsvp.id())
+        );
+        
         try (Connection conn = DatabaseManager.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, rsvp.userId());
-            stmt.setString(2, rsvp.postId());
-            stmt.setString(3, rsvp.status());
-            stmt.setString(4, rsvp.id());
-
+             PreparedStatement stmt = AppDbInterpreter.prepareUpdateStatement(rsvp, whereClause, conn)) {
+            
             return stmt.executeUpdate() > 0;
         }
     }
 
     @Override
     public boolean delete(String id) throws SQLException {
-        String sql = "DELETE FROM rsvps WHERE id = ?";
-
+        List<WhereFilter> whereClause = List.of(
+            new WhereFilter(RSVP.RSVPFieldReference.ID, WhereFilter.FilterOperator.EQUALS, id)
+        );
+        
         try (Connection conn = DatabaseManager.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, id);
+             PreparedStatement stmt = AppDbInterpreter.prepareDeleteStatement(RSVP.TABLE_NAME, whereClause, conn)) {
+            
             return stmt.executeUpdate() > 0;
         }
     }

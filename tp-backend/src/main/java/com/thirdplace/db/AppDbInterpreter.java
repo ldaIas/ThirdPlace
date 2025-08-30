@@ -31,6 +31,7 @@ public class AppDbInterpreter {
     private static final String INSERT_TABLE_SQL = "INSERT INTO %s (%s) VALUES (%s)";
     private static final String UPDATE_TABLE_SQL = "UPDATE %s SET %s WHERE %s";
     private static final String SELECT_TABLE_SQL = "SELECT * FROM %s WHERE %s";
+    private static final String DELETE_TABLE_SQL = "DELETE FROM %s WHERE %s";
 
     /**
      * Generate the table's DDL for creation in the database.
@@ -286,10 +287,40 @@ public class AppDbInterpreter {
         }
     }
 
+    public static String generateDeleteSql(final String tableName, final List<WhereFilter> whereClause) {
+        try {
+            final String whereString = whereClause.stream()
+                    .map(filter -> filter.schemaField().getFieldName() + " " + filter.operator().getValue() + " ?")
+                    .reduce((a, b) -> a + " AND " + b)
+                    .orElse("1=1");
+
+            return String.format(DELETE_TABLE_SQL, tableName, whereString);
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to generate delete SQL for schema " + tableName, ex);
+        }
+    }
+
     public static PreparedStatement prepareSelectStatement(final String tableName, final List<WhereFilter> whereClause,
             final Connection connection) throws SQLException {
 
         final PreparedStatement stmt = connection.prepareStatement(generateSelectSql(tableName, whereClause));
+
+        final AtomicInteger paramCounter = new AtomicInteger(1);
+        whereClause.stream()
+                .forEachOrdered(filter -> {
+                    try {
+                        addFilterValueToStatement(stmt, connection, filter, paramCounter.getAndIncrement());
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                });
+        return stmt;
+    }
+
+    public static PreparedStatement prepareDeleteStatement(final String tableName, final List<WhereFilter> whereClause,
+            final Connection connection) throws SQLException {
+
+        final PreparedStatement stmt = connection.prepareStatement(generateDeleteSql(tableName, whereClause));
 
         final AtomicInteger paramCounter = new AtomicInteger(1);
         whereClause.stream()

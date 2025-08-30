@@ -92,40 +92,26 @@ public class PostsTableManager implements TableManager<Post> {
 
     @Override
     public boolean update(Post post) throws SQLException {
-        String sql = """
-                UPDATE posts SET title = ?, description = ?, end_date = ?, group_size = ?,
-                               tags = ?, location = ?, proposed_time = ?, status = ?,
-                               gender_balance = ?, category = ?
-                WHERE id = ?
-                """;
-
+        List<WhereFilter> whereClause = List.of(
+            new WhereFilter(Post.PostFieldReference.ID, WhereFilter.FilterOperator.EQUALS, post.id())
+        );
+        
         try (Connection conn = DatabaseManager.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, post.title());
-            stmt.setString(2, post.description());
-            stmt.setTimestamp(3, Timestamp.from(post.endDate()));
-            stmt.setInt(4, post.groupSize());
-            stmt.setArray(5, conn.createArrayOf("TEXT", post.tags()));
-            stmt.setString(6, post.location());
-            stmt.setTimestamp(7, Timestamp.from(post.proposedTime()));
-            stmt.setString(8, post.status());
-            stmt.setString(9, post.genderBalance());
-            stmt.setString(10, post.category());
-            stmt.setString(11, post.id());
-
+             PreparedStatement stmt = AppDbInterpreter.prepareUpdateStatement(post, whereClause, conn)) {
+            
             return stmt.executeUpdate() > 0;
         }
     }
 
     @Override
     public boolean delete(String id) throws SQLException {
-        String sql = "DELETE FROM posts WHERE id = ?";
-
+        List<WhereFilter> whereClause = List.of(
+            new WhereFilter(Post.PostFieldReference.ID, WhereFilter.FilterOperator.EQUALS, id)
+        );
+        
         try (Connection conn = DatabaseManager.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, id);
+             PreparedStatement stmt = AppDbInterpreter.prepareDeleteStatement(Post.TABLE_NAME, whereClause, conn)) {
+            
             return stmt.executeUpdate() > 0;
         }
     }

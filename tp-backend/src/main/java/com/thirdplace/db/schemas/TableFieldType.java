@@ -1,4 +1,4 @@
-package com.thirdplace.db;
+package com.thirdplace.db.schemas;
 
 public enum TableFieldType {
     

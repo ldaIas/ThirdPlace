@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+import com.thirdplace.db.schemas.TableSchema;
+
 public interface TableManager<T extends TableSchema> {
     void createTable() throws SQLException;
     String insert(T entity) throws SQLException;

@@ -12,10 +12,16 @@ import java.util.List;
 import java.util.Optional;
 
 import com.thirdplace.db.schemas.Post;
+import com.thirdplace.db.schemas.SchemaFieldReference;
 
 public class PostsTableManager implements TableManager<Post> {
 
     private static PostsTableManager manager;
+
+    private static final String POSTS_TABLE = "posts";
+
+    private static final List<SchemaFieldReference> POST_FIELD_REFS = List.of(Post.PostFieldReference.values());
+
     private PostsTableManager() {
         // Private constructor to enforce singleton pattern
     }
@@ -30,7 +36,7 @@ public class PostsTableManager implements TableManager<Post> {
     @Override
     public void createTable() throws SQLException {
 
-        String sql = AppDbInterpreter.generateTableDdl(Post.class);
+        String sql = AppDbInterpreter.generateTableDdl(POSTS_TABLE, POST_FIELD_REFS);
         
         try (Connection conn = DatabaseManager.getConnection();
              Statement stmt = conn.createStatement()) {

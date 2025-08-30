@@ -15,9 +15,6 @@ import com.thirdplace.db.schemas.SchemaFieldReference;
 public class RSVPsTableManager implements TableManager<RSVP> {
 
     private static RSVPsTableManager manager;
-
-    private static final String RSVP_TABLE = "rsvps";
-
     private static final List<SchemaFieldReference> RSVP_FIELD_REFS = List.of(RSVP.RSVPFieldReference.values());
     
     private RSVPsTableManager() {
@@ -33,7 +30,7 @@ public class RSVPsTableManager implements TableManager<RSVP> {
 
     @Override
     public void createTable() throws SQLException {
-        String sql = AppDbInterpreter.generateTableDdl(RSVP_TABLE, RSVP_FIELD_REFS);
+        String sql = AppDbInterpreter.generateTableDdl(RSVP.TABLE_NAME, RSVP_FIELD_REFS);
         
         try (Connection conn = DatabaseManager.getConnection();
              Statement stmt = conn.createStatement()) {

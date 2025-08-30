@@ -30,6 +30,7 @@ public class AppDbInterpreter {
     private static final String CREATE_TABLE_DDL = "CREATE TABLE IF NOT EXISTS %s (%s)";
     private static final String INSERT_TABLE_SQL = "INSERT INTO %s (%s) VALUES (%s)";
     private static final String UPDATE_TABLE_SQL = "UPDATE %s SET %s WHERE %s";
+    private static final String SELECT_TABLE_SQL = "SELECT * FROM %s WHERE %s";
 
     /**
      * Generate the table's DDL for creation in the database.
@@ -80,7 +81,7 @@ public class AppDbInterpreter {
                     .reduce((a, b) -> a + COMMA + b)
                     .orElse(EMPTY);
 
-            return String.format(INSERT_TABLE_SQL, getTableNameForSchema(schema), fields, placeholders);
+            return String.format(INSERT_TABLE_SQL, schema.getTableName(), fields, placeholders);
         } catch (Exception ex) {
             throw new RuntimeException("Failed to generate insert SQL for schema " + schema.getClass().getSimpleName(),
                     ex);
@@ -95,11 +96,11 @@ public class AppDbInterpreter {
                     .orElse(EMPTY);
 
             final String whereString = whereClause.stream()
-                .map(filter -> filter.schemaField().getFieldName() + " " + filter.operator() + " ?")
-                .reduce((a, b) -> a + " AND " + b)
-                .orElse(EMPTY);
+                    .map(filter -> filter.schemaField().getFieldName() + " " + filter.operator() + " ?")
+                    .reduce((a, b) -> a + " AND " + b)
+                    .orElse(EMPTY);
 
-            return String.format(UPDATE_TABLE_SQL, getTableNameForSchema(schema), setClause, whereString);
+            return String.format(UPDATE_TABLE_SQL, schema.getTableName(), setClause, whereString);
         } catch (Exception ex) {
             throw new RuntimeException("Failed to generate update SQL for schema " + schema.getClass().getSimpleName(),
                     ex);
@@ -136,7 +137,8 @@ public class AppDbInterpreter {
         return stmt;
     }
 
-    public static PreparedStatement prepareUpdateStatement(final TableSchema schema, final List<WhereFilter> whereClause,
+    public static PreparedStatement prepareUpdateStatement(final TableSchema schema,
+            final List<WhereFilter> whereClause,
             final Connection connection) throws SQLException {
 
         final PreparedStatement stmt = connection.prepareStatement(generateUpdateSql(schema, whereClause));
@@ -155,8 +157,7 @@ public class AppDbInterpreter {
         whereClause.stream()
                 .forEachOrdered(filter -> {
                     try {
-                        final Object fieldValue = getFieldValue(schema, filter.schemaField().getFieldName());
-                        addFieldToStatement(stmt, connection, fieldValue, filter.schemaField(), paramCounter.getAndIncrement());
+                        addFilterValueToStatement(stmt, connection, filter, paramCounter.getAndIncrement());
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
@@ -272,7 +273,52 @@ public class AppDbInterpreter {
         };
     }
 
-    public static String getTableNameForSchema(final TableSchema schema) {
-        return schema.getClass().getSimpleName().toLowerCase() + "s";
+    public static String generateSelectSql(final String tableName, final List<WhereFilter> whereClause) {
+        try {
+            final String whereString = whereClause.stream()
+                    .map(filter -> filter.schemaField().getFieldName() + " " + filter.operator().getValue() + " ?")
+                    .reduce((a, b) -> a + " AND " + b)
+                    .orElse("1=1");
+
+            return String.format(SELECT_TABLE_SQL, tableName, whereString);
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to generate select SQL for schema " + tableName, ex);
+        }
+    }
+
+    public static PreparedStatement prepareSelectStatement(final String tableName, final List<WhereFilter> whereClause,
+            final Connection connection) throws SQLException {
+
+        final PreparedStatement stmt = connection.prepareStatement(generateSelectSql(tableName, whereClause));
+
+        final AtomicInteger paramCounter = new AtomicInteger(1);
+        whereClause.stream()
+                .forEachOrdered(filter -> {
+                    try {
+                        addFilterValueToStatement(stmt, connection, filter, paramCounter.getAndIncrement());
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                });
+        return stmt;
+    }
+
+    private static void addFilterValueToStatement(final PreparedStatement stmt, final Connection conn,
+            final WhereFilter filter, final int index) {
+        try {
+            switch (filter.schemaField().getFieldType()) {
+                case STRING -> stmt.setString(index, (String) filter.value());
+                case LONG_STRING -> stmt.setString(index, (String) filter.value());
+                case INTEGER -> stmt.setInt(index, (Integer) filter.value());
+                case DOUBLE -> stmt.setDouble(index, (Double) filter.value());
+                case BOOLEAN -> stmt.setBoolean(index, (Boolean) filter.value());
+                case TIMESTAMP -> stmt.setTimestamp(index, Timestamp.from((Instant) filter.value()));
+                case ARRAY -> stmt.setArray(index, conn.createArrayOf("TEXT", (String[]) filter.value()));
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Failed to add filter value to statement. Value: " + filter.value() + "; Field: "
+                    + filter.schemaField().getFieldName() + "; Index: " + index, e);
+            throw new RuntimeException(e);
+        }
     }
 }

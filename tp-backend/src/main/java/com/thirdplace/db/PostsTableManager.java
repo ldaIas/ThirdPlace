@@ -1,6 +1,5 @@
 package com.thirdplace.db;
 
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,13 +34,13 @@ public class PostsTableManager implements TableManager<Post> {
     public void createTable() throws SQLException {
 
         String sql = AppDbInterpreter.generateTableDdl(Post.TABLE_NAME, POST_FIELD_REFS);
-        
+
         try (Connection conn = DatabaseManager.getConnection();
-             Statement stmt = conn.createStatement()) {
+                Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         }
     }
-    
+
     @Override
     public String insert(Post post) throws SQLException {
         try (Connection conn = DatabaseManager.getConnection()) {
@@ -51,52 +50,58 @@ public class PostsTableManager implements TableManager<Post> {
             return post.id();
         }
     }
-    
+
     @Override
-    public Optional<Post> findById(String id) throws SQLException {
-        String sql = "SELECT * FROM posts WHERE id = ?";
-        
+    public List<Post> fetchByFilter(List<WhereFilter> filters) throws SQLException {
+        List<Post> results = new ArrayList<>();
+
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setString(1, id);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                return Optional.of(AppDbInterpreter.mapResultSetToSchema(Post.class, rs));
+                PreparedStatement stmt = AppDbInterpreter.prepareSelectStatement(Post.TABLE_NAME, filters, conn);
+                ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                results.add(AppDbInterpreter.mapResultSetToSchema(Post.class, rs));
             }
-            return Optional.empty();
         }
+        return results;
     }
-    
+
     @Override
-    public List<Post> findAll() throws SQLException {
+    public Optional<Post> fetchById(String id) throws SQLException {
+        List<WhereFilter> filters = List.of(
+                new WhereFilter(Post.PostFieldReference.ID, WhereFilter.FilterOperator.EQUALS, id));
+        List<Post> results = fetchByFilter(filters);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.get(0));
+    }
+
+    @Override
+    public List<Post> fetchAll() throws SQLException {
         String sql = "SELECT * FROM posts ORDER BY createdat DESC";
         List<Post> posts = new ArrayList<>();
-        
+
         try (Connection conn = DatabaseManager.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+
             while (rs.next()) {
                 posts.add(AppDbInterpreter.mapResultSetToSchema(Post.class, rs));
             }
         }
         return posts;
     }
-    
+
     @Override
     public boolean update(Post post) throws SQLException {
         String sql = """
-            UPDATE posts SET title = ?, description = ?, end_date = ?, group_size = ?, 
-                           tags = ?, location = ?, proposed_time = ?, status = ?, 
-                           gender_balance = ?, category = ?
-            WHERE id = ?
-            """;
-        
+                UPDATE posts SET title = ?, description = ?, end_date = ?, group_size = ?,
+                               tags = ?, location = ?, proposed_time = ?, status = ?,
+                               gender_balance = ?, category = ?
+                WHERE id = ?
+                """;
+
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, post.title());
             stmt.setString(2, post.description());
             stmt.setTimestamp(3, Timestamp.from(post.endDate()));
@@ -108,21 +113,21 @@ public class PostsTableManager implements TableManager<Post> {
             stmt.setString(9, post.genderBalance());
             stmt.setString(10, post.category());
             stmt.setString(11, post.id());
-            
+
             return stmt.executeUpdate() > 0;
         }
     }
-    
+
     @Override
     public boolean delete(String id) throws SQLException {
         String sql = "DELETE FROM posts WHERE id = ?";
-        
+
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, id);
             return stmt.executeUpdate() > 0;
         }
     }
-    
+
 }

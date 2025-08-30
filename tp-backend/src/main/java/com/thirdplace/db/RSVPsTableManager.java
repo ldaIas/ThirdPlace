@@ -16,7 +16,7 @@ public class RSVPsTableManager implements TableManager<RSVP> {
 
     private static RSVPsTableManager manager;
     private static final List<SchemaFieldReference> RSVP_FIELD_REFS = List.of(RSVP.RSVPFieldReference.values());
-    
+
     private RSVPsTableManager() {
         // Private constructor to enforce singleton pattern
     }
@@ -31,13 +31,13 @@ public class RSVPsTableManager implements TableManager<RSVP> {
     @Override
     public void createTable() throws SQLException {
         String sql = AppDbInterpreter.generateTableDdl(RSVP.TABLE_NAME, RSVP_FIELD_REFS);
-        
+
         try (Connection conn = DatabaseManager.getConnection();
-             Statement stmt = conn.createStatement()) {
+                Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         }
     }
-    
+
     @Override
     public String insert(RSVP rsvp) throws SQLException {
         try (Connection conn = DatabaseManager.getConnection()) {
@@ -46,63 +46,69 @@ public class RSVPsTableManager implements TableManager<RSVP> {
             return rsvp.id();
         }
     }
-    
+
     @Override
-    public Optional<RSVP> findById(String id) throws SQLException {
-        String sql = "SELECT * FROM rsvps WHERE id = ?";
-        
+    public List<RSVP> fetchByFilter(List<WhereFilter> filters) throws SQLException {
+        List<RSVP> results = new ArrayList<>();
+
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setString(1, id);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                return Optional.of(AppDbInterpreter.mapResultSetToSchema(RSVP.class, rs));
+                PreparedStatement stmt = AppDbInterpreter.prepareSelectStatement(RSVP.TABLE_NAME, filters, conn);
+                ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                results.add(AppDbInterpreter.mapResultSetToSchema(RSVP.class, rs));
             }
-            return Optional.empty();
         }
+        return results;
     }
-    
+
     @Override
-    public List<RSVP> findAll() throws SQLException {
+    public Optional<RSVP> fetchById(String id) throws SQLException {
+        List<WhereFilter> filters = List.of(
+                new WhereFilter(RSVP.RSVPFieldReference.ID, WhereFilter.FilterOperator.EQUALS, id));
+        List<RSVP> results = fetchByFilter(filters);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.get(0));
+    }
+
+    @Override
+    public List<RSVP> fetchAll() throws SQLException {
         String sql = "SELECT * FROM rsvps ORDER BY createdat DESC";
         List<RSVP> rsvps = new ArrayList<>();
-        
+
         try (Connection conn = DatabaseManager.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+
             while (rs.next()) {
                 rsvps.add(AppDbInterpreter.mapResultSetToSchema(RSVP.class, rs));
             }
         }
         return rsvps;
     }
-    
+
     @Override
     public boolean update(RSVP rsvp) throws SQLException {
         String sql = "UPDATE rsvps SET userid = ?, postid = ?, status = ? WHERE id = ?";
-        
+
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, rsvp.userId());
             stmt.setString(2, rsvp.postId());
             stmt.setString(3, rsvp.status());
             stmt.setString(4, rsvp.id());
-            
+
             return stmt.executeUpdate() > 0;
         }
     }
-    
+
     @Override
     public boolean delete(String id) throws SQLException {
         String sql = "DELETE FROM rsvps WHERE id = ?";
-        
+
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, id);
             return stmt.executeUpdate() > 0;
         }

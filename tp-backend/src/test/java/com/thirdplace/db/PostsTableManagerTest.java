@@ -19,15 +19,16 @@ import com.thirdplace.db.schemas.Post;
 class PostsTableManagerTest {
 
     private static final DataSourceCacheKey TEST_DATASOURCE_KEY = new DataSourceCacheKey("test_posts_schema");
-    private PostsTableManager postsTableManager;
+    private static final PostsTableManager postsTableManager = new PostsTableManager(TEST_DATASOURCE_KEY);
 
     @BeforeAll
     static void setUpClass() throws SQLException {
         try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
             conn.createStatement().execute("CREATE SCHEMA IF NOT EXISTS test_posts_schema");
+            postsTableManager.createTable();
         }
     }
-    
+
     @AfterAll
     static void tearDownClass() throws SQLException {
         try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
@@ -37,9 +38,7 @@ class PostsTableManagerTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        postsTableManager = new PostsTableManager(TEST_DATASOURCE_KEY);
-        postsTableManager.createTable();
-        
+
         // Clean up any existing test data
         try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
             conn.createStatement().execute("DELETE FROM posts");
@@ -58,11 +57,11 @@ class PostsTableManagerTest {
     @Test
     void testInsert() throws SQLException {
         Post testPost = createTestPost();
-        
+
         String result = postsTableManager.insert(testPost);
-        
+
         assertEquals(testPost.id(), result);
-        
+
         // Verify the post was actually inserted
         Optional<Post> retrieved = postsTableManager.fetchById(testPost.id());
         assertTrue(retrieved.isPresent());
@@ -73,9 +72,9 @@ class PostsTableManagerTest {
     void testFetchById() throws SQLException {
         Post testPost = createTestPost();
         postsTableManager.insert(testPost);
-        
+
         Optional<Post> result = postsTableManager.fetchById(testPost.id());
-        
+
         assertTrue(result.isPresent());
         assertEquals(testPost.id(), result.get().id());
         assertEquals(testPost.title(), result.get().title());
@@ -84,7 +83,7 @@ class PostsTableManagerTest {
     @Test
     void testFetchByIdNotFound() throws SQLException {
         Optional<Post> result = postsTableManager.fetchById("nonexistent-id");
-        
+
         assertFalse(result.isPresent());
     }
 
@@ -92,9 +91,9 @@ class PostsTableManagerTest {
     void testFetchAll() throws SQLException {
         Post testPost = createTestPost();
         postsTableManager.insert(testPost);
-        
+
         List<Post> result = postsTableManager.fetchAll();
-        
+
         assertEquals(1, result.size());
         assertEquals(testPost.id(), result.get(0).id());
     }
@@ -103,30 +102,29 @@ class PostsTableManagerTest {
     void testUpdate() throws SQLException {
         Post testPost = createTestPost();
         postsTableManager.insert(testPost);
-        
+
         Post updatedPost = new Post(
-            testPost.id(),
-            "Updated Title",
-            testPost.author(),
-            testPost.description(),
-            testPost.createdAt(),
-            testPost.endDate(),
-            testPost.groupSize(),
-            testPost.tags(),
-            testPost.location(),
-            testPost.latitude(),
-            testPost.longitude(),
-            testPost.proposedTime(),
-            testPost.isDateActivity(),
-            testPost.status(),
-            testPost.genderBalance(),
-            testPost.category()
-        );
-        
+                testPost.id(),
+                "Updated Title",
+                testPost.author(),
+                testPost.description(),
+                testPost.createdAt(),
+                testPost.endDate(),
+                testPost.groupSize(),
+                testPost.tags(),
+                testPost.location(),
+                testPost.latitude(),
+                testPost.longitude(),
+                testPost.proposedTime(),
+                testPost.isDateActivity(),
+                testPost.status(),
+                testPost.genderBalance(),
+                testPost.category());
+
         boolean result = postsTableManager.update(updatedPost);
-        
+
         assertTrue(result);
-        
+
         // Verify the update
         Optional<Post> retrieved = postsTableManager.fetchById(testPost.id());
         assertTrue(retrieved.isPresent());
@@ -137,11 +135,11 @@ class PostsTableManagerTest {
     void testDelete() throws SQLException {
         Post testPost = createTestPost();
         postsTableManager.insert(testPost);
-        
+
         boolean result = postsTableManager.delete(testPost.id());
-        
+
         assertTrue(result);
-        
+
         // Verify the deletion
         Optional<Post> retrieved = postsTableManager.fetchById(testPost.id());
         assertFalse(retrieved.isPresent());
@@ -151,35 +149,33 @@ class PostsTableManagerTest {
     void testFetchByFilter() throws SQLException {
         Post testPost = createTestPost();
         postsTableManager.insert(testPost);
-        
+
         List<WhereFilter> filters = List.of(
-            new WhereFilter(Post.PostFieldReference.STATUS, WhereFilter.FilterOperator.EQUALS, "active")
-        );
-        
+                new WhereFilter(Post.PostFieldReference.STATUS, WhereFilter.FilterOperator.EQUALS, "active"));
+
         List<Post> result = postsTableManager.fetchByFilter(filters);
-        
+
         assertEquals(1, result.size());
         assertEquals(testPost.id(), result.get(0).id());
     }
 
     private Post createTestPost() {
         return new Post(
-            "test-id-" + System.currentTimeMillis(),
-            "Test Title",
-            "Test Author",
-            "Test Description",
-            Instant.now(),
-            Instant.now().plusSeconds(3600),
-            5,
-            new String[]{"tag1", "tag2"},
-            "Test Location",
-            40.7128,
-            -74.0060,
-            Instant.now().plusSeconds(1800),
-            false,
-            "active",
-            "mixed",
-            "social"
-        );
+                "test-id-" + System.currentTimeMillis(),
+                "Test Title",
+                "Test Author",
+                "Test Description",
+                Instant.now(),
+                Instant.now().plusSeconds(3600),
+                5,
+                new String[] { "tag1", "tag2" },
+                "Test Location",
+                40.7128,
+                -74.0060,
+                Instant.now().plusSeconds(1800),
+                false,
+                "active",
+                "mixed",
+                "social");
     }
 }

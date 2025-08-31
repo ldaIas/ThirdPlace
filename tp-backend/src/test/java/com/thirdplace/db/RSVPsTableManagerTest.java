@@ -19,15 +19,16 @@ import com.thirdplace.db.schemas.RSVP;
 class RSVPsTableManagerTest {
 
     private static final DataSourceCacheKey TEST_DATASOURCE_KEY = new DataSourceCacheKey("test_rsvps_schema");
-    private RSVPsTableManager rsvpsTableManager;
+    private static final RSVPsTableManager rsvpsTableManager = new RSVPsTableManager(TEST_DATASOURCE_KEY);
 
     @BeforeAll
     static void setUpClass() throws SQLException {
         try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
             conn.createStatement().execute("CREATE SCHEMA IF NOT EXISTS test_rsvps_schema");
+            rsvpsTableManager.createTable();
         }
     }
-    
+
     @AfterAll
     static void tearDownClass() throws SQLException {
         try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
@@ -37,9 +38,7 @@ class RSVPsTableManagerTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        rsvpsTableManager = new RSVPsTableManager(TEST_DATASOURCE_KEY);
-        rsvpsTableManager.createTable();
-        
+
         // Clean up any existing test data
         try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
             conn.createStatement().execute("DELETE FROM rsvps");
@@ -58,11 +57,11 @@ class RSVPsTableManagerTest {
     @Test
     void testInsert() throws SQLException {
         RSVP testRSVP = createTestRSVP();
-        
+
         String result = rsvpsTableManager.insert(testRSVP);
-        
+
         assertEquals(testRSVP.id(), result);
-        
+
         // Verify the RSVP was actually inserted
         Optional<RSVP> retrieved = rsvpsTableManager.fetchById(testRSVP.id());
         assertTrue(retrieved.isPresent());
@@ -73,9 +72,9 @@ class RSVPsTableManagerTest {
     void testFetchById() throws SQLException {
         RSVP testRSVP = createTestRSVP();
         rsvpsTableManager.insert(testRSVP);
-        
+
         Optional<RSVP> result = rsvpsTableManager.fetchById(testRSVP.id());
-        
+
         assertTrue(result.isPresent());
         assertEquals(testRSVP.id(), result.get().id());
         assertEquals(testRSVP.status(), result.get().status());
@@ -84,7 +83,7 @@ class RSVPsTableManagerTest {
     @Test
     void testFetchByIdNotFound() throws SQLException {
         Optional<RSVP> result = rsvpsTableManager.fetchById("nonexistent-id");
-        
+
         assertFalse(result.isPresent());
     }
 
@@ -92,9 +91,9 @@ class RSVPsTableManagerTest {
     void testFetchAll() throws SQLException {
         RSVP testRSVP = createTestRSVP();
         rsvpsTableManager.insert(testRSVP);
-        
+
         List<RSVP> result = rsvpsTableManager.fetchAll();
-        
+
         assertEquals(1, result.size());
         assertEquals(testRSVP.id(), result.get(0).id());
     }
@@ -103,19 +102,18 @@ class RSVPsTableManagerTest {
     void testUpdate() throws SQLException {
         RSVP testRSVP = createTestRSVP();
         rsvpsTableManager.insert(testRSVP);
-        
+
         RSVP updatedRSVP = new RSVP(
-            testRSVP.id(),
-            testRSVP.userId(),
-            testRSVP.postId(),
-            "declined",
-            testRSVP.createdAt()
-        );
-        
+                testRSVP.id(),
+                testRSVP.userId(),
+                testRSVP.postId(),
+                "declined",
+                testRSVP.createdAt());
+
         boolean result = rsvpsTableManager.update(updatedRSVP);
-        
+
         assertTrue(result);
-        
+
         // Verify the update
         Optional<RSVP> retrieved = rsvpsTableManager.fetchById(testRSVP.id());
         assertTrue(retrieved.isPresent());
@@ -126,11 +124,11 @@ class RSVPsTableManagerTest {
     void testDelete() throws SQLException {
         RSVP testRSVP = createTestRSVP();
         rsvpsTableManager.insert(testRSVP);
-        
+
         boolean result = rsvpsTableManager.delete(testRSVP.id());
-        
+
         assertTrue(result);
-        
+
         // Verify the deletion
         Optional<RSVP> retrieved = rsvpsTableManager.fetchById(testRSVP.id());
         assertFalse(retrieved.isPresent());
@@ -140,24 +138,22 @@ class RSVPsTableManagerTest {
     void testFetchByFilter() throws SQLException {
         RSVP testRSVP = createTestRSVP();
         rsvpsTableManager.insert(testRSVP);
-        
+
         List<WhereFilter> filters = List.of(
-            new WhereFilter(RSVP.RSVPFieldReference.POST_ID, WhereFilter.FilterOperator.EQUALS, "post-123")
-        );
-        
+                new WhereFilter(RSVP.RSVPFieldReference.POST_ID, WhereFilter.FilterOperator.EQUALS, "post-123"));
+
         List<RSVP> result = rsvpsTableManager.fetchByFilter(filters);
-        
+
         assertEquals(1, result.size());
         assertEquals(testRSVP.id(), result.get(0).id());
     }
 
     private RSVP createTestRSVP() {
         return new RSVP(
-            "rsvp-test-id-" + System.currentTimeMillis(),
-            "user-123",
-            "post-123",
-            "confirmed",
-            Instant.now()
-        );
+                "rsvp-test-id-" + System.currentTimeMillis(),
+                "user-123",
+                "post-123",
+                "confirmed",
+                Instant.now());
     }
 }

@@ -146,12 +146,12 @@ class AppDbInterpreterTest {
 
             // Query and map result
             try (final PreparedStatement selectStmt = conn
-                    .prepareStatement("SELECT * FROM " + testEntity.TABLE_NAME + " WHERE id = ?")) {
+                    .prepareStatement("SELECT * FROM " + TestEntity.TABLE_NAME + " WHERE id = ?")) {
                 selectStmt.setString(1, testEntity.id());
                 try (final ResultSet rs = selectStmt.executeQuery()) {
                     assertTrue(rs.next(), "ResultSet should contain at least one row after insert");
 
-                    TestEntity result = AppDbInterpreter.mapResultSetToSchema(TestEntity.class, rs);
+                    final TestEntity result = AppDbInterpreter.mapResultSetToSchema(TestEntity.class, rs);
 
                     assertNotNull(result, "Mapped TestEntity should not be null");
                     assertEquals(testEntity.id(), result.id(), "Expected to get the same id back");

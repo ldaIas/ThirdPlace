@@ -6,7 +6,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import com.thirdplace.db.DatabaseManager;
 import com.thirdplace.db.PostsTableManager;
 import com.thirdplace.db.RSVPsTableManager;
-import com.thirdplace.db.DatabaseConfig.DataSourceCacheKey;
 import com.thirdplace.endpoints.CorsFilter;
 import com.thirdplace.endpoints.PostsEndpoints;
 import com.thirdplace.endpoints.AuthEndpoints;

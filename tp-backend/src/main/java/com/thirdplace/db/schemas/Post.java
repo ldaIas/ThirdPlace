@@ -39,7 +39,7 @@ public record Post(
 
 ) implements TableSchema {
 
-    public static final String TABLE_NAME = "rsvps";
+    public static final String TABLE_NAME = "posts";
 
     @Override
     public String getTableName() {

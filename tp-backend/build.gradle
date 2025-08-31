@@ -28,4 +28,15 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.1'
     implementation 'org.postgresql:postgresql:42.7.1'
     implementation 'com.zaxxer:HikariCP:5.1.0'
+    
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    testImplementation 'org.mockito:mockito-core:5.8.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.8.0'
+    testImplementation 'com.h2database:h2:2.2.224'
+    testImplementation 'org.glassfish.jersey.test-framework:jersey-test-framework-core:3.1.5'
+    testImplementation 'org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jetty:3.1.5'
+}
+
+test {
+    useJUnitPlatform()
 }

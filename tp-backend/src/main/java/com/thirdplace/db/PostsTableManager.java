@@ -5,29 +5,22 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.thirdplace.db.DatabaseConfig.DataSourceCacheKey;
 import com.thirdplace.db.schemas.Post;
 import com.thirdplace.db.schemas.SchemaFieldReference;
 
 public class PostsTableManager implements TableManager<Post> {
 
-    private static PostsTableManager manager;
-
     private static final List<SchemaFieldReference> POST_FIELD_REFS = List.of(Post.PostFieldReference.values());
 
-    private PostsTableManager() {
-        // Private constructor to enforce singleton pattern
-    }
+    private DataSourceCacheKey datasourceKey;
 
-    public static PostsTableManager getInstance() {
-        if (manager == null) {
-            manager = new PostsTableManager();
-        }
-        return manager;
+    public PostsTableManager(final DataSourceCacheKey datasourceKey) {
+        this.datasourceKey = datasourceKey;
     }
 
     @Override
@@ -35,7 +28,7 @@ public class PostsTableManager implements TableManager<Post> {
 
         String sql = AppDbInterpreter.generateTableDdl(Post.TABLE_NAME, POST_FIELD_REFS);
 
-        try (Connection conn = DatabaseManager.getConnection();
+        try (Connection conn = DatabaseManager.getConnection(datasourceKey);
                 Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         }
@@ -43,7 +36,7 @@ public class PostsTableManager implements TableManager<Post> {
 
     @Override
     public String insert(Post post) throws SQLException {
-        try (Connection conn = DatabaseManager.getConnection()) {
+        try (Connection conn = DatabaseManager.getConnection(datasourceKey)) {
 
             final PreparedStatement stmt = AppDbInterpreter.prepareInsertStatement(post, conn);
             stmt.executeUpdate();
@@ -55,7 +48,7 @@ public class PostsTableManager implements TableManager<Post> {
     public List<Post> fetchByFilter(List<WhereFilter> filters) throws SQLException {
         List<Post> results = new ArrayList<>();
 
-        try (Connection conn = DatabaseManager.getConnection();
+        try (Connection conn = DatabaseManager.getConnection(datasourceKey);
                 PreparedStatement stmt = AppDbInterpreter.prepareSelectStatement(Post.TABLE_NAME, filters, conn);
                 ResultSet rs = stmt.executeQuery()) {
 
@@ -79,7 +72,7 @@ public class PostsTableManager implements TableManager<Post> {
         String sql = "SELECT * FROM posts ORDER BY createdat DESC";
         List<Post> posts = new ArrayList<>();
 
-        try (Connection conn = DatabaseManager.getConnection();
+        try (Connection conn = DatabaseManager.getConnection(datasourceKey);
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -93,12 +86,11 @@ public class PostsTableManager implements TableManager<Post> {
     @Override
     public boolean update(Post post) throws SQLException {
         List<WhereFilter> whereClause = List.of(
-            new WhereFilter(Post.PostFieldReference.ID, WhereFilter.FilterOperator.EQUALS, post.id())
-        );
-        
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = AppDbInterpreter.prepareUpdateStatement(post, whereClause, conn)) {
-            
+                new WhereFilter(Post.PostFieldReference.ID, WhereFilter.FilterOperator.EQUALS, post.id()));
+
+        try (Connection conn = DatabaseManager.getConnection(datasourceKey);
+                PreparedStatement stmt = AppDbInterpreter.prepareUpdateStatement(post, whereClause, conn)) {
+
             return stmt.executeUpdate() > 0;
         }
     }
@@ -106,12 +98,11 @@ public class PostsTableManager implements TableManager<Post> {
     @Override
     public boolean delete(String id) throws SQLException {
         List<WhereFilter> whereClause = List.of(
-            new WhereFilter(Post.PostFieldReference.ID, WhereFilter.FilterOperator.EQUALS, id)
-        );
-        
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = AppDbInterpreter.prepareDeleteStatement(Post.TABLE_NAME, whereClause, conn)) {
-            
+                new WhereFilter(Post.PostFieldReference.ID, WhereFilter.FilterOperator.EQUALS, id));
+
+        try (Connection conn = DatabaseManager.getConnection(datasourceKey);
+                PreparedStatement stmt = AppDbInterpreter.prepareDeleteStatement(Post.TABLE_NAME, whereClause, conn)) {
+
             return stmt.executeUpdate() > 0;
         }
     }

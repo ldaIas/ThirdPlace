@@ -3,11 +3,13 @@ package com.thirdplace.db;
 import java.time.Instant;
 import java.util.List;
 
+import com.thirdplace.db.schemas.SchemaDefinition;
 import com.thirdplace.db.schemas.SchemaFieldReference;
 import com.thirdplace.db.schemas.TableFieldModifiers;
 import com.thirdplace.db.schemas.TableFieldType;
 import com.thirdplace.db.schemas.TableSchema;
 
+@SchemaDefinition(tableName = TestEntity.TABLE_NAME, fieldReference = TestEntity.TestEntityFieldReference.class)
 public record TestEntity(
     String id,
     String name,

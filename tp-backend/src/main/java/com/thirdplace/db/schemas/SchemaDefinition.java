@@ -8,5 +8,6 @@ import java.lang.annotation.ElementType;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface SchemaDefinition {
+    String tableName();
     Class<? extends SchemaFieldReference> fieldReference();
 }

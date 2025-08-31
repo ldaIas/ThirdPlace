@@ -42,12 +42,21 @@ public class AppDbInterpreter {
      * @param schema The schema to generate the DDL for
      * @return The DDL for the table
      */
-    public static String generateTableDdl(final String tableName, final List<SchemaFieldReference> schemaFields) {
+    public static <T extends TableSchema> String generateTableDdl(final Class<T> schemaClass) {
         try {
+
+            // Schema class must be annotated with @SchemaDefinition
+            final SchemaDefinition schemaDef = schemaClass.getAnnotation(SchemaDefinition.class);
+            if (schemaDef == null) {
+                throw new IllegalArgumentException(
+                        "Schema class " + schemaClass.getSimpleName() + " must be annotated with @SchemaDefinition");
+            }
+            final String tableName = schemaDef.tableName();
+            final SchemaFieldReference[] schemaFields = schemaDef.fieldReference().getEnumConstants();
 
             final StringBuilder fieldDefinitions = new StringBuilder();
 
-            schemaFields.stream()
+            Arrays.stream(schemaFields)
                     .map(fieldRef -> {
                         final String fieldName = fieldRef.getFieldName();
                         final String fieldType = fieldRef.getFieldType().getValue();
@@ -61,12 +70,12 @@ public class AppDbInterpreter {
                     .ifPresentOrElse(fieldDefinitions::append,
                             () -> {
                                 throw new IllegalArgumentException(
-                                        "ust have at least one field reference");
+                                        "must have at least one field reference");
                             });
 
             return String.format(CREATE_TABLE_DDL, tableName, fieldDefinitions);
         } catch (Exception ex) {
-            throw new RuntimeException("Failed to generate DDL for schema " + tableName, ex);
+            throw new RuntimeException("Failed to generate DDL for schema " + schemaClass.getSimpleName(), ex);
         }
     }
 

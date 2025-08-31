@@ -10,11 +10,10 @@ import java.util.List;
 import java.util.Optional;
 
 import com.thirdplace.db.schemas.Post;
-import com.thirdplace.db.schemas.SchemaFieldReference;
 
 public class PostsTableManager implements TableManager<Post> {
 
-    private static final List<SchemaFieldReference> POST_FIELD_REFS = List.of(Post.PostFieldReference.values());
+    public static final Class<Post> POST_CLASS = Post.class;
 
     private static PostsTableManager manager;
 
@@ -31,7 +30,7 @@ public class PostsTableManager implements TableManager<Post> {
     @Override
     public void createTable() throws SQLException {
 
-        String sql = AppDbInterpreter.generateTableDdl(Post.TABLE_NAME, POST_FIELD_REFS);
+        String sql = AppDbInterpreter.generateTableDdl(POST_CLASS);
 
         try (Connection conn = DatabaseManager.getConnection();
                 Statement stmt = conn.createStatement()) {

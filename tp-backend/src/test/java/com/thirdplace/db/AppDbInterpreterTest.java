@@ -46,8 +46,7 @@ class AppDbInterpreterTest {
 
     @Test
     void testGenerateTableDdl() {
-        String ddl = AppDbInterpreter.generateTableDdl(TestEntity.TABLE_NAME,
-                List.of(TestEntity.TestEntityFieldReference.values()));
+        String ddl = AppDbInterpreter.generateTableDdl(TestEntity.class);
 
         assertNotNull(ddl, "Generated DDL should not be null");
         assertTrue(ddl.contains("CREATE TABLE IF NOT EXISTS test_entities"),
@@ -123,8 +122,7 @@ class AppDbInterpreterTest {
         final TestEntity testEntity = createTestEntity();
 
         try (final Connection conn = DatabaseManager.getConnection()) {
-            conn.createStatement().execute(AppDbInterpreter.generateTableDdl(TestEntity.TABLE_NAME,
-                    List.of(TestEntity.TestEntityFieldReference.values())));
+            conn.createStatement().execute(AppDbInterpreter.generateTableDdl(TestEntity.class));
 
             final PreparedStatement result = AppDbInterpreter.prepareInsertStatement(testEntity, conn);
 
@@ -140,8 +138,7 @@ class AppDbInterpreterTest {
 
         try (Connection conn = DatabaseManager.getConnection()) {
             // Create table and insert test data
-            conn.createStatement().execute(AppDbInterpreter.generateTableDdl(TestEntity.TABLE_NAME,
-                    List.of(TestEntity.TestEntityFieldReference.values())));
+            conn.createStatement().execute(AppDbInterpreter.generateTableDdl(TestEntity.class));
 
             final PreparedStatement insertStmt = AppDbInterpreter.prepareInsertStatement(testEntity, conn);
             insertStmt.executeUpdate();

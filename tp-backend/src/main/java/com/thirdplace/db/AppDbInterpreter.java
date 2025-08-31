@@ -14,6 +14,7 @@ import org.postgresql.jdbc.PgArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.thirdplace.db.schemas.SchemaDefinition;
 import com.thirdplace.db.schemas.SchemaFieldReference;
 import com.thirdplace.db.schemas.TableSchema;
 
@@ -97,7 +98,7 @@ public class AppDbInterpreter {
                     .orElse(EMPTY);
 
             final String whereString = whereClause.stream()
-                    .map(filter -> filter.schemaField().getFieldName() + " " + filter.operator() + " ?")
+                    .map(filter -> filter.schemaField().getFieldName() + " " + filter.operator().getValue() + " ?")
                     .reduce((a, b) -> a + " AND " + b)
                     .orElse(EMPTY);
 
@@ -220,30 +221,27 @@ public class AppDbInterpreter {
         final Object[] constructorArgs = new Object[schemaClass.getRecordComponents().length];
 
         try {
-            final T schemaInstance = (T) schemaClass.getDeclaredConstructors()[0]
-                    .newInstance(new Object[schemaClass.getRecordComponents().length]);
+            // Get the schema field references from the annotation (assume all TableSchemas
+            // have the SchemaDefinition annotation)
+            final SchemaDefinition schemaDef = schemaClass.getAnnotation(SchemaDefinition.class);
+            final SchemaFieldReference[] fieldRefs = schemaDef.fieldReference().getEnumConstants();
 
-            for (final AtomicInteger atomicI = new AtomicInteger(1); atomicI.get() <= rs.getMetaData()
-                    .getColumnCount(); atomicI.incrementAndGet()) {
+            // Map each field by name to the correct constructor position
+            for (int fieldIndex = 0; fieldIndex < schemaClass.getRecordComponents().length; fieldIndex++) {
+                final String recordFieldName = schemaClass.getRecordComponents()[fieldIndex].getName();
 
-                final int i = atomicI.get();
-                final String fieldName = rs.getMetaData().getColumnName(i);
-                final Object fieldValue = rs.getObject(i);
-
-                schemaInstance.getSchemaFieldReferences().stream()
-                        .filter(fieldRef -> fieldRef.getFieldName().equalsIgnoreCase(fieldName))
+                // Find the corresponding schema field reference
+                final SchemaFieldReference fieldRef = Arrays.stream(fieldRefs)
+                        .filter(ref -> ref.getFieldName().equalsIgnoreCase(recordFieldName))
                         .findFirst()
-                        .ifPresentOrElse((fieldRef) -> {
-                            final Object convertedValue = mapResultObjectToSchemaFieldValue(fieldRef, fieldValue);
-                            constructorArgs[i - 1] = convertedValue;
-                        },
-                                () -> {
-                                    final IllegalArgumentException ex = new IllegalArgumentException(
-                                            "Field " + fieldName + " not found in schema "
-                                                    + schemaClass.getSimpleName());
-                                    LOGGER.error("Error while mapping result set to schema", ex);
-                                    throw ex;
-                                });
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Field " + recordFieldName + " not found in schema field references for "
+                                        + schemaClass.getSimpleName()));
+
+                // Get the value from result set by field name
+                final Object fieldValue = rs.getObject(fieldRef.getFieldName());
+                final Object convertedValue = mapResultObjectToSchemaFieldValue(fieldRef, fieldValue);
+                constructorArgs[fieldIndex] = convertedValue;
             }
 
             return (T) schemaClass.getDeclaredConstructors()[0].newInstance(constructorArgs);
@@ -257,11 +255,14 @@ public class AppDbInterpreter {
             final Object incomingValue) {
         return switch (fieldRef.getFieldType()) {
             case STRING, LONG_STRING -> (String) incomingValue;
-            case INTEGER -> (int) incomingValue;
-            case DOUBLE -> (double) incomingValue;
-            case BOOLEAN -> (boolean) incomingValue;
-            case TIMESTAMP -> ((Timestamp) incomingValue).toInstant();
+            case INTEGER -> incomingValue != null ? (int) incomingValue : 0;
+            case DOUBLE -> incomingValue != null ? (double) incomingValue : 0.0;
+            case BOOLEAN -> incomingValue != null ? (boolean) incomingValue : false;
+            case TIMESTAMP -> incomingValue != null ? ((Timestamp) incomingValue).toInstant() : null;
             case ARRAY -> {
+                if (incomingValue == null) {
+                    yield new String[0];
+                }
                 try {
                     final PgArray pgArray = (PgArray) incomingValue;
                     yield (String[]) pgArray.getArray();

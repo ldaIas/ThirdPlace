@@ -5,9 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import com.thirdplace.AppObjects;
 import com.thirdplace.db.PostsTableManager;
-import com.thirdplace.db.DatabaseConfig.DataSourceCacheKey;
 import com.thirdplace.db.schemas.Post;
 import com.thirdplace.endpoints.AppRequestBody;
 import com.thirdplace.endpoints.AppResponse;
@@ -77,8 +75,7 @@ public class PostsService {
                                 post.genderBalance(),
                                 post.category());
 
-                new PostsTableManager(getDataSourceCacheKey())
-                                .insert(postToInsert);
+                PostsTableManager.getInstance().insert(postToInsert);
 
                 final FormattedPostResponse formattedPost = new FormattedPostResponse(
                                 postToInsert.id(),
@@ -106,8 +103,7 @@ public class PostsService {
         }
 
         public static GetAllPostsResponse getAllPosts() throws SQLException {
-                final List<Post> posts = new PostsTableManager(getDataSourceCacheKey())
-                                .fetchAll();
+                final List<Post> posts = PostsTableManager.getInstance().fetchAll();
                 final List<FormattedPostResponse> formattedPosts = posts.stream().map(post -> {
                         return new FormattedPostResponse(
                                         post.id(),
@@ -128,15 +124,5 @@ public class PostsService {
                                         post.category());
                 }).toList();
                 return new GetAllPostsResponse(formattedPosts);
-        }
-
-        /**
-         * Gets the data source to use with the posts manager
-         * Package-private method for testing.
-         * 
-         * @return The data source to use
-         */
-        public static DataSourceCacheKey getDataSourceCacheKey() {
-                return AppObjects.DEFAULT_APP_DATASOURCE;
         }
 }

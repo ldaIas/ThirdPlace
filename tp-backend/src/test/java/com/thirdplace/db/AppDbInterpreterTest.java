@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.thirdplace.AppDataSource;
 import com.thirdplace.db.DatabaseConfig.DataSourceCacheKey;
 
 class AppDbInterpreterTest {
@@ -22,14 +23,15 @@ class AppDbInterpreterTest {
 
     @BeforeAll
     static void setUp() throws SQLException {
-        try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
+        AppDataSource.setAppDatasource(TEST_DATASOURCE_KEY);
+        try (Connection conn = DatabaseManager.getConnection()) {
             conn.createStatement().execute("CREATE SCHEMA IF NOT EXISTS test_schema");
         }
     }
 
     @AfterAll
     static void tearDown() throws SQLException {
-        try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
+        try (Connection conn = DatabaseManager.getConnection()) {
             conn.createStatement().execute("DROP SCHEMA IF EXISTS test_schema CASCADE");
         }
     }
@@ -37,7 +39,7 @@ class AppDbInterpreterTest {
     @BeforeEach
     public void beforeEach() throws SQLException {
         // Clean up any existing test data
-        try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
+        try (Connection conn = DatabaseManager.getConnection()) {
             conn.createStatement().execute("DROP TABLE IF EXISTS test_entities");
         }
     }
@@ -120,7 +122,7 @@ class AppDbInterpreterTest {
     void testPrepareInsertStatement() throws SQLException {
         final TestEntity testEntity = createTestEntity();
 
-        try (final Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
+        try (final Connection conn = DatabaseManager.getConnection()) {
             conn.createStatement().execute(AppDbInterpreter.generateTableDdl(TestEntity.TABLE_NAME,
                     List.of(TestEntity.TestEntityFieldReference.values())));
 
@@ -136,7 +138,7 @@ class AppDbInterpreterTest {
     void testMapResultSetToSchema() throws SQLException {
         final TestEntity testEntity = createTestEntity();
 
-        try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
+        try (Connection conn = DatabaseManager.getConnection()) {
             // Create table and insert test data
             conn.createStatement().execute(AppDbInterpreter.generateTableDdl(TestEntity.TABLE_NAME,
                     List.of(TestEntity.TestEntityFieldReference.values())));

@@ -3,6 +3,7 @@ package com.thirdplace.db.schemas;
 import java.time.Instant;
 import java.util.List;
 
+@SchemaDefinition(fieldReference = RSVP.RSVPFieldReference.class)
 public record RSVP(
 
         String id,

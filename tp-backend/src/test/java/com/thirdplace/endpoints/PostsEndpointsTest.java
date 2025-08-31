@@ -14,25 +14,26 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.thirdplace.db.DatabaseConfig.DataSourceCacheKey;
+import com.thirdplace.AppDataSource;
 import com.thirdplace.db.DatabaseManager;
 import com.thirdplace.db.PostsTableManager;
-import com.thirdplace.services.PostsService;
 import com.thirdplace.services.PostsService.CreatePostRequest;
 
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Application;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+
+import static com.thirdplace.endpoints.EndpointTestUtils.assertResponseStatus;
 
 class PostsEndpointsTest extends JerseyTest {
 
-    private static final DataSourceCacheKey TEST_DATASOURCE_KEY = new DataSourceCacheKey("test_endpoints_schema");
-    private static MockedStatic<PostsService> mockedService;
+    private static final DataSourceCacheKey TEST_DATASOURCE_KEY = new DataSourceCacheKey("test_posts_endpoints_schema");
     private ObjectMapper objectMapper;
 
     @Override
@@ -42,67 +43,62 @@ class PostsEndpointsTest extends JerseyTest {
 
     @BeforeAll
     static void setUpClass() throws SQLException {
-        try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
-            conn.createStatement().execute("CREATE SCHEMA IF NOT EXISTS test_endpoints_schema");
+        AppDataSource.setAppDatasource(TEST_DATASOURCE_KEY);
+        try (Connection conn = DatabaseManager.getConnection()) {
+            conn.createStatement().execute("CREATE SCHEMA IF NOT EXISTS test_posts_endpoints_schema");
         }
+        PostsTableManager.getInstance().createTable();
+
     }
 
     @AfterAll
     static void tearDownClass() throws SQLException {
-        try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
-            conn.createStatement().execute("DROP SCHEMA IF EXISTS test_endpoints_schema CASCADE");
+        try (Connection conn = DatabaseManager.getConnection()) {
+            conn.createStatement().execute("DROP SCHEMA IF EXISTS test_posts_endpoints_schema CASCADE");
         }
     }
 
     @BeforeEach
     public void setUp() throws Exception {
         super.setUp();
-        
+
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        
-        new PostsTableManager(TEST_DATASOURCE_KEY).createTable();
-        
-        try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
+
+        try (Connection conn = DatabaseManager.getConnection()) {
             conn.createStatement().execute("DELETE FROM posts");
         }
-        
-        mockedService = mockStatic(PostsService.class, CALLS_REAL_METHODS);
-        mockedService.when(PostsService::getDataSourceCacheKey).thenReturn(TEST_DATASOURCE_KEY);
+
     }
 
     @AfterEach
     public void tearDown() throws Exception {
-        if (mockedService != null) {
-            mockedService.close();
-        }
         super.tearDown();
     }
 
     @Test
     void testCreatePostEndpoint() throws Exception {
         CreatePostRequest request = new CreatePostRequest(
-            "Test Title",
-            "Test Author",
-            "Test Description",
-            Instant.now().plusSeconds(3600).toString(),
-            5,
-            new String[]{"tag1", "tag2"},
-            "Test Location",
-            40.7128,
-            -74.0060,
-            Instant.now().plusSeconds(1800).toString(),
-            "mixed",
-            "social"
-        );
+                "Test Title",
+                "Test Author",
+                "Test Description",
+                Instant.now().plusSeconds(3600).toString(),
+                5,
+                new String[] { "tag1", "tag2" },
+                "Test Location",
+                40.7128,
+                -74.0060,
+                Instant.now().plusSeconds(1800).toString(),
+                "mixed",
+                "social");
 
         Response response = target("api/Posts:create")
-            .request(MediaType.APPLICATION_JSON)
-            .post(Entity.json(request));
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.json(request));
 
-        assertEquals(200, response.getStatus());
+        assertResponseStatus(response, Status.OK);
         assertEquals(MediaType.APPLICATION_JSON, response.getMediaType().toString());
-        
+
         String responseBody = response.readEntity(String.class);
         assertNotNull(responseBody);
         assertTrue(responseBody.contains("Test Title"));
@@ -114,32 +110,31 @@ class PostsEndpointsTest extends JerseyTest {
     void testGetAllPostsEndpoint() throws Exception {
         // First create a post
         CreatePostRequest request = new CreatePostRequest(
-            "Test Title",
-            "Test Author",
-            "Test Description",
-            Instant.now().plusSeconds(3600).toString(),
-            5,
-            new String[]{"tag1"},
-            "Test Location",
-            40.7128,
-            -74.0060,
-            Instant.now().plusSeconds(1800).toString(),
-            "mixed",
-            "social"
-        );
+                "Test Title",
+                "Test Author",
+                "Test Description",
+                Instant.now().plusSeconds(3600).toString(),
+                5,
+                new String[] { "tag1" },
+                "Test Location",
+                40.7128,
+                -74.0060,
+                Instant.now().plusSeconds(1800).toString(),
+                "mixed",
+                "social");
 
         target("api/Posts:create")
-            .request(MediaType.APPLICATION_JSON)
-            .post(Entity.json(request));
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.json(request));
 
         // Then get all posts
         Response response = target("api/Posts:getAll")
-            .request(MediaType.APPLICATION_JSON)
-            .get();
+                .request(MediaType.APPLICATION_JSON)
+                .get();
 
-        assertEquals(200, response.getStatus());
+        assertResponseStatus(response, Status.OK);
         assertEquals(MediaType.APPLICATION_JSON, response.getMediaType().toString());
-        
+
         String responseBody = response.readEntity(String.class);
         assertNotNull(responseBody);
         assertTrue(responseBody.contains("Test Title"));
@@ -149,11 +144,11 @@ class PostsEndpointsTest extends JerseyTest {
     @Test
     void testGetAllPostsEmptyResponse() throws Exception {
         Response response = target("api/Posts:getAll")
-            .request(MediaType.APPLICATION_JSON)
-            .get();
+                .request(MediaType.APPLICATION_JSON)
+                .get();
 
-        assertEquals(200, response.getStatus());
-        
+        assertResponseStatus(response, Status.OK);
+
         String responseBody = response.readEntity(String.class);
         assertNotNull(responseBody);
         assertTrue(responseBody.contains("posts"));

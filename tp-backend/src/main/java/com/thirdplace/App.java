@@ -6,6 +6,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import com.thirdplace.db.DatabaseManager;
 import com.thirdplace.db.PostsTableManager;
 import com.thirdplace.db.RSVPsTableManager;
+import com.thirdplace.db.DatabaseConfig.DataSourceCacheKey;
 import com.thirdplace.endpoints.CorsFilter;
 import com.thirdplace.endpoints.PostsEndpoints;
 import com.thirdplace.endpoints.AuthEndpoints;
@@ -17,20 +18,22 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 
-import static com.thirdplace.AppObjects.DEFAULT_APP_DATASOURCE;
-
 public class App {
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
+
+    private static final DataSourceCacheKey DEFAULT_APP_DATASOURCE = new DataSourceCacheKey("app");
 
     public static void main(String[] args) throws Exception {
         LOGGER.info("Starting server...");
 
-        DatabaseManager.testConnection(DEFAULT_APP_DATASOURCE);
+        // Set the app data source
+        AppDataSource.setAppDatasource(DEFAULT_APP_DATASOURCE);
+
+        DatabaseManager.testConnection();
         
-        PostsTableManager postsManager = new PostsTableManager(DEFAULT_APP_DATASOURCE);
-        RSVPsTableManager rsvpsManager = new RSVPsTableManager(DEFAULT_APP_DATASOURCE);
-        postsManager.createTable();
-        rsvpsManager.createTable();
+        LOGGER.info("Creating tables for application");
+        PostsTableManager.getInstance();
+        RSVPsTableManager.getInstance();
         LOGGER.info("Database tables initialized");
         
         ObjectMapper mapper = new ObjectMapper();

@@ -13,17 +13,19 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.thirdplace.AppDataSource;
 import com.thirdplace.db.DatabaseConfig.DataSourceCacheKey;
 import com.thirdplace.db.schemas.Post;
 
 class PostsTableManagerTest {
 
     private static final DataSourceCacheKey TEST_DATASOURCE_KEY = new DataSourceCacheKey("test_posts_schema");
-    private static final PostsTableManager postsTableManager = new PostsTableManager(TEST_DATASOURCE_KEY);
+    private static final PostsTableManager postsTableManager = PostsTableManager.getInstance();
 
     @BeforeAll
     static void setUpClass() throws SQLException {
-        try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
+        AppDataSource.setAppDatasource(TEST_DATASOURCE_KEY);
+        try (Connection conn = DatabaseManager.getConnection()) {
             conn.createStatement().execute("CREATE SCHEMA IF NOT EXISTS test_posts_schema");
             postsTableManager.createTable();
         }
@@ -31,7 +33,7 @@ class PostsTableManagerTest {
 
     @AfterAll
     static void tearDownClass() throws SQLException {
-        try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
+        try (Connection conn = DatabaseManager.getConnection()) {
             conn.createStatement().execute("DROP SCHEMA IF EXISTS test_posts_schema CASCADE");
         }
     }
@@ -40,7 +42,7 @@ class PostsTableManagerTest {
     void setUp() throws SQLException {
 
         // Clean up any existing test data
-        try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
+        try (Connection conn = DatabaseManager.getConnection()) {
             conn.createStatement().execute("DELETE FROM posts");
         }
     }
@@ -48,7 +50,7 @@ class PostsTableManagerTest {
     @Test
     void testCreateTable() throws SQLException {
         // Table creation is already tested in setUp, just verify it exists
-        try (Connection conn = DatabaseManager.getConnection(TEST_DATASOURCE_KEY)) {
+        try (Connection conn = DatabaseManager.getConnection()) {
             var rs = conn.getMetaData().getTables(null, "test_posts_schema", "posts", null);
             assertTrue(rs.next());
         }

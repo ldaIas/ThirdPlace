@@ -169,6 +169,6 @@ class AppDbInterpreterTest {
                 "test-id",
                 "Test Name",
                 "Test Description",
-                Instant.now());
+                Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
     }
 }

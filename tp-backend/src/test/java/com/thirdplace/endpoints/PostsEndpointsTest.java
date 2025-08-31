@@ -1,8 +1,5 @@
 package com.thirdplace.endpoints;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -30,6 +27,9 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
 import static com.thirdplace.endpoints.EndpointTestUtils.assertResponseStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PostsEndpointsTest extends JerseyTest {
 

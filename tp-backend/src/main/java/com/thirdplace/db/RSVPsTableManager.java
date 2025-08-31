@@ -9,9 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.thirdplace.db.DatabaseConfig.DataSourceCacheKey;
 import com.thirdplace.db.schemas.RSVP;
-import com.thirdplace.db.schemas.SchemaFieldReference;
 
 public class RSVPsTableManager implements TableManager<RSVP> {
 

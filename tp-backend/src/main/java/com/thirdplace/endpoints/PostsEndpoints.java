@@ -5,18 +5,11 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 
-import com.thirdplace.db.schemas.Post;
 import com.thirdplace.services.PostsService;
 import com.thirdplace.services.PostsService.CreatePostRequest;
 
-import java.util.List;
-
 @Path("")
 public class PostsEndpoints {
-
-    public record GetAllPostsResponse(List<Post> posts)
-            implements AppResponse {
-    }
 
     @POST
     @Path("api/Posts:create")

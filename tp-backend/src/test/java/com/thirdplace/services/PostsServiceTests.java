@@ -18,8 +18,9 @@ import com.thirdplace.db.PostsTableManager;
 import com.thirdplace.services.PostsService.CreatePostRequest;
 import com.thirdplace.services.PostsService.CreatePostResponse;
 import com.thirdplace.services.PostsService.GetAllPostsResponse;
+import com.thirdplace.testutils.AppTestUtils;
 
-class PostsServiceTest {
+class PostsServiceTests {
 
     private static final DataSourceCacheKey TEST_DATASOURCE_KEY = new DataSourceCacheKey("test_service_schema");
 
@@ -48,9 +49,13 @@ class PostsServiceTest {
         }
     }
 
+    /**
+     * Test to ensure that we can create a post, and it is returned correctly.
+     *
+     */
     @Test
-    void testCreatePost() throws SQLException {
-        CreatePostRequest request = new CreatePostRequest(
+    void testCreatePost() {
+        final CreatePostRequest request = new CreatePostRequest(
                 "Test Title",
                 "Test Author",
                 "Test Description",
@@ -64,18 +69,21 @@ class PostsServiceTest {
                 "mixed",
                 "social");
 
-        CreatePostResponse response = PostsService.createPost(request);
+        final CreatePostResponse response = AppTestUtils.assertOkResult(PostsService.createPost(request));
 
-        assertNotNull(response);
-        assertNotNull(response.createdPost().id());
-        assertEquals("Test Title", response.createdPost().title());
-        assertEquals("Test Author", response.createdPost().author());
-        assertEquals("active", response.createdPost().status());
+        assertNotNull(response, "Expected non null response");
+        assertNotNull(response.createdPost().id(), "Expected created post id to equal response id");
+        assertEquals("Test Title", response.createdPost().title(), "Expected title to match");
+        assertEquals("Test Author", response.createdPost().author(), "Expected author to match");
+        assertEquals("active", response.createdPost().status(), "Expected status to match");
 
     }
 
+    /**
+     * Test to ensure that we can get all posts.
+     */
     @Test
-    void testGetAllPosts() throws SQLException {
+    void testGetAllPosts() {
         // First create a post
         CreatePostRequest request = new CreatePostRequest(
                 "Test Title",
@@ -93,11 +101,11 @@ class PostsServiceTest {
 
         PostsService.createPost(request);
 
-        GetAllPostsResponse response = PostsService.getAllPosts();
+        final GetAllPostsResponse response = AppTestUtils.assertOkResult(PostsService.getAllPosts());
 
-        assertNotNull(response);
-        assertEquals(1, response.posts().size());
-        assertEquals("Test Title", response.posts().get(0).title());
+        assertNotNull(response, "Expected to get a response");
+        assertEquals(1, response.posts().size(), "Expected to have a post");
+        assertEquals("Test Title", response.posts().getFirst().title(), "Expected matching title");
 
     }
 }

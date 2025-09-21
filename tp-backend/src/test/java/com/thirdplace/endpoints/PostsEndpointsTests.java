@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class PostsEndpointsTest extends JerseyTest {
+class PostsEndpointsTests extends JerseyTest {
 
     private static final DataSourceCacheKey TEST_DATASOURCE_KEY = new DataSourceCacheKey("test_posts_endpoints_schema");
     private ObjectMapper objectMapper;

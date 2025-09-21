@@ -15,16 +15,12 @@ public class PostsEndpoints {
     @Path("api/Posts:create")
     public Response createPost(final CreatePostRequest post) {
 
-        return EndpointsBase.processRequest(() -> {
-            return PostsService.createPost(post);
-        });
+        return EndpointsBase.processRequest(() -> PostsService.createPost(post));
     }
 
     @GET
     @Path("api/Posts:getAll")
     public Response getAllPosts() {
-        return EndpointsBase.processRequest(() -> {
-            return PostsService.getAllPosts();
-        });
+        return EndpointsBase.processRequest(PostsService::getAllPosts);
     }
 }

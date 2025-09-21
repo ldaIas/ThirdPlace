@@ -18,40 +18,30 @@ public class RSVPsEndpoints {
     @POST
     @Path("api/RSVPs:create")
     public Response createRSVP(final CreateRSVPRequest request) {
-        return EndpointsBase.processRequest(() -> {
-            return RSVPsService.createRSVP(request);
-        });
+        return EndpointsBase.processRequest(() -> RSVPsService.createRSVP(request));
     }
 
     @GET
     @Path("api/RSVPs:getByPost/{postId}")
     public Response getRSVPsByPost(@PathParam("postId") final String postId) {
-        return EndpointsBase.processRequest(() -> {
-            return RSVPsService.getRSVPsByPost(postId);
-        });
+        return EndpointsBase.processRequest(() -> RSVPsService.getRSVPsByPost(postId));
     }
 
     @GET
     @Path("api/RSVPs:getByUser/{userId}")
     public Response getRSVPsByUser(@PathParam("userId") final String userId) {
-        return EndpointsBase.processRequest(() -> {
-            return RSVPsService.getRSVPsByUser(userId);
-        });
+        return EndpointsBase.processRequest(() -> RSVPsService.getRSVPsByUser(userId));
     }
 
     @PUT
     @Path("api/RSVPs:updateStatus")
     public Response updateRSVPStatus(final UpdateRSVPStatusRequest request) {
-        return EndpointsBase.processRequest(() -> {
-            return RSVPsService.updateRSVPStatus(request);
-        });
+        return EndpointsBase.processRequest(() -> RSVPsService.updateRSVPStatus(request));
     }
 
     @DELETE
     @Path("api/RSVPs:delete/{rsvpId}")
     public Response deleteRSVP(@PathParam("rsvpId") final String rsvpId) {
-        return EndpointsBase.processRequest(() -> {
-            return RSVPsService.deleteRSVP(rsvpId);
-        });
+        return EndpointsBase.processRequest(() -> RSVPsService.deleteRSVP(rsvpId));
     }
 }

@@ -10,9 +10,12 @@ import java.util.List;
 import java.util.Optional;
 
 import com.thirdplace.db.schemas.Post;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PostsTableManager implements TableManager<Post> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(PostsTableManager.class);
     public static final Class<Post> POST_CLASS = Post.class;
 
     private static PostsTableManager manager;
@@ -30,10 +33,12 @@ public class PostsTableManager implements TableManager<Post> {
     @Override
     public void createTable() throws SQLException {
 
-        String sql = AppDbInterpreter.generateTableDdl(POST_CLASS);
+        final String sql = AppDbInterpreter.generateTableDdl(POST_CLASS);
 
-        try (Connection conn = DatabaseManager.getConnection();
-                Statement stmt = conn.createStatement()) {
+        LOGGER.info("Creating table: {}", sql);
+
+        try (final Connection conn = DatabaseManager.getConnection();
+             final Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         }
     }

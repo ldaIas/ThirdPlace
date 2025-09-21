@@ -1,4 +1,4 @@
-module Posts exposing (Model, Msg(..), Post, init, update, view, loadPosts)
+module Posts exposing (Model, Msg(..), Post, RSVP, init, update, view, loadPosts)
 
 import Html exposing (Html, button, div, form, h2, input, option, p, select, span, text, textarea)
 import Html.Attributes exposing (class, placeholder, type_, value)
@@ -25,6 +25,15 @@ type alias Post =
     }
 
 
+type alias RSVP =
+    { id : String
+    , userId : String
+    , postId : String
+    , status : String
+    , createdAt : String
+    }
+
+
 type alias NewPost =
     { title : String
     , description : String
@@ -39,6 +48,9 @@ type alias Model =
     , showCreateForm : Bool
     , newPost : NewPost
     , error : Maybe String
+    , showRSVPConfirm : Maybe String
+    , userRSVPs : List RSVP
+    , showMyRSVPs : Bool
     }
 
 
@@ -54,6 +66,16 @@ type Msg
     | UpdateGroupSize String
     | UpdateCategory String
     | SubmitPost
+    | ShowRSVPConfirm String
+    | HideRSVPConfirm
+    | ConfirmRSVP String
+    | RSVPCreated (Result Http.Error ())
+    | ShowMyRSVPs
+    | HideMyRSVPs
+    | LoadUserRSVPs
+    | UserRSVPsLoaded (Result Http.Error (List RSVP))
+    | DeleteRSVP String
+    | RSVPDeleted (Result Http.Error ())
 
 
 init : Model
@@ -62,6 +84,9 @@ init =
     , showCreateForm = False
     , newPost = emptyNewPost
     , error = Nothing
+    , showRSVPConfirm = Nothing
+    , userRSVPs = []
+    , showMyRSVPs = False
     }
 
 
@@ -160,25 +185,94 @@ update msg model =
             else
                 ( model, createPost model.newPost )
 
+        ShowRSVPConfirm postId ->
+            ( { model | showRSVPConfirm = Just postId }, Cmd.none )
+
+        HideRSVPConfirm ->
+            ( { model | showRSVPConfirm = Nothing }, Cmd.none )
+
+        ConfirmRSVP postId ->
+            ( { model | showRSVPConfirm = Nothing }, createRSVP postId )
+
+        RSVPCreated result ->
+            case result of
+                Ok _ ->
+                    ( model, loadPosts )
+
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "Error creating RSVP" err
+                    in
+                    ( { model | error = Just "Failed to create RSVP. Please try again." }, Cmd.none )
+
+        ShowMyRSVPs ->
+            ( { model | showMyRSVPs = True }, loadUserRSVPs )
+
+        HideMyRSVPs ->
+            ( { model | showMyRSVPs = False }, Cmd.none )
+
+        LoadUserRSVPs ->
+            ( model, loadUserRSVPs )
+
+        UserRSVPsLoaded result ->
+            case result of
+                Ok rsvps ->
+                    ( { model | userRSVPs = rsvps, error = Nothing }, Cmd.none )
+
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "Error loading user RSVPs" err
+                    in
+                    ( { model | error = Just "Failed to load RSVPs. Please try again." }, Cmd.none )
+
+        DeleteRSVP rsvpId ->
+            ( model, deleteRSVP rsvpId )
+
+        RSVPDeleted result ->
+            case result of
+                Ok _ ->
+                    ( model, loadUserRSVPs )
+
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "Error deleting RSVP" err
+                    in
+                    ( { model | error = Just "Failed to delete RSVP. Please try again." }, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
     div [ class "posts-container" ]
         [ div [ class "posts-header" ]
             [ h2 [ class "posts-title" ] [ text "Recent Activities" ]
-            , button [ class "refresh-button", onClick RefreshPosts ] [ text "Refresh" ]
+            , div [ class "header-buttons" ]
+                [ button [ class "my-rsvps-button", onClick ShowMyRSVPs ] [ text "My RSVPs" ]
+                , button [ class "refresh-button", onClick RefreshPosts ] [ text "Refresh" ]
+                ]
             ]
         , case model.error of
             Just errorMsg ->
                 div [ class "error-message" ] [ text errorMsg ]
 
             Nothing ->
-                div [ class "posts-list" ] (List.map viewPost model.posts)
+                if model.showMyRSVPs then
+                    viewMyRSVPs model.userRSVPs
+                else
+                    div [ class "posts-list" ] (List.map viewPost model.posts)
         , if model.showCreateForm then
             viewCreateForm model.newPost
-
+          else if model.showMyRSVPs then
+            text ""
           else
             button [ class "create-button", onClick ShowCreateForm ] [ text "+" ]
+        , case model.showRSVPConfirm of
+            Just postId ->
+                viewRSVPConfirmDialog postId
+            Nothing ->
+                text ""
         ]
 
 
@@ -222,6 +316,12 @@ viewPost post =
 
           else
             div [ class "post-tags" ] (List.map viewTag post.tags)
+        , div [ class "post-actions" ]
+            [ if post.author /= "current_user" then
+                button [ class "rsvp-button", onClick (ShowRSVPConfirm post.id) ] [ text "RSVP" ]
+              else
+                text ""
+            ]
         ]
 
 
@@ -236,6 +336,36 @@ createPost newPost =
         { url = "http://localhost:8080/api/Posts:create"
         , body = Http.jsonBody (encodeNewPost newPost)
         , expect = Http.expectWhatever PostCreated
+        }
+
+
+createRSVP : String -> Cmd Msg
+createRSVP postId =
+    Http.post
+        { url = "http://localhost:8080/api/RSVPs:create"
+        , body = Http.jsonBody (encodeCreateRSVP postId)
+        , expect = Http.expectWhatever RSVPCreated
+        }
+
+
+loadUserRSVPs : Cmd Msg
+loadUserRSVPs =
+    Http.get
+        { url = "http://localhost:8080/api/RSVPs:getByUser/current_user"
+        , expect = Http.expectJson UserRSVPsLoaded rsvpsDecoder
+        }
+
+
+deleteRSVP : String -> Cmd Msg
+deleteRSVP rsvpId =
+    Http.request
+        { method = "DELETE"
+        , headers = []
+        , url = "http://localhost:8080/api/RSVPs:delete/" ++ rsvpId
+        , body = Http.emptyBody
+        , expect = Http.expectWhatever RSVPDeleted
+        , timeout = Nothing
+        , tracker = Nothing
         }
 
 
@@ -257,9 +387,32 @@ encodeNewPost newPost =
         ]
 
 
+encodeCreateRSVP : String -> Encode.Value
+encodeCreateRSVP postId =
+    Encode.object
+        [ ( "userId", Encode.string "current_user" )
+        , ( "postId", Encode.string postId )
+        ]
+
+
 postsDecoder : Decode.Decoder (List Post)
 postsDecoder =
     Decode.field "posts" (Decode.list postDecoder)
+
+
+rsvpsDecoder : Decode.Decoder (List RSVP)
+rsvpsDecoder =
+    Decode.field "rsvps" (Decode.list rsvpDecoder)
+
+
+rsvpDecoder : Decode.Decoder RSVP
+rsvpDecoder =
+    Decode.succeed RSVP
+        |> andMap (Decode.field "id" Decode.string)
+        |> andMap (Decode.field "userId" Decode.string)
+        |> andMap (Decode.field "postId" Decode.string)
+        |> andMap (Decode.field "status" Decode.string)
+        |> andMap (Decode.field "createdAt" Decode.string)
 
 
 postDecoder : Decode.Decoder Post
@@ -283,6 +436,46 @@ postDecoder =
 andMap : Decode.Decoder a -> Decode.Decoder (a -> b) -> Decode.Decoder b
 andMap =
     Decode.map2 (|>)
+
+
+viewRSVPConfirmDialog : String -> Html Msg
+viewRSVPConfirmDialog postId =
+    div [ class "rsvp-confirm-overlay" ]
+        [ div [ class "rsvp-confirm-dialog" ]
+            [ h2 [ class "dialog-title" ] [ text "Confirm RSVP" ]
+            , p [ class "dialog-message" ] [ text "Are you sure you want to RSVP to this activity?" ]
+            , div [ class "dialog-actions" ]
+                [ button [ class "cancel-btn", onClick HideRSVPConfirm ] [ text "Cancel" ]
+                , button [ class "confirm-btn", onClick (ConfirmRSVP postId) ] [ text "Confirm RSVP" ]
+                ]
+            ]
+        ]
+
+
+viewMyRSVPs : List RSVP -> Html Msg
+viewMyRSVPs rsvps =
+    div [ class "my-rsvps" ]
+        [ div [ class "my-rsvps-header" ]
+            [ h2 [ class "my-rsvps-title" ] [ text "RSVPs I've Sent" ]
+            , button [ class "back-button", onClick HideMyRSVPs ] [ text "← Back to Posts" ]
+            ]
+        , if List.isEmpty rsvps then
+            div [ class "no-rsvps" ] [ text "You haven't sent any RSVPs yet." ]
+          else
+            div [ class "rsvps-list" ] (List.map viewRSVP rsvps)
+        ]
+
+
+viewRSVP : RSVP -> Html Msg
+viewRSVP rsvp =
+    div [ class "rsvp-card" ]
+        [ div [ class "rsvp-info" ]
+            [ p [ class "rsvp-post" ] [ text ("Post ID: " ++ rsvp.postId) ]
+            , p [ class "rsvp-status" ] [ text ("Status: " ++ rsvp.status) ]
+            , p [ class "rsvp-date" ] [ text ("Created: " ++ rsvp.createdAt) ]
+            ]
+        , button [ class "delete-rsvp-btn", onClick (DeleteRSVP rsvp.id) ] [ text "Delete" ]
+        ]
 
 
 viewCreateForm : NewPost -> Html Msg

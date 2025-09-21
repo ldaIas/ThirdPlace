@@ -26,17 +26,23 @@ public final class EndpointsBase {
             final Result<T> response = method.get();
 
             return switch (response) {
-                case Ok(var value) -> Response.ok(value)
-                        .type(MediaType.APPLICATION_JSON)
-                        .build();
-                case Error(var error) -> Response.status(Response.Status.BAD_REQUEST)
-                        .entity(error)
-                        .type(MediaType.APPLICATION_JSON)
-                        .build();
-                case AppException(var error, var cause) -> Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .entity(error)
-                        .type(MediaType.APPLICATION_JSON)
-                        .build();
+                case Ok(T value) -> Response.ok(value)
+                  .type(MediaType.APPLICATION_JSON)
+                  .build();
+                case Error(var error) -> {
+                    LOGGER.warn("Error processing request: {}", error);
+                    yield Response.status(Response.Status.BAD_REQUEST)
+                      .entity(error)
+                      .type(MediaType.APPLICATION_JSON)
+                      .build();
+                }
+                case AppException(var error, var cause) -> {
+                    LOGGER.error("Error processing request: {}", error, cause);
+                    yield Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                      .entity(error)
+                      .type(MediaType.APPLICATION_JSON)
+                      .build();
+                }
             };
 
         } catch (final RuntimeException ex) {

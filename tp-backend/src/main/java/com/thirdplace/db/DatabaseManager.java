@@ -18,7 +18,7 @@ public class DatabaseManager {
     }
 
     public static void testConnection() {
-        try (Connection conn = getConnection()) {
+        try (final Connection conn = getConnection()) {
             conn.createStatement()
                     .executeQuery("CREATE SCHEMA IF NOT EXISTS " + AppDataSource.getAppDatasource().schemaName());
 

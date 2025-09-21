@@ -10,8 +10,12 @@ import java.util.List;
 import java.util.Optional;
 
 import com.thirdplace.db.schemas.RSVP;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RSVPsTableManager implements TableManager<RSVP> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RSVPsTableManager.class);
 
     private static final Class<RSVP> RSVP_CLASS = RSVP.class;
     private static RSVPsTableManager manager;
@@ -29,17 +33,19 @@ public class RSVPsTableManager implements TableManager<RSVP> {
 
     @Override
     public void createTable() throws SQLException {
-        String sql = AppDbInterpreter.generateTableDdl(RSVP_CLASS);
+        final String sql = AppDbInterpreter.generateTableDdl(RSVP_CLASS);
 
-        try (Connection conn = DatabaseManager.getConnection();
-                Statement stmt = conn.createStatement()) {
+        LOGGER.info("Creating table: {}", sql);
+
+        try (final Connection conn = DatabaseManager.getConnection();
+             final Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         }
     }
 
     @Override
-    public String insert(RSVP rsvp) throws SQLException {
-        try (Connection conn = DatabaseManager.getConnection()) {
+    public String insert(final RSVP rsvp) throws SQLException {
+        try (final Connection conn = DatabaseManager.getConnection()) {
             final PreparedStatement stmt = AppDbInterpreter.prepareInsertStatement(rsvp, conn);
             stmt.executeUpdate();
             return rsvp.id();

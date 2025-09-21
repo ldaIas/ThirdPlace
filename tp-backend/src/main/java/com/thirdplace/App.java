@@ -1,5 +1,6 @@
 package com.thirdplace;
 
+import com.thirdplace.endpoints.RSVPsEndpoints;
 import org.eclipse.jetty.server.Server;
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -32,23 +33,24 @@ public class App {
         DatabaseManager.testConnection();
         
         LOGGER.info("Creating tables for application");
-        PostsTableManager.getInstance();
-        RSVPsTableManager.getInstance();
+        PostsTableManager.getInstance().createTable();
+        RSVPsTableManager.getInstance().createTable();
         LOGGER.info("Database tables initialized");
         
-        ObjectMapper mapper = new ObjectMapper();
+        final ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         
-        JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
+        final JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
         provider.setMapper(mapper);
         
-        ResourceConfig config = new ResourceConfig();
+        final ResourceConfig config = new ResourceConfig();
         config.register(PostsEndpoints.class);
+        config.register(RSVPsEndpoints.class);
         config.register(AuthEndpoints.class);
         config.register(provider);
         config.register(new CorsFilter());
         
-        Server server = JettyHttpContainerFactory.createServer(URI.create("http://localhost:8080/"), config);
+        final Server server = JettyHttpContainerFactory.createServer(URI.create("http://localhost:8080/"), config);
         
         LOGGER.info("Server started on http://localhost:8080");
         server.join();

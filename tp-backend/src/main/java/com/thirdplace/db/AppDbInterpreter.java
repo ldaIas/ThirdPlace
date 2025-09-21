@@ -39,7 +39,7 @@ public class AppDbInterpreter {
      * Input schemas must implement getSchemaFieldReferences().
      * The name of the table is the name of the schema class in lowercase.
      * 
-     * @param schema The schema to generate the DDL for
+     * @param schemaClass The schema to generate the DDL for
      * @return The DDL for the table
      */
     public static <T extends TableSchema> String generateTableDdl(final Class<T> schemaClass) {

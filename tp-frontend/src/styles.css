@@ -137,6 +137,27 @@ body {
   align-items: center;
 }
 
+.header-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.my-rsvps-button {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #888;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.my-rsvps-button:hover {
+  border-color: #555;
+  color: #fff;
+}
+
 .refresh-button {
   background: #1a1a1a;
   border: 1px solid #333;
@@ -263,6 +284,182 @@ body {
   border-radius: 6px;
   font-size: 0.75rem;
   border: 1px solid #333;
+}
+
+.post-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rsvp-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rsvp-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.rsvp-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.rsvp-confirm-dialog {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.dialog-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.dialog-message {
+  color: #ccc;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirm-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.my-rsvps {
+  width: 100%;
+}
+
+.my-rsvps-header {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.my-rsvps-title {
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: #fff;
+}
+
+.back-button {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #888;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  border-color: #555;
+  color: #fff;
+}
+
+.no-rsvps {
+  text-align: center;
+  color: #888;
+  font-size: 1rem;
+  padding: 2rem;
+}
+
+.rsvps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rsvp-card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.rsvp-card:hover {
+  border-color: #333;
+}
+
+.rsvp-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rsvp-post,
+.rsvp-status,
+.rsvp-date {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #ccc;
+}
+
+.rsvp-status {
+  color: #667eea;
+}
+
+.delete-rsvp-btn {
+  background: #2a1a1a;
+  border: 1px solid #4a2a2a;
+  color: #ff6b6b;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-rsvp-btn:hover {
+  background: #3a2a2a;
+  border-color: #6a3a3a;
 }
 
 .create-button {

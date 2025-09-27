@@ -47,7 +47,7 @@ public record Post(
         return TABLE_NAME;
     }
 
-    public static enum PostFieldReference implements SchemaFieldReference {
+    public enum PostFieldReference implements SchemaFieldReference {
         ID("id", TableFieldType.STRING, new TableFieldModifiers[] { TableFieldModifiers.PRIMARY_KEY }),
         TITLE("title", TableFieldType.STRING, new TableFieldModifiers[] { TableFieldModifiers.NOT_NULL }),
         AUTHOR("author", TableFieldType.STRING, new TableFieldModifiers[] { TableFieldModifiers.NOT_NULL }),

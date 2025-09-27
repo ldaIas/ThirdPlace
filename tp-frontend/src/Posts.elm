@@ -51,6 +51,8 @@ type alias Model =
     , showRSVPConfirm : Maybe String
     , userRSVPs : List RSVP
     , showMyRSVPs : Bool
+    , userPosts : List Post
+    , showMyPosts : Bool
     }
 
 
@@ -76,6 +78,10 @@ type Msg
     | UserRSVPsLoaded (Result Http.Error (List RSVP))
     | DeleteRSVP String
     | RSVPDeleted (Result Http.Error ())
+    | ShowMyPosts
+    | HideMyPosts
+    | LoadUserPosts
+    | UserPostsLoaded (Result Http.Error (List Post))
 
 
 init : Model
@@ -87,6 +93,8 @@ init =
     , showRSVPConfirm = Nothing
     , userRSVPs = []
     , showMyRSVPs = False
+    , userPosts = []
+    , showMyPosts = False
     }
 
 
@@ -242,6 +250,27 @@ update msg model =
                     in
                     ( { model | error = Just "Failed to delete RSVP. Please try again." }, Cmd.none )
 
+        ShowMyPosts ->
+            ( { model | showMyPosts = True }, loadUserPosts )
+
+        HideMyPosts ->
+            ( { model | showMyPosts = False }, Cmd.none )
+
+        LoadUserPosts ->
+            ( model, loadUserPosts )
+
+        UserPostsLoaded result ->
+            case result of
+                Ok posts ->
+                    ( { model | userPosts = posts, error = Nothing }, Cmd.none )
+
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "Error loading user posts" err
+                    in
+                    ( { model | error = Just "Failed to load posts. Please try again." }, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
@@ -249,7 +278,8 @@ view model =
         [ div [ class "posts-header" ]
             [ h2 [ class "posts-title" ] [ text "Recent Activities" ]
             , div [ class "header-buttons" ]
-                [ button [ class "my-rsvps-button", onClick ShowMyRSVPs ] [ text "My RSVPs" ]
+                [ button [ class "my-posts-button", onClick ShowMyPosts ] [ text "My Posts" ]
+                , button [ class "my-rsvps-button", onClick ShowMyRSVPs ] [ text "My RSVPs" ]
                 , button [ class "refresh-button", onClick RefreshPosts ] [ text "Refresh" ]
                 ]
             ]
@@ -260,11 +290,13 @@ view model =
             Nothing ->
                 if model.showMyRSVPs then
                     viewMyRSVPs model.userRSVPs
+                else if model.showMyPosts then
+                    viewMyPosts model.userPosts
                 else
                     div [ class "posts-list" ] (List.map viewPost model.posts)
         , if model.showCreateForm then
             viewCreateForm model.newPost
-          else if model.showMyRSVPs then
+          else if model.showMyRSVPs || model.showMyPosts then
             text ""
           else
             button [ class "create-button", onClick ShowCreateForm ] [ text "+" ]
@@ -369,6 +401,14 @@ deleteRSVP rsvpId =
         }
 
 
+loadUserPosts : Cmd Msg
+loadUserPosts =
+    Http.get
+        { url = "http://localhost:8080/api/Posts:getByUser/current_user"
+        , expect = Http.expectJson UserPostsLoaded postsDecoder
+        }
+
+
 encodeNewPost : NewPost -> Encode.Value
 encodeNewPost newPost =
     Encode.object
@@ -463,6 +503,59 @@ viewMyRSVPs rsvps =
             div [ class "no-rsvps" ] [ text "You haven't sent any RSVPs yet." ]
           else
             div [ class "rsvps-list" ] (List.map viewRSVP rsvps)
+        ]
+
+
+viewMyPosts : List Post -> Html Msg
+viewMyPosts posts =
+    div [ class "my-posts" ]
+        [ div [ class "my-posts-header" ]
+            [ h2 [ class "my-posts-title" ] [ text "My Posts" ]
+            , button [ class "back-button", onClick HideMyPosts ] [ text "← Back to Posts" ]
+            ]
+        , if List.isEmpty posts then
+            div [ class "no-posts" ] [ text "You haven't created any posts yet." ]
+          else
+            div [ class "posts-list" ] (List.map viewMyPost posts)
+        ]
+
+
+viewMyPost : Post -> Html Msg
+viewMyPost post =
+    div [ class "post-card" ]
+        [ div [ class "post-header" ]
+            [ div [ class "post-title" ] [ text post.title ]
+            , div [ class "post-meta" ]
+                [ span [ class "post-category" ] [ text post.category ]
+                ]
+            ]
+        , case post.description of
+            Just desc ->
+                p [ class "post-description" ] [ text desc ]
+            Nothing ->
+                text ""
+        , div [ class "post-details" ]
+            [ div [ class "post-detail" ]
+                [ span [ class "detail-label" ] [ text "When:" ]
+                , span [ class "detail-value" ] [ text post.proposedTime ]
+                ]
+            , case post.location of
+                Just loc ->
+                    div [ class "post-detail" ]
+                        [ span [ class "detail-label" ] [ text "Where:" ]
+                        , span [ class "detail-value" ] [ text loc ]
+                        ]
+                Nothing ->
+                    text ""
+            , div [ class "post-detail" ]
+                [ span [ class "detail-label" ] [ text "Group size:" ]
+                , span [ class "detail-value" ] [ text (String.fromInt post.groupSize ++ " people") ]
+                ]
+            ]
+        , if List.isEmpty post.tags then
+            text ""
+          else
+            div [ class "post-tags" ] (List.map viewTag post.tags)
         ]
 
 

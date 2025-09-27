@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.thirdplace.db.PostsTableManager;
+import com.thirdplace.db.WhereFilter;
 import com.thirdplace.db.schemas.Post;
 import com.thirdplace.endpoints.AppError;
 import com.thirdplace.endpoints.AppRequestBody;
@@ -134,6 +135,37 @@ public final class PostsService {
     public static Result<GetAllPostsResponse> getAllPosts() {
         try {
             final List<Post> posts = PostsTableManager.getInstance().fetchAll();
+            final List<FormattedPostResponse> formattedPosts = posts.stream()
+              .map(post -> new FormattedPostResponse(
+                post.id(),
+                post.title(),
+                post.author(),
+                post.description(),
+                post.createdAt().toString(),
+                post.endDate().toString(),
+                post.groupSize(),
+                post.tags(),
+                post.location(),
+                post.latitude(),
+                post.longitude(),
+                post.proposedTime().toString(),
+                post.isDateActivity(),
+                post.status(),
+                post.genderBalance(),
+                post.category())).toList();
+            return Result.ok(new GetAllPostsResponse(formattedPosts));
+        } catch (final SQLException e) {
+            return Result.appException(PostsErrorCode.DATABASE_ERROR, e);
+        }
+    }
+
+    public static Result<GetAllPostsResponse> getPostsByUser(final String author) {
+        try {
+            final List<Post> posts = PostsTableManager.getInstance().fetchByFilter(
+                List.of(new WhereFilter(
+                    Post.PostFieldReference.AUTHOR, 
+                    WhereFilter.FilterOperator.EQUALS,
+                    author)));
             final List<FormattedPostResponse> formattedPosts = posts.stream()
               .map(post -> new FormattedPostResponse(
                 post.id(),

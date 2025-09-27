@@ -3,6 +3,7 @@ package com.thirdplace.endpoints;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Response;
 
 import com.thirdplace.services.PostsService;
@@ -22,5 +23,11 @@ public class PostsEndpoints {
     @Path("api/Posts:getAll")
     public Response getAllPosts() {
         return EndpointsBase.processRequest(PostsService::getAllPosts);
+    }
+
+    @GET
+    @Path("api/Posts:getByUser/{author}")
+    public Response getPostsByUser(@PathParam("author") final String author) {
+        return EndpointsBase.processRequest(() -> PostsService.getPostsByUser(author));
     }
 }

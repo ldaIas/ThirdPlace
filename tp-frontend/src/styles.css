@@ -142,6 +142,7 @@ body {
   gap: 0.5rem;
 }
 
+.my-posts-button,
 .my-rsvps-button {
   background: #1a1a1a;
   border: 1px solid #333;
@@ -153,6 +154,7 @@ body {
   transition: all 0.2s ease;
 }
 
+.my-posts-button:hover,
 .my-rsvps-button:hover {
   border-color: #555;
   color: #fff;
@@ -367,18 +369,21 @@ body {
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-.my-rsvps {
+.my-rsvps,
+.my-posts {
   width: 100%;
 }
 
-.my-rsvps-header {
+.my-rsvps-header,
+.my-posts-header {
   margin-bottom: 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.my-rsvps-title {
+.my-rsvps-title,
+.my-posts-title {
   font-size: 1.5rem;
   font-weight: 400;
   color: #fff;
@@ -400,7 +405,8 @@ body {
   color: #fff;
 }
 
-.no-rsvps {
+.no-rsvps,
+.no-posts {
   text-align: center;
   color: #888;
   font-size: 1rem;

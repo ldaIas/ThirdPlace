@@ -28,7 +28,8 @@ public final class RSVPsService {
         CANNOT_RSVP_OWN_POST("Cannot RSVP to your own post"),
         ALREADY_RSVPED("User has already RSVPed to this post"),
         INVALID_STATUS("Invalid status. Must be PENDING, ACCEPTED, or DECLINED"),
-        GROUP_SIZE_LIMIT_REACHED("Cannot accept more RSVPs - group size limit reached");
+        GROUP_SIZE_LIMIT_REACHED("Cannot accept more RSVPs - group size limit reached"),
+        INVALID_RESPONSE("Invalid response. Must be ACCEPT or DECLINE");
 
         private final String message;
 
@@ -69,6 +70,11 @@ public final class RSVPsService {
             String status) implements AppRequestBody {
     }
 
+    public record RespondToRSVPRequest(
+            String rsvpId,
+            String response) implements AppRequestBody {
+    }
+
     public record UpdateRSVPStatusResponse(FormattedRSVPResponse updatedRSVP)
             implements AppResponse {
     }
@@ -82,6 +88,10 @@ public final class RSVPsService {
     }
 
     public record DeleteRSVPResponse(boolean success)
+            implements AppResponse {
+    }
+
+    public record RespondToRSVPResponse(String action, FormattedRSVPResponse rsvp)
             implements AppResponse {
     }
 
@@ -232,6 +242,66 @@ public final class RSVPsService {
         try {
             boolean success = RSVPsTableManager.getInstance().delete(rsvpId);
             return Result.ok(new DeleteRSVPResponse(success));
+        } catch (final SQLException e) {
+            return Result.appException(RSVPsErrorCode.DATABASE_ERROR, e);
+        }
+    }
+
+    public static Result<RespondToRSVPResponse> respondToRSVP(final RespondToRSVPRequest request) {
+        try {
+            // Validate response
+            if (!List.of("ACCEPT", "DECLINE").contains(request.response())) {
+                return Result.error(RSVPsErrorCode.INVALID_RESPONSE);
+            }
+
+            final RSVP existingRSVP = RSVPsTableManager.getInstance().fetchById(request.rsvpId())
+                    .orElse(null);
+            if (existingRSVP == null) {
+                return Result.error(RSVPsErrorCode.RSVP_NOT_FOUND);
+            }
+
+            if ("DECLINE".equals(request.response())) {
+                // Delete the RSVP
+                RSVPsTableManager.getInstance().delete(request.rsvpId());
+                return Result.ok(new RespondToRSVPResponse("DECLINED", null));
+            } else {
+                // Accept the RSVP - check group size limit first
+                final Post post = PostsTableManager.getInstance().fetchById(existingRSVP.postId())
+                        .orElse(null);
+                if (post == null) {
+                    return Result.error(RSVPsErrorCode.POST_NOT_FOUND);
+                }
+
+                // Count current accepted RSVPs
+                final List<WhereFilter> acceptedFilters = List.of(
+                        new WhereFilter(RSVP.RSVPFieldReference.POST_ID, WhereFilter.FilterOperator.EQUALS, existingRSVP.postId()),
+                        new WhereFilter(RSVP.RSVPFieldReference.STATUS, WhereFilter.FilterOperator.EQUALS, "ACCEPTED"));
+                
+                final List<RSVP> acceptedRSVPs = RSVPsTableManager.getInstance().fetchByFilter(acceptedFilters);
+                
+                if (acceptedRSVPs.size() >= post.groupSize()) {
+                    return Result.error(RSVPsErrorCode.GROUP_SIZE_LIMIT_REACHED);
+                }
+
+                // Update status to ACCEPTED
+                final RSVP updatedRSVP = new RSVP(
+                        existingRSVP.id(),
+                        existingRSVP.userId(),
+                        existingRSVP.postId(),
+                        "ACCEPTED",
+                        existingRSVP.createdAt());
+
+                RSVPsTableManager.getInstance().update(updatedRSVP);
+
+                final FormattedRSVPResponse formattedRSVP = new FormattedRSVPResponse(
+                        updatedRSVP.id(),
+                        updatedRSVP.userId(),
+                        updatedRSVP.postId(),
+                        updatedRSVP.status(),
+                        updatedRSVP.createdAt().toString());
+
+                return Result.ok(new RespondToRSVPResponse("ACCEPTED", formattedRSVP));
+            }
         } catch (final SQLException e) {
             return Result.appException(RSVPsErrorCode.DATABASE_ERROR, e);
         }

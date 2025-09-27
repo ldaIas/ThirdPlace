@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.Response;
 import com.thirdplace.services.RSVPsService;
 import com.thirdplace.services.RSVPsService.CreateRSVPRequest;
 import com.thirdplace.services.RSVPsService.UpdateRSVPStatusRequest;
+import com.thirdplace.services.RSVPsService.RespondToRSVPRequest;
 
 @Path("")
 public class RSVPsEndpoints {
@@ -43,5 +44,11 @@ public class RSVPsEndpoints {
     @Path("api/RSVPs:delete/{rsvpId}")
     public Response deleteRSVP(@PathParam("rsvpId") final String rsvpId) {
         return EndpointsBase.processRequest(() -> RSVPsService.deleteRSVP(rsvpId));
+    }
+
+    @PUT
+    @Path("api/RSVPs:respond")
+    public Response respondToRSVP(final RespondToRSVPRequest request) {
+        return EndpointsBase.processRequest(() -> RSVPsService.respondToRSVP(request));
     }
 }

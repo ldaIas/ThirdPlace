@@ -53,6 +53,8 @@ type alias Model =
     , showMyRSVPs : Bool
     , userPosts : List Post
     , showMyPosts : Bool
+    , postRSVPs : List ( String, List RSVP )
+    , expandedPost : Maybe String
     }
 
 
@@ -82,6 +84,11 @@ type Msg
     | HideMyPosts
     | LoadUserPosts
     | UserPostsLoaded (Result Http.Error (List Post))
+    | LoadPostRSVPs String
+    | PostRSVPsLoaded String (Result Http.Error (List RSVP))
+    | TogglePostExpansion String
+    | RespondToRSVP String String
+    | RSVPResponseSent (Result Http.Error ())
 
 
 init : Model
@@ -95,6 +102,8 @@ init =
     , showMyRSVPs = False
     , userPosts = []
     , showMyPosts = False
+    , postRSVPs = []
+    , expandedPost = Nothing
     }
 
 
@@ -271,6 +280,60 @@ update msg model =
                     in
                     ( { model | error = Just "Failed to load posts. Please try again." }, Cmd.none )
 
+        LoadPostRSVPs postId ->
+            ( model, loadPostRSVPs postId )
+
+        PostRSVPsLoaded postId result ->
+            case result of
+                Ok rsvps ->
+                    let
+                        updatedPostRSVPs =
+                            ( postId, rsvps ) :: List.filter (\( id, _ ) -> id /= postId) model.postRSVPs
+                    in
+                    ( { model | postRSVPs = updatedPostRSVPs, error = Nothing }, Cmd.none )
+
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "Error loading post RSVPs" err
+                    in
+                    ( { model | error = Just "Failed to load RSVPs. Please try again." }, Cmd.none )
+
+        TogglePostExpansion postId ->
+            let
+                newExpandedPost =
+                    if model.expandedPost == Just postId then
+                        Nothing
+                    else
+                        Just postId
+                
+                cmd =
+                    if newExpandedPost == Just postId then
+                        loadPostRSVPs postId
+                    else
+                        Cmd.none
+            in
+            ( { model | expandedPost = newExpandedPost }, cmd )
+
+        RespondToRSVP rsvpId response ->
+            ( model, respondToRSVP rsvpId response )
+
+        RSVPResponseSent result ->
+            case result of
+                Ok _ ->
+                    case model.expandedPost of
+                        Just postId ->
+                            ( model, loadPostRSVPs postId )
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "Error responding to RSVP" err
+                    in
+                    ( { model | error = Just "Failed to respond to RSVP. Please try again." }, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
@@ -291,7 +354,7 @@ view model =
                 if model.showMyRSVPs then
                     viewMyRSVPs model.userRSVPs
                 else if model.showMyPosts then
-                    viewMyPosts model.userPosts
+                    viewMyPosts model model.userPosts
                 else
                     div [ class "posts-list" ] (List.map viewPost model.posts)
         , if model.showCreateForm then
@@ -409,6 +472,27 @@ loadUserPosts =
         }
 
 
+loadPostRSVPs : String -> Cmd Msg
+loadPostRSVPs postId =
+    Http.get
+        { url = "http://localhost:8080/api/RSVPs:getByPost/" ++ postId
+        , expect = Http.expectJson (PostRSVPsLoaded postId) rsvpsDecoder
+        }
+
+
+respondToRSVP : String -> String -> Cmd Msg
+respondToRSVP rsvpId response =
+    Http.request
+        { method = "PUT"
+        , headers = []
+        , url = "http://localhost:8080/api/RSVPs:respond"
+        , body = Http.jsonBody (encodeRSVPResponse rsvpId response)
+        , expect = Http.expectWhatever RSVPResponseSent
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
 encodeNewPost : NewPost -> Encode.Value
 encodeNewPost newPost =
     Encode.object
@@ -432,6 +516,14 @@ encodeCreateRSVP postId =
     Encode.object
         [ ( "userId", Encode.string "current_user" )
         , ( "postId", Encode.string postId )
+        ]
+
+
+encodeRSVPResponse : String -> String -> Encode.Value
+encodeRSVPResponse rsvpId response =
+    Encode.object
+        [ ( "rsvpId", Encode.string rsvpId )
+        , ( "response", Encode.string response )
         ]
 
 
@@ -506,8 +598,8 @@ viewMyRSVPs rsvps =
         ]
 
 
-viewMyPosts : List Post -> Html Msg
-viewMyPosts posts =
+viewMyPosts : Model -> List Post -> Html Msg
+viewMyPosts model posts =
     div [ class "my-posts" ]
         [ div [ class "my-posts-header" ]
             [ h2 [ class "my-posts-title" ] [ text "My Posts" ]
@@ -516,12 +608,28 @@ viewMyPosts posts =
         , if List.isEmpty posts then
             div [ class "no-posts" ] [ text "You haven't created any posts yet." ]
           else
-            div [ class "posts-list" ] (List.map viewMyPost posts)
+            div [ class "posts-list" ] (List.map (viewMyPost model) posts)
         ]
 
 
-viewMyPost : Post -> Html Msg
-viewMyPost post =
+viewMyPost : Model -> Post -> Html Msg
+viewMyPost model post =
+    let
+        postRSVPs =
+            List.filter (\( postId, _ ) -> postId == post.id) model.postRSVPs
+                |> List.head
+                |> Maybe.map Tuple.second
+                |> Maybe.withDefault []
+        
+        acceptedCount =
+            List.filter (\rsvp -> rsvp.status == "ACCEPTED") postRSVPs |> List.length
+        
+        pendingRSVPs =
+            List.filter (\rsvp -> rsvp.status == "PENDING") postRSVPs
+        
+        isExpanded =
+            model.expandedPost == Just post.id
+    in
     div [ class "post-card" ]
         [ div [ class "post-header" ]
             [ div [ class "post-title" ] [ text post.title ]
@@ -549,15 +657,45 @@ viewMyPost post =
                     text ""
             , div [ class "post-detail" ]
                 [ span [ class "detail-label" ] [ text "Group size:" ]
-                , span [ class "detail-value" ] [ text (String.fromInt post.groupSize ++ " people") ]
+                , span [ class "detail-value" ] [ text (String.fromInt acceptedCount ++ "/" ++ String.fromInt post.groupSize ++ " people") ]
                 ]
             ]
         , if List.isEmpty post.tags then
             text ""
           else
             div [ class "post-tags" ] (List.map viewTag post.tags)
+        , div [ class "rsvp-section" ]
+            [ button 
+                [ class "rsvp-toggle"
+                , onClick (TogglePostExpansion post.id)
+                ] 
+                [ text (String.fromInt (List.length pendingRSVPs) ++ " pending RSVPs " ++ (if isExpanded then "▲" else "▼")) ]
+            , if isExpanded then
+                div [ class "rsvp-list" ] (List.map (viewPostRSVP post.groupSize acceptedCount) pendingRSVPs)
+              else
+                text ""
+            ]
         ]
 
+
+viewPostRSVP : Int -> Int -> RSVP -> Html Msg
+viewPostRSVP groupSize acceptedCount rsvp =
+    let
+        canAccept = acceptedCount < groupSize
+    in
+    div [ class "post-rsvp-card" ]
+        [ div [ class "rsvp-info" ]
+            [ span [ class "rsvp-user" ] [ text ("From: " ++ rsvp.userId) ]
+            , span [ class "rsvp-date" ] [ text rsvp.createdAt ]
+            ]
+        , div [ class "rsvp-actions" ]
+            [ if canAccept then
+                button [ class "accept-btn", onClick (RespondToRSVP rsvp.id "ACCEPT") ] [ text "Accept" ]
+              else
+                button [ class "accept-btn disabled" ] [ text "Group Full" ]
+            , button [ class "decline-btn", onClick (RespondToRSVP rsvp.id "DECLINE") ] [ text "Decline" ]
+            ]
+        ]
 
 viewRSVP : RSVP -> Html Msg
 viewRSVP rsvp =

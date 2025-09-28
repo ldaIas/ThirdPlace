@@ -224,10 +224,10 @@ update msg model =
                     ( { model | error = Just "Failed to create RSVP. Please try again." }, Cmd.none )
 
         ShowMyRSVPs ->
-            ( { model | showMyRSVPs = True }, loadUserRSVPs )
+            ( { model | showMyRSVPs = True, showMyPosts = False }, loadUserRSVPs )
 
         HideMyRSVPs ->
-            ( { model | showMyRSVPs = False }, Cmd.none )
+            ( { model | showMyRSVPs = False, showMyPosts = False }, Cmd.none )
 
         LoadUserRSVPs ->
             ( model, loadUserRSVPs )
@@ -260,10 +260,10 @@ update msg model =
                     ( { model | error = Just "Failed to delete RSVP. Please try again." }, Cmd.none )
 
         ShowMyPosts ->
-            ( { model | showMyPosts = True }, loadUserPosts )
+            ( { model | showMyPosts = True, showMyRSVPs = False }, loadUserPosts )
 
         HideMyPosts ->
-            ( { model | showMyPosts = False }, Cmd.none )
+            ( { model | showMyPosts = False, showMyRSVPs = False }, Cmd.none )
 
         LoadUserPosts ->
             ( model, loadUserPosts )
@@ -271,7 +271,13 @@ update msg model =
         UserPostsLoaded result ->
             case result of
                 Ok posts ->
-                    ( { model | userPosts = posts, error = Nothing }, Cmd.none )
+                    let
+                        loadRSVPsCmd = 
+                            posts
+                                |> List.map (\post -> loadPostRSVPs post.id)
+                                |> Cmd.batch
+                    in
+                    ( { model | userPosts = posts, error = Nothing }, loadRSVPsCmd )
 
                 Err err ->
                     let
@@ -589,7 +595,7 @@ viewMyRSVPs rsvps =
     div [ class "my-rsvps" ]
         [ div [ class "my-rsvps-header" ]
             [ h2 [ class "my-rsvps-title" ] [ text "RSVPs I've Sent" ]
-            , button [ class "back-button", onClick HideMyRSVPs ] [ text "← Back to Posts" ]
+            , button [ class "back-button", onClick (HideMyRSVPs) ] [ text "← Back to Posts" ]
             ]
         , if List.isEmpty rsvps then
             div [ class "no-rsvps" ] [ text "You haven't sent any RSVPs yet." ]
@@ -660,6 +666,15 @@ viewMyPost model post =
                 , span [ class "detail-value" ] [ text (String.fromInt acceptedCount ++ "/" ++ String.fromInt post.groupSize ++ " people") ]
                 ]
             ]
+        , if acceptedCount > 0 then
+            div [ class "accepted-members" ]
+                [ span [ class "members-label" ] [ text "Accepted:" ]
+                , div [ class "members-list" ] 
+                    (List.filter (\rsvp -> rsvp.status == "ACCEPTED") postRSVPs
+                        |> List.map viewAcceptedMember)
+                ]
+          else
+            text ""
         , if List.isEmpty post.tags then
             text ""
           else
@@ -677,6 +692,10 @@ viewMyPost model post =
             ]
         ]
 
+
+viewAcceptedMember : RSVP -> Html Msg
+viewAcceptedMember rsvp =
+    div [ class "member-box" ] [ text rsvp.userId ]
 
 viewPostRSVP : Int -> Int -> RSVP -> Html Msg
 viewPostRSVP groupSize acceptedCount rsvp =

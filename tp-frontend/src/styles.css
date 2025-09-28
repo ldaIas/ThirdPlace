@@ -737,6 +737,35 @@ body {
   border-color: #6a3a3a;
 }
 
+.accepted-members {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.members-label {
+  font-size: 0.875rem;
+  color: #888;
+  min-width: 80px;
+}
+
+.members-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.member-box {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #4ade80;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
 @media (max-width: 640px) {
   .app {
     padding: 1rem 0.5rem;

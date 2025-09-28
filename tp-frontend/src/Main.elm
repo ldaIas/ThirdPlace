@@ -14,6 +14,7 @@ type alias Model =
     { postsModel : Posts.Model
     , signInModel : SignIn.Model
     , isSignedIn : Bool
+    , currentUser : String
     }
 
 
@@ -29,6 +30,7 @@ init _ _ _ =
     ( { postsModel = Posts.init
       , signInModel = SignIn.init
       , isSignedIn = False
+      , currentUser = "current_user"
       }
     , Cmd.none
     )
@@ -53,8 +55,11 @@ update msg model =
                     let
                         ( updatedSignInModel, signInCmd ) =
                             SignIn.update signInMsg model.signInModel
+                        
+                        updatedPostsModel = 
+                            Posts.setCurrentUser model.signInModel.bypassUsername model.postsModel
                     in
-                    ( { model | signInModel = updatedSignInModel, isSignedIn = True }, Cmd.batch [ Cmd.map SignInMsg signInCmd, Cmd.map PostsMsg Posts.loadPosts ] )
+                    ( { model | signInModel = updatedSignInModel, isSignedIn = True, currentUser = model.signInModel.bypassUsername, postsModel = updatedPostsModel }, Cmd.batch [ Cmd.map SignInMsg signInCmd, Cmd.map PostsMsg Posts.loadPosts ] )
 
                 _ ->
                     let
@@ -64,7 +69,7 @@ update msg model =
                     ( { model | signInModel = updatedSignInModel }, Cmd.map SignInMsg signInCmd )
 
         SignOut ->
-            ( { model | isSignedIn = False, signInModel = SignIn.init }, Cmd.none )
+            ( { model | isSignedIn = False, signInModel = SignIn.init, currentUser = "current_user" }, Cmd.none )
 
 
 view : Model -> Browser.Document Msg

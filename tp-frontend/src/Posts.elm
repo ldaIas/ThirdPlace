@@ -1,4 +1,4 @@
-module Posts exposing (Model, Msg(..), Post, RSVP, init, update, view, loadPosts)
+module Posts exposing (Model, Msg(..), Post, RSVP, init, update, view, loadPosts, setCurrentUser)
 
 import Html exposing (Html, button, div, form, h2, input, option, p, select, span, text, textarea)
 import Html.Attributes exposing (class, placeholder, type_, value)
@@ -55,6 +55,7 @@ type alias Model =
     , showMyPosts : Bool
     , postRSVPs : List ( String, List RSVP )
     , expandedPost : Maybe String
+    , currentUser : String
     }
 
 
@@ -104,7 +105,13 @@ init =
     , showMyPosts = False
     , postRSVPs = []
     , expandedPost = Nothing
+    , currentUser = "current_user"
     }
+
+
+setCurrentUser : String -> Model -> Model
+setCurrentUser username model =
+    { model | currentUser = username }
 
 
 emptyNewPost : NewPost
@@ -200,7 +207,7 @@ update msg model =
             if String.isEmpty (String.trim model.newPost.title) then
                 ( model, Cmd.none )
             else
-                ( model, createPost model.newPost )
+                ( model, createPost model.newPost model.currentUser )
 
         ShowRSVPConfirm postId ->
             ( { model | showRSVPConfirm = Just postId }, Cmd.none )
@@ -209,7 +216,7 @@ update msg model =
             ( { model | showRSVPConfirm = Nothing }, Cmd.none )
 
         ConfirmRSVP postId ->
-            ( { model | showRSVPConfirm = Nothing }, createRSVP postId )
+            ( { model | showRSVPConfirm = Nothing }, createRSVP postId model.currentUser )
 
         RSVPCreated result ->
             case result of
@@ -224,13 +231,13 @@ update msg model =
                     ( { model | error = Just "Failed to create RSVP. Please try again." }, Cmd.none )
 
         ShowMyRSVPs ->
-            ( { model | showMyRSVPs = True, showMyPosts = False }, loadUserRSVPs )
+            ( { model | showMyRSVPs = True, showMyPosts = False }, loadUserRSVPs model.currentUser )
 
         HideMyRSVPs ->
             ( { model | showMyRSVPs = False, showMyPosts = False }, Cmd.none )
 
         LoadUserRSVPs ->
-            ( model, loadUserRSVPs )
+            ( model, loadUserRSVPs model.currentUser )
 
         UserRSVPsLoaded result ->
             case result of
@@ -250,7 +257,7 @@ update msg model =
         RSVPDeleted result ->
             case result of
                 Ok _ ->
-                    ( model, loadUserRSVPs )
+                    ( model, loadUserRSVPs model.currentUser )
 
                 Err err ->
                     let
@@ -260,13 +267,13 @@ update msg model =
                     ( { model | error = Just "Failed to delete RSVP. Please try again." }, Cmd.none )
 
         ShowMyPosts ->
-            ( { model | showMyPosts = True, showMyRSVPs = False }, loadUserPosts )
+            ( { model | showMyPosts = True, showMyRSVPs = False }, loadUserPosts model.currentUser )
 
         HideMyPosts ->
             ( { model | showMyPosts = False, showMyRSVPs = False }, Cmd.none )
 
         LoadUserPosts ->
-            ( model, loadUserPosts )
+            ( model, loadUserPosts model.currentUser )
 
         UserPostsLoaded result ->
             case result of
@@ -362,7 +369,7 @@ view model =
                 else if model.showMyPosts then
                     viewMyPosts model model.userPosts
                 else
-                    div [ class "posts-list" ] (List.map viewPost model.posts)
+                    div [ class "posts-list" ] (List.map (viewPost model) model.posts)
         , if model.showCreateForm then
             viewCreateForm model.newPost
           else if model.showMyRSVPs || model.showMyPosts then
@@ -377,8 +384,8 @@ view model =
         ]
 
 
-viewPost : Post -> Html Msg
-viewPost post =
+viewPost : Model -> Post -> Html Msg
+viewPost model post =
     div [ class "post-card" ]
         [ div [ class "post-header" ]
             [ div [ class "post-title" ] [ text post.title ]
@@ -418,7 +425,7 @@ viewPost post =
           else
             div [ class "post-tags" ] (List.map viewTag post.tags)
         , div [ class "post-actions" ]
-            [ if post.author /= "current_user" then
+            [ if post.author /= model.currentUser then
                 button [ class "rsvp-button", onClick (ShowRSVPConfirm post.id) ] [ text "RSVP" ]
               else
                 text ""
@@ -431,28 +438,28 @@ viewTag tag =
     span [ class "tag" ] [ text tag ]
 
 
-createPost : NewPost -> Cmd Msg
-createPost newPost =
+createPost : NewPost -> String -> Cmd Msg
+createPost newPost currentUser =
     Http.post
         { url = "http://localhost:8080/api/Posts:create"
-        , body = Http.jsonBody (encodeNewPost newPost)
+        , body = Http.jsonBody (encodeNewPost newPost currentUser)
         , expect = Http.expectWhatever PostCreated
         }
 
 
-createRSVP : String -> Cmd Msg
-createRSVP postId =
+createRSVP : String -> String -> Cmd Msg
+createRSVP postId currentUser =
     Http.post
         { url = "http://localhost:8080/api/RSVPs:create"
-        , body = Http.jsonBody (encodeCreateRSVP postId)
+        , body = Http.jsonBody (encodeCreateRSVP postId currentUser)
         , expect = Http.expectWhatever RSVPCreated
         }
 
 
-loadUserRSVPs : Cmd Msg
-loadUserRSVPs =
+loadUserRSVPs : String -> Cmd Msg
+loadUserRSVPs currentUser =
     Http.get
-        { url = "http://localhost:8080/api/RSVPs:getByUser/current_user"
+        { url = "http://localhost:8080/api/RSVPs:getByUser/" ++ currentUser
         , expect = Http.expectJson UserRSVPsLoaded rsvpsDecoder
         }
 
@@ -470,10 +477,10 @@ deleteRSVP rsvpId =
         }
 
 
-loadUserPosts : Cmd Msg
-loadUserPosts =
+loadUserPosts : String -> Cmd Msg
+loadUserPosts currentUser =
     Http.get
-        { url = "http://localhost:8080/api/Posts:getByUser/current_user"
+        { url = "http://localhost:8080/api/Posts:getByUser/" ++ currentUser
         , expect = Http.expectJson UserPostsLoaded postsDecoder
         }
 
@@ -499,11 +506,11 @@ respondToRSVP rsvpId response =
         }
 
 
-encodeNewPost : NewPost -> Encode.Value
-encodeNewPost newPost =
+encodeNewPost : NewPost -> String -> Encode.Value
+encodeNewPost newPost currentUser =
     Encode.object
         [ ( "title", Encode.string newPost.title )
-        , ( "author", Encode.string "current_user" )
+        , ( "author", Encode.string currentUser )
         , ( "description", Encode.string newPost.description )
         , ( "endDate", Encode.string "2025-01-28T23:59:00Z" )
         , ( "groupSize", Encode.int (String.toInt newPost.groupSize |> Maybe.withDefault 2) )
@@ -517,10 +524,10 @@ encodeNewPost newPost =
         ]
 
 
-encodeCreateRSVP : String -> Encode.Value
-encodeCreateRSVP postId =
+encodeCreateRSVP : String -> String -> Encode.Value
+encodeCreateRSVP postId currentUser =
     Encode.object
-        [ ( "userId", Encode.string "current_user" )
+        [ ( "userId", Encode.string currentUser )
         , ( "postId", Encode.string postId )
         ]
 

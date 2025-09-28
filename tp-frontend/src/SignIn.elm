@@ -1,8 +1,8 @@
 port module SignIn exposing (Model, Msg(..), init, update, view)
 
-import Html exposing (Html, button, div, h1, p, text)
-import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
+import Html exposing (Html, button, div, h1, input, p, text)
+import Html.Attributes exposing (class, placeholder, value)
+import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as Decode
 
@@ -10,6 +10,7 @@ import Json.Decode as Decode
 type alias Model =
     { error : Maybe String
     , isLoading : Bool
+    , bypassUsername : String
     }
 
 
@@ -18,12 +19,14 @@ type Msg
     | GotSignedRequest (Result Http.Error String)
     | SignInSuccess
     | BypassSignIn
+    | UpdateBypassUsername String
 
 
 init : Model
 init =
     { error = Nothing
     , isLoading = False
+    , bypassUsername = "current_user"
     }
 
 
@@ -50,6 +53,9 @@ update msg model =
         BypassSignIn ->
             ( model, Cmd.none )
 
+        UpdateBypassUsername username ->
+            ( { model | bypassUsername = username }, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
@@ -68,11 +74,20 @@ view model =
                 , class "signin-button"
                 ] 
                 [ text (if model.isLoading then "Connecting..." else "Sign In with Frequency") ]
-            , button 
-                [ onClick BypassSignIn
-                , class "bypass-button"
-                ] 
-                [ text "Bypass (Dev Only)" ]
+            , div [ class "bypass-section" ]
+                [ input
+                    [ placeholder "Username for bypass"
+                    , value model.bypassUsername
+                    , onInput UpdateBypassUsername
+                    , class "bypass-input"
+                    ]
+                    []
+                , button 
+                    [ onClick BypassSignIn
+                    , class "bypass-button"
+                    ] 
+                    [ text "Bypass (Dev Only)" ]
+                ]
             ]
         ]
 

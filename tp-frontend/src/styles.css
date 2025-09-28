@@ -126,6 +126,51 @@ body {
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
+.bypass-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bypass-input {
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 0.75rem;
+  color: #fff;
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.bypass-input:focus {
+  outline: none;
+  border-color: #555;
+}
+
+.bypass-input::placeholder {
+  color: #666;
+}
+
+.bypass-button {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #888;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bypass-button:hover {
+  border-color: #555;
+  color: #fff;
+}
+
 .posts-container {
   width: 100%;
 }

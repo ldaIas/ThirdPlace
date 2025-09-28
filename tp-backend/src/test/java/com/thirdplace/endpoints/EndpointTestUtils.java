@@ -12,7 +12,7 @@ public class EndpointTestUtils {
         assertNotNull(response, "Response should not be null");
         if (status.getStatusCode() != response.getStatus()) {
             final String body = response.readEntity(String.class);
-            fail(String.format("Expected status %d but got %d. Response body:",
+            fail(String.format("Expected status %d but got %d. Response body: %s",
                     status.getStatusCode(), response.getStatus(), body));
         }
 

@@ -24,7 +24,7 @@ public class DatabaseManager {
 
             LOGGER.debug("Database connection successful!");
         } catch (SQLException e) {
-            LOGGER.error("Database connection failed: {} {}", e.getMessage(),
+            LOGGER.error("Database connection failed: {} Schema: {}", e.getMessage(),
                     AppDataSource.getAppDatasource().schemaName());
         }
     }
